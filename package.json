@@ -1,0 +1,85 @@
+{
+  "name": "ink-playing-cards",
+  "version": "0.0.0",
+  "description": "A ink component to render playing cards and card games",
+  "author": "gfargo <ghfargo@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "start": "node dist/cli.js",
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "release": "release-it",
+    "lint": "prettier --check . && xo",
+    "lint:fix": "prettier --write . && xo --fix",
+    "pretest": "yarn build",
+    "test": "ava",
+    "test:fix": "yarn lint:fix && ava --update-snapshots"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "ink": "^4.1.0",
+    "meow": "^11.0.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@ava/typescript": "^5.0.0",
+    "@types/node": "^22.8.2",
+    "@types/react": "^18.0.32",
+    "ava": "^6.2.0",
+    "chalk": "^5.2.0",
+    "eslint-config-xo-react": "^0.27.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "ink-testing-library": "^4.0.0",
+    "prettier": "^2.8.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3",
+    "xo": "^0.59.3"
+  },
+  "ava": {
+    "typescript": {
+      "extensions": [
+        "ts",
+        "tsx"
+      ],
+      "rewritePaths": {
+        "src/": "dist/"
+      },
+      "compile": false
+    },
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "xo": {
+    "extends": "xo-react",
+    "prettier": true,
+    "rules": {
+      "react/prop-types": "off",
+      "react/no-array-index-key": "off",
+      "unicorn/filename-case": "off",
+      "unicorn/prevent-abbreviations": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "react/boolean-prop-naming": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/naming-convention": [
+        "error",
+        {
+          "selector": "variable",
+          "format": [
+            "camelCase",
+            "PascalCase",
+            "UPPER_CASE"
+          ]
+        }
+      ]
+    }
+  }
+}
