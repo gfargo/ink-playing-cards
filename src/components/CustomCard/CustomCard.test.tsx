@@ -8,7 +8,7 @@ test('render custom card', (t) => {
   const { lastFrame } = render(
     <CustomCard
       id="custom-card"
-      type="custom"
+      type="custom card"
       content={
         <Box>
           <Text>Q</Text>

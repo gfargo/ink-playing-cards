@@ -29,7 +29,6 @@ export type CardProps = {
   value: Value
   suit: Suit
   faceUp?: boolean
-  style?: React.CSSProperties
   effects?: CardEffect[]
 }
 
@@ -39,7 +38,6 @@ export type CustomCardProps = {
   type: string
   content: ReactNode
   faceUp?: boolean
-  style?: React.CSSProperties
   effects?: CardEffect[]
 }
 

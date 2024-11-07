@@ -1,25 +1,25 @@
-import { Box, Text } from 'ink'
+import { Box, type BoxProps, Text } from 'ink'
 import React from 'react'
 import useDeck from '../../hooks/useDeck.js'
 import { type CustomCardProps } from '../../types/index.js'
 
-function CustomCard({ type, content, faceUp = true, style }: CustomCardProps) {
+function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
   const { backArtwork } = useDeck()
 
-  const cardStyle = {
+  const cardStyle: BoxProps = {
     padding: 1,
-    borderStyle: 'single',
-    width: 20,
+    borderStyle: 'round',
+    width: 18,
     height: 10,
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    ...style,
   }
+
+  console.log('type', { type })
 
   if (!faceUp) {
     return (
-      // @ts-ignore
       <Box {...cardStyle}>
         <Text>{backArtwork}</Text>
       </Box>

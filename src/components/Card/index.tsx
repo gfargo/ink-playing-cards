@@ -1,4 +1,4 @@
-import { Box, Text } from 'ink'
+import { Box, type BoxProps, Text } from 'ink'
 import React from 'react'
 import useDeck from '../../hooks/useDeck.js'
 import { type CardProps } from '../../types/index.js'
@@ -10,27 +10,25 @@ const suitSymbols: Record<string, string> = {
   spades: '♠',
 }
 
-function Card({ suit, value, faceUp = true, style }: CardProps) {
+function Card({ suit, value, faceUp = true }: CardProps) {
   const { backArtwork } = useDeck()
 
-  const cardStyle = {
+  const cardStyle: BoxProps = {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 1,
     borderStyle: 'single',
-    width: 7,
-    height: 5,
-    ...style,
+    height: 7,
+    width: 5,
   }
 
   if (!faceUp) {
     return (
-      <Box
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        // @ts-ignore
-        style={{ ...cardStyle, flexDirection: 'column' }}
-      >
-        <Text>{backArtwork}</Text>
+      <Box {...cardStyle}>
+        <Box width="100%" height="100%">
+          <Text>{backArtwork}</Text>
+        </Box>
       </Box>
     )
   }
@@ -38,12 +36,7 @@ function Card({ suit, value, faceUp = true, style }: CardProps) {
   const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
 
   return (
-    <Box
-      flexDirection="column"
-      alignItems="flex-start"
-      // @ts-ignore
-      style={cardStyle}
-    >
+    <Box {...cardStyle}>
       <Box width="100%" justifyContent="space-between">
         <Text color={color}>{value}</Text>
         <Text color={color}>{suitSymbols[suit]}</Text>
