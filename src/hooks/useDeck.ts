@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import DeckContext from '../contexts/DeckContext.js'
-import { type Card, type CustomCardProps } from '../types/index.js'
+import { type TCard, type CustomCardProps } from '../types/index.js'
 
 const useDeck = () => {
   const context = useContext(DeckContext)
@@ -31,7 +31,7 @@ const useDeck = () => {
     dispatch({ type: 'ADD_CUSTOM_CARD', payload: card })
   }
 
-  const removeCustomCard = (card: Card) => {
+  const removeCustomCard = (card: TCard) => {
     dispatch({ type: 'REMOVE_CUSTOM_CARD', payload: card })
   }
 

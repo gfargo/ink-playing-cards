@@ -8,9 +8,9 @@ import {
   type PlayArea,
 } from '../systems/Zones.js'
 
-export type Suit = 'hearts' | 'diamonds' | 'clubs' | 'spades'
-export type Value =
-  | 'A'
+export type TSuitIcon = '♥' | '♦' | '♣' | '♠'
+
+export type TCardValue =
   | '2'
   | '3'
   | '4'
@@ -23,25 +23,29 @@ export type Value =
   | 'J'
   | 'Q'
   | 'K'
+  | 'A'
+  | 'JOKER'
+
+export type TSuit = 'hearts' | 'diamonds' | 'clubs' | 'spades'
 
 export type CardProps = {
-  id: string
-  value: Value
-  suit: Suit
+  id?: string
+  value: TCardValue
+  suit: TSuit
   faceUp?: boolean
   effects?: CardEffect[]
 }
 
 export type CustomCardProps = {
   id: string
-  value: Value
+  value: TCardValue | string
   type: string
   content: ReactNode
   faceUp?: boolean
   effects?: CardEffect[]
 }
 
-export type Card = CardProps | CustomCardProps
+export type TCard = CardProps | CustomCardProps
 
 export type CardEffect = {
   apply(gameState: any, eventData: any): void
@@ -49,7 +53,7 @@ export type CardEffect = {
 
 export type PlayerHand = {
   userId: string
-  cards: Card[]
+  cards: TCard[]
 }
 
 export type DeckContextType = {
@@ -78,11 +82,11 @@ export type DeckAction =
   | { type: 'RESET' }
   | { type: 'SET_BACK_ARTWORK'; payload: ReactNode }
   | { type: 'ADD_CUSTOM_CARD'; payload: CustomCardProps }
-  | { type: 'REMOVE_CUSTOM_CARD'; payload: Card }
+  | { type: 'REMOVE_CUSTOM_CARD'; payload: TCard }
   | { type: 'CUT_DECK'; payload: number }
   | { type: 'DEAL'; payload: { count: number; playerIds: string[] } }
-  | { type: 'PLAY_CARD'; payload: { playerId: string; card: Card } }
-  | { type: 'DISCARD'; payload: { playerId: string; card: Card } }
+  | { type: 'PLAY_CARD'; payload: { playerId: string; card: TCard } }
+  | { type: 'DISCARD'; payload: { playerId: string; card: TCard } }
 
 export type GameAction =
   | { type: 'ADD_PLAYER'; payload: string }

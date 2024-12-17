@@ -1,4 +1,4 @@
-import { type Card } from '../types/index.js'
+import { type TCard } from '../types/index.js'
 
 export type GameState = {
   currentPlayer: any
@@ -106,13 +106,13 @@ export class DamageEffect implements CardEffect {
   }
 }
 
-export function attachEffectToCard(card: Card, effect: CardEffect): void {
+export function attachEffectToCard(card: TCard, effect: CardEffect): void {
   card.effects ||= []
   card.effects.push(effect)
 }
 
 export class EffectManager {
-  applyCardEffects(card: Card, gameState: GameState, eventData: any): void {
+  applyCardEffects(card: TCard, gameState: GameState, eventData: any): void {
     if (card.effects) {
       for (const effect of card.effects) {
         effect.apply(gameState, eventData)

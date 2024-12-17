@@ -16,8 +16,6 @@ function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
     justifyContent: 'center',
   }
 
-  console.log('type', { type })
-
   if (!faceUp) {
     return (
       <Box {...cardStyle}>

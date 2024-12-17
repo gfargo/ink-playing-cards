@@ -1,14 +1,14 @@
 import React, {
   createContext,
-  type ReactNode,
   useMemo,
   useReducer,
+  type ReactNode,
 } from 'react'
 import { EffectManager } from '../systems/Effects.js'
 import { EventManager } from '../systems/Events.js'
 import { Deck, DiscardPile, Hand, PlayArea } from '../systems/Zones.js'
 import {
-  type Card,
+  type TCard,
   type DeckAction,
   type DeckContextType,
 } from '../types/index.js'
@@ -43,7 +43,7 @@ const deckReducer = (
 
     case 'DRAW': {
       const { playerId: drawPlayerId, count } = action.payload
-      const drawnCards: Card[] = []
+      const drawnCards: TCard[] = []
       for (let i = 0; i < count; i++) {
         const card = state.zones.deck.drawCard()
         if (card) {
@@ -140,7 +140,7 @@ const deckReducer = (
 
 type DeckProviderProperties = {
   readonly children: ReactNode
-  readonly initialCards?: Card[]
+  readonly initialCards?: TCard[]
   readonly customReducer?: (
     state: DeckContextType,
     action: DeckAction

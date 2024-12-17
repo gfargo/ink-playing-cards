@@ -1,14 +1,26 @@
 import { Box } from 'ink'
-import React from 'react'
+import React, { useMemo } from 'react'
 import useDeck from '../../hooks/useDeck.js'
+import {
+  type CardProps,
+  type TCardValue,
+  type TSuit,
+} from '../../types/index.js'
 import Card from '../Card/index.js'
 
 type DeckProperties = {
   readonly showTopCard?: boolean
   readonly style?: React.CSSProperties
+  readonly variant?: 'simple' | 'ascii' | 'minimal'
+  readonly placeholderCard?: { suit: TSuit; value: TCardValue }
 }
 
-function Deck({ showTopCard = false, style }: DeckProperties) {
+function Deck({
+  showTopCard,
+  style,
+  variant = 'simple',
+  placeholderCard = { suit: 'hearts', value: 'A' },
+}: DeckProperties) {
   const { deck } = useDeck()
 
   const deckStyle = {
@@ -17,24 +29,41 @@ function Deck({ showTopCard = false, style }: DeckProperties) {
     ...style,
   }
 
-  const renderTopCard = () => {
+  const renderTopCard = useMemo(() => {
     if (deck.cards.length > 0) {
-      // @ts-ignore
-      return <Card {...deck.cards[0]} faceUp={showTopCard} />
+      const topCard = deck.cards[0] as CardProps
+      if (topCard?.suit === undefined || topCard.value === undefined) {
+        console.error('Invalid top card:', topCard)
+        return null
+      }
+
+      return (
+        <Card
+          suit={topCard.suit}
+          value={topCard.value}
+          faceUp={showTopCard}
+          variant={variant}
+        />
+      )
     }
 
     //  Else if (customCards && customCards.length > 0) {
-    //   return <CustomCard {...customCards[0]} faceUp={showTopCard} />
+    //   return <CustomCard {...customCards[0]} faceUp={showTopCard} variant={variant} />
     // }
     return null
-  }
+  }, [deck.cards, showTopCard, variant])
 
   return (
     // @ts-ignore
     <Box flexDirection="column" alignItems="center" {...deckStyle}>
-      {renderTopCard()}
+      {renderTopCard}
       <Box marginTop={1}>
-        <Card id="ace-spades" suit="spades" value="A" faceUp={false} />
+        <Card
+          suit={placeholderCard.suit}
+          value={placeholderCard.value}
+          faceUp={!showTopCard}
+          variant={variant}
+        />
       </Box>
     </Box>
   )

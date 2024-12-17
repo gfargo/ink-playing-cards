@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import DeckContext from '../contexts/DeckContext.js'
-import { type Card } from '../types/index.js'
+import { type TCard } from '../types/index.js'
 
 const useHand = (userId: string) => {
   const context = useContext(DeckContext)
@@ -21,7 +21,7 @@ const useHand = (userId: string) => {
   const playCard = (cardId: string) => {
     if (!playerHand) return
     const cardIndex = playerHand.cards.findIndex(
-      (card: Card) => card.id === cardId
+      (card: TCard) => card.id === cardId
     )
     if (cardIndex === -1) return
 

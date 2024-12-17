@@ -17,7 +17,7 @@
     "lint:fix": "prettier --write . && xo --fix",
     "pretest": "yarn build",
     "test": "ava",
-    "test:fix": "yarn lint:fix && ava --update-snapshots"
+    "test:fix": "yarn build && yarn lint:fix && ava --update-snapshots",
   },
   "files": [
     "dist"
@@ -34,10 +34,11 @@
     "ava": "^6.2.0",
     "chalk": "^5.2.0",
     "eslint-config-xo-react": "^0.27.0",
-    "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react": "^7.32.2",
     "ink-testing-library": "^4.0.0",
     "prettier": "^2.8.7",
+    "release-it": "^17.10.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3",
     "xo": "^0.59.3"

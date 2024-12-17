@@ -1,13 +1,16 @@
 import { Box, Text } from 'ink'
 import React from 'react'
-import { type Card } from '../../types/index.js'
+import { type CardProps, type TCard } from '../../types/index.js'
+import Card from '../Card/index.js'
 
 type CardStackProperties = {
-  readonly cards: Card[]
+  readonly cards: TCard[]
   readonly name: string
   readonly isFaceUp?: boolean
   readonly maxDisplay?: number
-  readonly onCardClick?: (card: Card) => void
+  // Readonly onCardClick?: (card: TCard) => void
+  readonly variant?: 'simple' | 'ascii' | 'minimal'
+  readonly stackDirection?: 'vertical' | 'horizontal'
 }
 
 export function CardStack({
@@ -15,31 +18,52 @@ export function CardStack({
   name,
   isFaceUp = false,
   maxDisplay = 3,
-  onCardClick,
-}: CardStackProperties) {
+  variant = 'simple',
+  stackDirection = 'vertical',
+}: // OnCardClick,
+CardStackProperties) {
   const displayCards = cards.slice(-maxDisplay)
 
-  console.log('TODO: implenet onclick', onCardClick)
+  const getOverlap = () => {
+    switch (variant) {
+      case 'ascii': {
+        return { marginLeft: -10, marginTop: 2 }
+      }
+
+      case 'simple': {
+        return { marginLeft: -6, marginTop: 1 }
+      }
+
+      case 'minimal': {
+        return { marginLeft: -2, marginTop: 0 }
+      }
+    }
+  }
+
+  const { marginLeft, marginTop } = getOverlap()
 
   return (
     <Box flexDirection="column" alignItems="center">
       <Text>
         {name} ({cards.length})
       </Text>
-      <Box>
+      <Box flexDirection={stackDirection === 'horizontal' ? 'row' : 'column'}>
         {displayCards.map((card, index) => (
           <Box
             key={card.id}
-            marginLeft={index > 0 ? -2 : 0}
-            marginTop={Number(index)}
+            marginLeft={
+              stackDirection === 'horizontal' && index > 0 ? marginLeft : 0
+            }
+            marginTop={
+              stackDirection === 'vertical' && index > 0 ? marginTop : 0
+            }
           >
-            {isFaceUp ? (
-              <Text backgroundColor="white" color="black">
-                {card.value}
-              </Text>
-            ) : (
-              <Text backgroundColor="gray">🂠</Text>
-            )}
+            <Card
+              suit={(card as CardProps).suit}
+              value={(card as CardProps).value}
+              faceUp={isFaceUp}
+              variant={variant}
+            />
           </Box>
         ))}
       </Box>
