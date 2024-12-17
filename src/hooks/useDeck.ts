@@ -1,8 +1,8 @@
 import { useContext } from 'react'
 import DeckContext from '../contexts/DeckContext.js'
-import { type TCard, type CustomCardProps } from '../types/index.js'
+import { type BackArtwork, type CustomCardProps, type TCard } from '../types/index.js'
 
-const useDeck = () => {
+export const useDeck = () => {
   const context = useContext(DeckContext)
   if (!context) {
     throw new Error('useDeck must be used within a DeckProvider')
@@ -23,7 +23,7 @@ const useDeck = () => {
     dispatch({ type: 'RESET' })
   }
 
-  const setBackArtwork = (artwork: React.ReactNode) => {
+  const setBackArtwork = (artwork: Partial<BackArtwork>) => {
     dispatch({ type: 'SET_BACK_ARTWORK', payload: artwork })
   }
 
@@ -61,6 +61,4 @@ const useDeck = () => {
     cutDeck,
     deal,
   }
-}
-
-export default useDeck
+} 

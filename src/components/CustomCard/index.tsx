@@ -3,7 +3,7 @@ import React from 'react'
 import useDeck from '../../hooks/useDeck.js'
 import { type CustomCardProps } from '../../types/index.js'
 
-function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
+export function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
   const { backArtwork } = useDeck()
 
   const cardStyle: BoxProps = {
@@ -19,7 +19,7 @@ function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
   if (!faceUp) {
     return (
       <Box {...cardStyle}>
-        <Text>{backArtwork}</Text>
+        <Text>{String(backArtwork)}</Text>
       </Box>
     )
   }
@@ -36,5 +36,4 @@ function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
     </Box>
   )
 }
-
-export default CustomCard
+ 

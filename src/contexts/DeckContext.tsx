@@ -8,12 +8,42 @@ import { EffectManager } from '../systems/Effects.js'
 import { EventManager } from '../systems/Events.js'
 import { Deck, DiscardPile, Hand, PlayArea } from '../systems/Zones.js'
 import {
-  type TCard,
+  type BackArtwork,
   type DeckAction,
   type DeckContextType,
+  type TCard,
 } from '../types/index.js'
 
-const defaultBackArtwork = '🂠'
+const generateDefaultBackArtwork = (variant: 'simple' | 'ascii' | 'minimal'): string => {
+  switch (variant) {
+    case 'ascii':
+      return `
++-------------+
+|             |
+|    🂠 🂠 🂠    |
+|    🂠 🂠 🂠    |
+|    🂠 🂠 🂠    |
+|             |
++-------------+
+`.trim()
+    case 'simple':
+      return `
++-------+
+|  🂠 🂠  |
+|  🂠 🂠  |
+|  🂠 🂠  |
++-------+
+`.trim()
+    case 'minimal':
+      return '🂠'
+  }
+}
+
+const defaultBackArtwork: BackArtwork = {
+  ascii: generateDefaultBackArtwork('ascii'),
+  simple: generateDefaultBackArtwork('simple'),
+  minimal: generateDefaultBackArtwork('minimal'),
+}
 
 const initialState: DeckContextType = {
   zones: {
@@ -29,7 +59,7 @@ const initialState: DeckContextType = {
   dispatch: () => null,
 }
 
-const DeckContext = createContext<DeckContextType>(initialState)
+export const DeckContext = createContext<DeckContextType>(initialState)
 
 const deckReducer = (
   state: DeckContextType,
@@ -69,7 +99,10 @@ const deckReducer = (
     case 'SET_BACK_ARTWORK': {
       return {
         ...state,
-        backArtwork: action.payload,
+        backArtwork: {
+          ...state.backArtwork,
+          ...action.payload,
+        },
       }
     }
 
@@ -166,5 +199,4 @@ export function DeckProvider({
     <DeckContext.Provider value={contextValue}>{children}</DeckContext.Provider>
   )
 }
-
-export default DeckContext
+ 

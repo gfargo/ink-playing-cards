@@ -56,6 +56,12 @@ export type PlayerHand = {
   cards: TCard[]
 }
 
+export type BackArtwork = {
+  ascii: string
+  simple: string
+  minimal: string
+}
+
 export type DeckContextType = {
   zones: {
     deck: Deck
@@ -64,7 +70,7 @@ export type DeckContextType = {
     playArea: PlayArea
   }
   players: PlayerHand[]
-  backArtwork: ReactNode
+  backArtwork: BackArtwork
   eventManager: EventManager
   effectManager: EffectManager
   dispatch: React.Dispatch<DeckAction>
@@ -80,7 +86,7 @@ export type DeckAction =
   | { type: 'SHUFFLE' }
   | { type: 'DRAW'; payload: { count: number; playerId: string } }
   | { type: 'RESET' }
-  | { type: 'SET_BACK_ARTWORK'; payload: ReactNode }
+  | { type: 'SET_BACK_ARTWORK'; payload: Partial<BackArtwork> }
   | { type: 'ADD_CUSTOM_CARD'; payload: CustomCardProps }
   | { type: 'REMOVE_CUSTOM_CARD'; payload: TCard }
   | { type: 'CUT_DECK'; payload: number }

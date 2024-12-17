@@ -503,19 +503,15 @@ export function Card({
     return (
       <Box {...cardStyle}>
         <Box width="100%" height="100%">
-          <Text>{backArtwork}</Text>
+          <Text>{backArtwork[variant]}</Text>
         </Box>
       </Box>
     )
   }
 
   const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
-  // If variant is ascii, we can use prebuilt asciiCards, else build on the fly:
   const symbol = SUIT_SYMBOL_MAP[suit]
-  const cardText =
-    variant === 'ascii'
-      ? makeCard(value, symbol, asciiConfig)
-      : makeCard(value, symbol, config)
+  const cardText = makeCard(value, symbol, config)
 
   return (
     <Box {...cardStyle}>

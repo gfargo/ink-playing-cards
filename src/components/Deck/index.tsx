@@ -15,7 +15,7 @@ type DeckProperties = {
   readonly placeholderCard?: { suit: TSuit; value: TCardValue }
 }
 
-function Deck({
+export function Deck({
   showTopCard,
   style,
   variant = 'simple',
@@ -68,5 +68,3 @@ function Deck({
     </Box>
   )
 }
-
-export default Deck

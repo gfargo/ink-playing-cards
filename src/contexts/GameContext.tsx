@@ -12,7 +12,7 @@ const initialState: GameContextType = {
   dispatch: () => null,
 }
 
-const GameContext = createContext<GameContextType>(initialState)
+export const GameContext = createContext<GameContextType>(initialState)
 
 const gameReducer = (
   state: GameContextType,
@@ -66,6 +66,4 @@ export function GameProvider({
   return (
     <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>
   )
-}
-
-export default GameContext
+} 
