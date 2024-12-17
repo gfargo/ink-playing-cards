@@ -1,6 +1,6 @@
 import { Box } from 'ink'
 import React, { useMemo } from 'react'
-import useDeck from '../../hooks/useDeck.js'
+import { useDeck } from '../../hooks/useDeck.js'
 import {
   type CardProps,
   type TCardValue,

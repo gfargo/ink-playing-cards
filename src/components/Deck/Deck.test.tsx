@@ -1,7 +1,7 @@
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
-import Deck from './index.js'
+import { Deck } from './index.js'
 
 test('render deck with defaults', (t) => {
   const { lastFrame } = render(<Deck />)

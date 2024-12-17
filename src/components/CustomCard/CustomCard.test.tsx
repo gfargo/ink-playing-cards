@@ -2,7 +2,7 @@ import test from 'ava'
 import { Box, Text } from 'ink'
 import { render } from 'ink-testing-library'
 import React from 'react'
-import CustomCard from './index.js'
+import { CustomCard } from './index.js'
 
 test('render custom card', (t) => {
   const { lastFrame } = render(

@@ -1,11 +1,11 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React from 'react'
-import useDeck from '../../hooks/useDeck.js'
+import { useDeck } from '../../hooks/useDeck.js'
 import {
+  type CardProps,
   type TCardValue,
   type TSuit,
   type TSuitIcon,
-  type CardProps,
 } from '../../types/index.js'
 
 export const SUIT_SYMBOL_MAP: Record<TSuit, TSuitIcon> = {

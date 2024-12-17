@@ -1,6 +1,6 @@
 import { Box, type BoxProps, Text } from 'ink'
 import React from 'react'
-import useDeck from '../../hooks/useDeck.js'
+import { useDeck } from '../../hooks/useDeck.js'
 import { type CustomCardProps } from '../../types/index.js'
 
 export function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
@@ -36,4 +36,3 @@ export function CustomCard({ type, content, faceUp = true }: CustomCardProps) {
     </Box>
   )
 }
- 

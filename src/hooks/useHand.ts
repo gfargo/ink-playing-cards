@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import DeckContext from '../contexts/DeckContext.js'
+import { DeckContext } from '../contexts/DeckContext.js'
 import { type TCard } from '../types/index.js'
 
 export const useHand = (userId: string) => {
@@ -43,4 +43,4 @@ export const useHand = (userId: string) => {
     drawCard,
     playCard,
   }
-} 
+}

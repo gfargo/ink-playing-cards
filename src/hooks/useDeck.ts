@@ -1,6 +1,10 @@
 import { useContext } from 'react'
-import DeckContext from '../contexts/DeckContext.js'
-import { type BackArtwork, type CustomCardProps, type TCard } from '../types/index.js'
+import { DeckContext } from '../contexts/DeckContext.js'
+import {
+  type BackArtwork,
+  type CustomCardProps,
+  type TCard,
+} from '../types/index.js'
 
 export const useDeck = () => {
   const context = useContext(DeckContext)
@@ -61,4 +65,4 @@ export const useDeck = () => {
     cutDeck,
     deal,
   }
-} 
+}

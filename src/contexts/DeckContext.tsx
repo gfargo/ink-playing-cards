@@ -14,9 +14,11 @@ import {
   type TCard,
 } from '../types/index.js'
 
-const generateDefaultBackArtwork = (variant: 'simple' | 'ascii' | 'minimal'): string => {
+const generateDefaultBackArtwork = (
+  variant: 'simple' | 'ascii' | 'minimal'
+): string => {
   switch (variant) {
-    case 'ascii':
+    case 'ascii': {
       return `
 +-------------+
 |             |
@@ -26,7 +28,9 @@ const generateDefaultBackArtwork = (variant: 'simple' | 'ascii' | 'minimal'): st
 |             |
 +-------------+
 `.trim()
-    case 'simple':
+    }
+
+    case 'simple': {
       return `
 +-------+
 |  🂠 🂠  |
@@ -34,8 +38,11 @@ const generateDefaultBackArtwork = (variant: 'simple' | 'ascii' | 'minimal'): st
 |  🂠 🂠  |
 +-------+
 `.trim()
-    case 'minimal':
+    }
+
+    case 'minimal': {
       return '🂠'
+    }
   }
 }
 
@@ -199,4 +206,3 @@ export function DeckProvider({
     <DeckContext.Provider value={contextValue}>{children}</DeckContext.Provider>
   )
 }
- 

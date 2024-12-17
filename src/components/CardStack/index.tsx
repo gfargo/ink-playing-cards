@@ -70,5 +70,3 @@ CardStackProperties) {
     </Box>
   )
 }
-
-export default CardStack

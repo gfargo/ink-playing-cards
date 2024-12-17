@@ -1,7 +1,7 @@
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
-import CardStack from './index.js'
+import { CardStack } from './index.js'
 
 test('render queen of clubs face up', (t) => {
   const { lastFrame } = render(
