@@ -1,6 +1,6 @@
 {
   "name": "ink-playing-cards",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A ink component to render playing cards and card games",
   "author": "gfargo <ghfargo@gmail.com>",
   "license": "MIT",
