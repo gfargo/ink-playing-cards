@@ -37,11 +37,27 @@ export type CardProps = {
 }
 
 export type CustomCardProps = {
-  id: string
-  value: TCardValue | string
-  type: string
-  content: ReactNode
+  size?: 'small' | 'medium' | 'large'
+  width?: number
+  height?: number
+  asciiArt?: string
+  title?: string
+  description?: string
+  symbols?: Array<{
+    char: string
+    position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+    color?: string
+  }>
+  borderColor?: string
+  backgroundColor?: string
+  textColor?: string
+  onClick?: () => void
   faceUp?: boolean
+  // Keeping these for backwards compatibility
+  id?: string
+  value?: TCardValue | string
+  type?: string
+  content?: ReactNode
   effects?: CardEffect[]
 }
 
