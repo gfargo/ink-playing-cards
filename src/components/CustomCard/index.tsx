@@ -1,8 +1,8 @@
+import chalk from 'chalk'
 import { Box, type BoxProps, Text } from 'ink'
 import React from 'react'
 import { useDeck } from '../../hooks/useDeck.js'
 import { type CustomCardProps } from '../../types/index.js'
-import chalk from 'chalk'
 
 export function CustomCard({
   size = 'medium',
@@ -72,7 +72,7 @@ export function CustomCard({
 
     // Add symbols
     symbols.forEach(({ char, position, color }) => {
-      const symbolColor = color ? chalk[color] : chalk[textColor]
+      const symbolColor = color ? chalk.red[color] : chalk[textColor]
       switch (position) {
         case 'top-left':
           content[0] = symbolColor(char) + content[0].slice(1)
