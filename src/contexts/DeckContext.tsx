@@ -20,23 +20,17 @@ const generateDefaultBackArtwork = (
   switch (variant) {
     case 'ascii': {
       return `
-+-------------+
-|             |
-|    🂠 🂠 🂠    |
-|    🂠 🂠 🂠    |
-|    🂠 🂠 🂠    |
-|             |
-+-------------+
+  🂠 🂠 🂠    
+  🂠 🂠 🂠    
+  🂠 🂠 🂠    
 `.trim()
     }
 
     case 'simple': {
       return `
-+-------+
-|  🂠 🂠  |
-|  🂠 🂠  |
-|  🂠 🂠  |
-+-------+
+  🂠 🂠  
+  🂠 🂠  
+  🂠 🂠  
 `.trim()
     }
 
@@ -46,7 +40,7 @@ const generateDefaultBackArtwork = (
   }
 }
 
-const defaultBackArtwork: BackArtwork = {
+export const defaultBackArtwork: BackArtwork = {
   ascii: generateDefaultBackArtwork('ascii'),
   simple: generateDefaultBackArtwork('simple'),
   minimal: generateDefaultBackArtwork('minimal'),
@@ -78,6 +72,8 @@ const deckReducer = (
       return { ...state }
     }
 
+    // TODO: Seems like the `hand` zone should be an object keyed by player ID instead of a single zone (?)
+    // TODO: This would allow us to keep track of each player's hand separately in our game v.s. just having a single hand zone
     case 'DRAW': {
       const { playerId: drawPlayerId, count } = action.payload
       const drawnCards: TCard[] = []
@@ -135,6 +131,7 @@ const deckReducer = (
       }
     }
 
+    // TODO: This action also would be updated to handle multiple player hands per the above note.
     case 'DEAL': {
       const { count: dealCount, playerIds } = action.payload
       for (const playerId of playerIds) {
