@@ -23,9 +23,9 @@ Before we dive into the implementation, let's review some key concepts that we'l
 First, let's set up the necessary imports and create the main game component:
 
 ```jsx
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const BlackjackGame = () => {
   // Game state and logic will go here
@@ -34,16 +34,16 @@ const BlackjackGame = () => {
       <Text>Blackjack Game</Text>
       {/* Game UI will go here */}
     </Box>
-  );
-};
+  )
+}
 
 const App = () => (
   <DeckProvider>
     <BlackjackGame />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 Here, we're using the `DeckProvider` from `ink-playing-cards` to manage our deck state, and we've created a `BlackjackGame` component that will contain our game logic. Note that we've removed the `CardStack` import as we'll be using individual `Card` components instead.
@@ -54,16 +54,16 @@ Let's define our game state:
 
 ```jsx
 const BlackjackGame = () => {
-  const { deck, draw, shuffle } = useDeck();
-  const [playerHand, setPlayerHand] = useState([]);
-  const [dealerHand, setDealerHand] = useState([]);
-  const [gameState, setGameState] = useState('betting'); // betting, playing, dealerTurn, gameOver
-  const [playerScore, setPlayerScore] = useState(0);
-  const [dealerScore, setDealerScore] = useState(0);
-  const [message, setMessage] = useState('');
+  const { deck, draw, shuffle } = useDeck()
+  const [playerHand, setPlayerHand] = useState([])
+  const [dealerHand, setDealerHand] = useState([])
+  const [gameState, setGameState] = useState('betting') // betting, playing, dealerTurn, gameOver
+  const [playerScore, setPlayerScore] = useState(0)
+  const [dealerScore, setDealerScore] = useState(0)
+  const [message, setMessage] = useState('')
 
   // ... (rest of the component)
-};
+}
 ```
 
 We're using the `useDeck` hook to access deck operations. We're also using `useState` to manage the player's hand, dealer's hand, game state, scores, and any messages we want to display.
@@ -74,16 +74,16 @@ Let's add a function to start a new game:
 
 ```jsx
 const startNewGame = () => {
-  shuffle();
-  setPlayerHand(draw(2));
-  setDealerHand(draw(2));
-  setGameState('playing');
-  updateScores();
-};
+  shuffle()
+  setPlayerHand(draw(2))
+  setDealerHand(draw(2))
+  setGameState('playing')
+  updateScores()
+}
 
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 ```
 
 We use the `shuffle` function from `useDeck` to shuffle the deck, then `draw` to deal two cards each to the player and dealer. We're using `useEffect` to start a new game when the component mounts.
@@ -94,38 +94,38 @@ We need a function to calculate hand scores:
 
 ```jsx
 const calculateScore = (hand) => {
-  let score = 0;
-  let aceCount = 0;
-  
+  let score = 0
+  let aceCount = 0
+
   for (const card of hand) {
     if (card.rank === 'A') {
-      aceCount++;
+      aceCount++
     } else if (['J', 'Q', 'K'].includes(card.rank)) {
-      score += 10;
+      score += 10
     } else {
-      score += parseInt(card.rank);
+      score += parseInt(card.rank)
     }
   }
-  
+
   for (let i = 0; i < aceCount; i++) {
     if (score + 11 <= 21) {
-      score += 11;
+      score += 11
     } else {
-      score += 1;
+      score += 1
     }
   }
-  
-  return score;
-};
+
+  return score
+}
 
 const updateScores = () => {
-  setPlayerScore(calculateScore(playerHand));
-  setDealerScore(calculateScore(dealerHand));
-};
+  setPlayerScore(calculateScore(playerHand))
+  setDealerScore(calculateScore(dealerHand))
+}
 
 useEffect(() => {
-  updateScores();
-}, [playerHand, dealerHand]);
+  updateScores()
+}, [playerHand, dealerHand])
 ```
 
 This function calculates the score for a hand, taking into account the special scoring rules for Aces. We use `useEffect` to update scores whenever the hands change.
@@ -137,46 +137,46 @@ Now let's implement the main game actions:
 ```jsx
 const hit = () => {
   if (gameState === 'playing') {
-    const newCard = draw(1)[0];
-    setPlayerHand([...playerHand, newCard]);
-    
+    const newCard = draw(1)[0]
+    setPlayerHand([...playerHand, newCard])
+
     if (calculateScore([...playerHand, newCard]) > 21) {
-      setGameState('gameOver');
-      setMessage('Bust! You lose.');
+      setGameState('gameOver')
+      setMessage('Bust! You lose.')
     }
   }
-};
+}
 
 const stand = () => {
   if (gameState === 'playing') {
-    setGameState('dealerTurn');
-    dealerPlay();
+    setGameState('dealerTurn')
+    dealerPlay()
   }
-};
+}
 
 const dealerPlay = () => {
-  let currentHand = [...dealerHand];
-  let currentScore = calculateScore(currentHand);
-  
+  let currentHand = [...dealerHand]
+  let currentScore = calculateScore(currentHand)
+
   while (currentScore < 17) {
-    const newCard = draw(1)[0];
-    currentHand.push(newCard);
-    currentScore = calculateScore(currentHand);
+    const newCard = draw(1)[0]
+    currentHand.push(newCard)
+    currentScore = calculateScore(currentHand)
   }
-  
-  setDealerHand(currentHand);
-  
+
+  setDealerHand(currentHand)
+
   if (currentScore > 21) {
-    setGameState('gameOver');
-    setMessage('Dealer busts! You win!');
+    setGameState('gameOver')
+    setMessage('Dealer busts! You win!')
   } else if (currentScore >= playerScore) {
-    setGameState('gameOver');
-    setMessage('Dealer wins!');
+    setGameState('gameOver')
+    setMessage('Dealer wins!')
   } else {
-    setGameState('gameOver');
-    setMessage('You win!');
+    setGameState('gameOver')
+    setMessage('You win!')
   }
-};
+}
 ```
 
 These functions implement the core game logic for hitting, standing, and the dealer's turn.
@@ -189,16 +189,16 @@ We'll use Ink's `useInput` hook to handle user input:
 useInput((input, key) => {
   if (gameState === 'playing') {
     if (input === 'h') {
-      hit();
+      hit()
     } else if (input === 's') {
-      stand();
+      stand()
     }
   } else if (gameState === 'gameOver') {
     if (input === 'n') {
-      startNewGame();
+      startNewGame()
     }
   }
-});
+})
 ```
 
 ## Rendering the Game
@@ -209,7 +209,9 @@ Finally, let's render the game state:
 return (
   <Box flexDirection="column">
     <Text>Blackjack Game</Text>
-    <Text>Dealer's Hand (Score: {gameState === 'playing' ? '?' : dealerScore}):</Text>
+    <Text>
+      Dealer's Hand (Score: {gameState === 'playing' ? '?' : dealerScore}):
+    </Text>
     <Box flexDirection="row">
       <Card {...dealerHand[0]} />
       {gameState === 'playing' ? (
@@ -225,14 +227,10 @@ return (
       ))}
     </Box>
     <Text>{message}</Text>
-    {gameState === 'playing' && (
-      <Text>Press 'h' to hit, 's' to stand</Text>
-    )}
-    {gameState === 'gameOver' && (
-      <Text>Press 'n' for a new game</Text>
-    )}
+    {gameState === 'playing' && <Text>Press 'h' to hit, 's' to stand</Text>}
+    {gameState === 'gameOver' && <Text>Press 'n' for a new game</Text>}
   </Box>
-);
+)
 ```
 
 Here, we're using individual `Card` components from `ink-playing-cards` to render each card in the hands. We're using a `Box` component with `flexDirection="row"` to display the cards side by side. For the dealer's hand, we're conditionally rendering a face-down card (represented by "?") when the game is in the 'playing' state. We're also conditionally rendering different UI elements based on the game state.

@@ -30,115 +30,117 @@ Wish is a simple matching game suitable for children. The game uses 32 cards fro
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const WishGame: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <WishGame />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const WishGame: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [piles, setPiles] = useState<Card[][]>([]);
-  const [selectedPile, setSelectedPile] = useState<number | null>(null);
-  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
-  const [message, setMessage] = useState('');
+  const { deck, shuffle, draw } = useDeck()
+  const [piles, setPiles] = useState<Card[][]>([])
+  const [selectedPile, setSelectedPile] = useState<number | null>(null)
+  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>(
+    'playing'
+  )
+  const [message, setMessage] = useState('')
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
   // Filter the deck to include only 7, 8, 9, 10, J, Q, K, A
-  const wishDeck = deck.filter(card => 
+  const wishDeck = deck.filter((card) =>
     ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'].includes(card.rank)
-  );
-  shuffle(wishDeck);
+  )
+  shuffle(wishDeck)
 
   // Create 8 piles of 4 cards each
-  const newPiles: Card[][] = [];
+  const newPiles: Card[][] = []
   for (let i = 0; i < 8; i++) {
-    newPiles.push(wishDeck.slice(i * 4, (i + 1) * 4));
-    newPiles[i][0].faceUp = true; // Turn over the top card of each pile
+    newPiles.push(wishDeck.slice(i * 4, (i + 1) * 4))
+    newPiles[i][0].faceUp = true // Turn over the top card of each pile
   }
 
-  setPiles(newPiles);
-  setSelectedPile(null);
-  setGameState('playing');
-  setMessage('New game started. Select piles to match pairs.');
-};
+  setPiles(newPiles)
+  setSelectedPile(null)
+  setGameState('playing')
+  setMessage('New game started. Select piles to match pairs.')
+}
 ```
 
 ### 4. Game Logic
 
 ```typescript
 const selectPile = (pileIndex: number) => {
-  if (gameState !== 'playing') return;
+  if (gameState !== 'playing') return
 
   if (selectedPile === null) {
-    setSelectedPile(pileIndex);
+    setSelectedPile(pileIndex)
   } else {
-    const firstPile = piles[selectedPile];
-    const secondPile = piles[pileIndex];
+    const firstPile = piles[selectedPile]
+    const secondPile = piles[pileIndex]
 
     if (firstPile[0].rank === secondPile[0].rank) {
       // Match found
-      removePair(selectedPile, pileIndex);
+      removePair(selectedPile, pileIndex)
     } else {
-      setMessage('No match. Try again.');
+      setMessage('No match. Try again.')
     }
-    setSelectedPile(null);
+    setSelectedPile(null)
   }
-};
+}
 
 const removePair = (pileIndex1: number, pileIndex2: number) => {
-  const newPiles = [...piles];
-  newPiles[pileIndex1].shift();
-  newPiles[pileIndex2].shift();
+  const newPiles = [...piles]
+  newPiles[pileIndex1].shift()
+  newPiles[pileIndex2].shift()
 
   // Turn over the next card in each pile if available
-  if (newPiles[pileIndex1].length > 0) newPiles[pileIndex1][0].faceUp = true;
-  if (newPiles[pileIndex2].length > 0) newPiles[pileIndex2][0].faceUp = true;
+  if (newPiles[pileIndex1].length > 0) newPiles[pileIndex1][0].faceUp = true
+  if (newPiles[pileIndex2].length > 0) newPiles[pileIndex2][0].faceUp = true
 
-  setPiles(newPiles);
-  setMessage('Pair removed!');
-  checkGameState();
-};
+  setPiles(newPiles)
+  setMessage('Pair removed!')
+  checkGameState()
+}
 
 const checkGameState = () => {
-  if (piles.every(pile => pile.length === 0)) {
-    setGameState('won');
-    setMessage('Congratulations! You won! Make a wish!');
+  if (piles.every((pile) => pile.length === 0)) {
+    setGameState('won')
+    setMessage('Congratulations! You won! Make a wish!')
   } else if (!hasValidMoves()) {
-    setGameState('lost');
-    setMessage('Game over. No more valid moves.');
+    setGameState('lost')
+    setMessage('Game over. No more valid moves.')
   }
-};
+}
 
 const hasValidMoves = (): boolean => {
-  const topCards = piles.map(pile => pile[0]?.rank).filter(Boolean);
-  return new Set(topCards).size < topCards.length;
-};
+  const topCards = piles.map((pile) => pile[0]?.rank).filter(Boolean)
+  return new Set(topCards).size < topCards.length
+}
 ```
 
 ### 5. User Input Handling
@@ -146,15 +148,15 @@ const hasValidMoves = (): boolean => {
 ```typescript
 useInput((input, key) => {
   if (gameState !== 'playing') {
-    if (input === 'r') startNewGame();
-    return;
+    if (input === 'r') startNewGame()
+    return
   }
 
-  const pileIndex = parseInt(input);
+  const pileIndex = parseInt(input)
   if (!isNaN(pileIndex) && pileIndex >= 1 && pileIndex <= 8) {
-    selectPile(pileIndex - 1);
+    selectPile(pileIndex - 1)
   }
-});
+})
 ```
 
 ### 6. Rendering
@@ -182,11 +184,9 @@ return (
     {gameState === 'playing' && (
       <Text>Enter a number (1-8) to select a pile</Text>
     )}
-    {gameState !== 'playing' && (
-      <Text>Press 'r' to start a new game</Text>
-    )}
+    {gameState !== 'playing' && <Text>Press 'r' to start a new game</Text>}
   </Box>
-);
+)
 ```
 
 ## Key Concepts Explained

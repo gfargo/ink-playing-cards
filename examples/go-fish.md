@@ -21,146 +21,170 @@ Go Fish is a card game typically played by 2-5 players. The goal is to collect t
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const GoFishGame: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <GoFishGame />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const GoFishGame: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [players, setPlayers] = useState<{ hand: Card[], sets: string[] }[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [message, setMessage] = useState('');
-  const [gameOver, setGameOver] = useState(false);
+  const { deck, shuffle, draw } = useDeck()
+  const [players, setPlayers] = useState<{ hand: Card[]; sets: string[] }[]>([])
+  const [currentPlayer, setCurrentPlayer] = useState(0)
+  const [message, setMessage] = useState('')
+  const [gameOver, setGameOver] = useState(false)
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const numPlayers = 4;
-  const newPlayers = Array(numPlayers).fill(null).map(() => ({
-    hand: draw(7),
-    sets: []
-  }));
-  setPlayers(newPlayers);
-  setCurrentPlayer(0);
-  setMessage('Game started. Player 1\'s turn.');
-  setGameOver(false);
-};
+  shuffle()
+  const numPlayers = 4
+  const newPlayers = Array(numPlayers)
+    .fill(null)
+    .map(() => ({
+      hand: draw(7),
+      sets: [],
+    }))
+  setPlayers(newPlayers)
+  setCurrentPlayer(0)
+  setMessage("Game started. Player 1's turn.")
+  setGameOver(false)
+}
 ```
 
 ### 4. Game Logic
 
 ```typescript
-const askForCard = (askingPlayer: number, askedPlayer: number, rank: string) => {
-  const askedPlayerHand = players[askedPlayer].hand;
-  const matchingCards = askedPlayerHand.filter(card => card.rank === rank);
+const askForCard = (
+  askingPlayer: number,
+  askedPlayer: number,
+  rank: string
+) => {
+  const askedPlayerHand = players[askedPlayer].hand
+  const matchingCards = askedPlayerHand.filter((card) => card.rank === rank)
 
   if (matchingCards.length > 0) {
     // Transfer matching cards
-    const newPlayers = [...players];
-    newPlayers[askingPlayer].hand.push(...matchingCards);
-    newPlayers[askedPlayer].hand = askedPlayerHand.filter(card => card.rank !== rank);
-    setPlayers(newPlayers);
-    setMessage(`Player ${askingPlayer + 1} got ${matchingCards.length} ${rank}(s) from Player ${askedPlayer + 1}`);
-    checkForSet(askingPlayer, rank);
+    const newPlayers = [...players]
+    newPlayers[askingPlayer].hand.push(...matchingCards)
+    newPlayers[askedPlayer].hand = askedPlayerHand.filter(
+      (card) => card.rank !== rank
+    )
+    setPlayers(newPlayers)
+    setMessage(
+      `Player ${askingPlayer + 1} got ${
+        matchingCards.length
+      } ${rank}(s) from Player ${askedPlayer + 1}`
+    )
+    checkForSet(askingPlayer, rank)
   } else {
     // Go fish
-    const drawnCard = draw(1)[0];
-    const newPlayers = [...players];
-    newPlayers[askingPlayer].hand.push(drawnCard);
-    setPlayers(newPlayers);
-    setMessage(`Go Fish! Player ${askingPlayer + 1} drew a card`);
+    const drawnCard = draw(1)[0]
+    const newPlayers = [...players]
+    newPlayers[askingPlayer].hand.push(drawnCard)
+    setPlayers(newPlayers)
+    setMessage(`Go Fish! Player ${askingPlayer + 1} drew a card`)
     if (drawnCard.rank === rank) {
-      checkForSet(askingPlayer, rank);
+      checkForSet(askingPlayer, rank)
     } else {
-      nextTurn();
+      nextTurn()
     }
   }
-};
+}
 
 const checkForSet = (playerIndex: number, rank: string) => {
-  const playerHand = players[playerIndex].hand;
-  const matchingCards = playerHand.filter(card => card.rank === rank);
+  const playerHand = players[playerIndex].hand
+  const matchingCards = playerHand.filter((card) => card.rank === rank)
 
   if (matchingCards.length === 4) {
-    const newPlayers = [...players];
-    newPlayers[playerIndex].sets.push(rank);
-    newPlayers[playerIndex].hand = playerHand.filter(card => card.rank !== rank);
-    setPlayers(newPlayers);
-    setMessage(`Player ${playerIndex + 1} completed a set of ${rank}s!`);
-    checkForGameEnd();
+    const newPlayers = [...players]
+    newPlayers[playerIndex].sets.push(rank)
+    newPlayers[playerIndex].hand = playerHand.filter(
+      (card) => card.rank !== rank
+    )
+    setPlayers(newPlayers)
+    setMessage(`Player ${playerIndex + 1} completed a set of ${rank}s!`)
+    checkForGameEnd()
   }
-};
+}
 
 const nextTurn = () => {
-  setCurrentPlayer((currentPlayer + 1) % players.length);
-  setMessage(`Player ${((currentPlayer + 1) % players.length) + 1}'s turn`);
-};
+  setCurrentPlayer((currentPlayer + 1) % players.length)
+  setMessage(`Player ${((currentPlayer + 1) % players.length) + 1}'s turn`)
+}
 
 const checkForGameEnd = () => {
-  if (players.every(player => player.hand.length === 0) || deck.cards.length === 0) {
-    setGameOver(true);
-    const winnerIndex = players.reduce((maxIndex, player, index, arr) => 
-      player.sets.length > arr[maxIndex].sets.length ? index : maxIndex
-    , 0);
-    setMessage(`Game Over! Player ${winnerIndex + 1} wins with ${players[winnerIndex].sets.length} sets!`);
+  if (
+    players.every((player) => player.hand.length === 0) ||
+    deck.cards.length === 0
+  ) {
+    setGameOver(true)
+    const winnerIndex = players.reduce(
+      (maxIndex, player, index, arr) =>
+        player.sets.length > arr[maxIndex].sets.length ? index : maxIndex,
+      0
+    )
+    setMessage(
+      `Game Over! Player ${winnerIndex + 1} wins with ${
+        players[winnerIndex].sets.length
+      } sets!`
+    )
   }
-};
+}
 ```
 
 ### 5. AI Logic
 
 ```typescript
 const playAI = () => {
-  const aiPlayer = players[currentPlayer];
-  const targetPlayer = (currentPlayer + 1) % players.length; // Simple AI always asks the next player
-  const rankToAsk = aiPlayer.hand[Math.floor(Math.random() * aiPlayer.hand.length)].rank;
-  
-  askForCard(currentPlayer, targetPlayer, rankToAsk);
-};
+  const aiPlayer = players[currentPlayer]
+  const targetPlayer = (currentPlayer + 1) % players.length // Simple AI always asks the next player
+  const rankToAsk =
+    aiPlayer.hand[Math.floor(Math.random() * aiPlayer.hand.length)].rank
+
+  askForCard(currentPlayer, targetPlayer, rankToAsk)
+}
 ```
 
 ### 6. User Input Handling
 
 ```typescript
 useInput((input, key) => {
-  if (gameOver || currentPlayer !== 0) return; // Only handle input for human player and when game is not over
+  if (gameOver || currentPlayer !== 0) return // Only handle input for human player and when game is not over
 
   if (input === 'p') {
     // Show possible ranks to ask for
-    const possibleRanks = [...new Set(players[0].hand.map(card => card.rank))];
-    setMessage(`Possible ranks to ask for: ${possibleRanks.join(', ')}`);
+    const possibleRanks = [...new Set(players[0].hand.map((card) => card.rank))]
+    setMessage(`Possible ranks to ask for: ${possibleRanks.join(', ')}`)
   } else if (/^[2-9JQKA]$/.test(input.toUpperCase())) {
     // Ask for a card
-    const targetPlayer = 1; // For simplicity, always ask the second player
-    askForCard(0, targetPlayer, input.toUpperCase());
+    const targetPlayer = 1 // For simplicity, always ask the second player
+    askForCard(0, targetPlayer, input.toUpperCase())
   }
-});
+})
 ```
 
 ### 7. Rendering
@@ -173,7 +197,9 @@ return (
     <Text>{message}</Text>
     {players.map((player, index) => (
       <Box key={index} flexDirection="column" marginY={1}>
-        <Text>Player {index + 1} (Sets: {player.sets.length})</Text>
+        <Text>
+          Player {index + 1} (Sets: {player.sets.length})
+        </Text>
         <Box>
           {player.hand.map((card, cardIndex) => (
             <Card key={cardIndex} {...card} faceUp={index === 0} />
@@ -182,13 +208,13 @@ return (
       </Box>
     ))}
     {!gameOver && currentPlayer === 0 && (
-      <Text>Press 'p' to see possible ranks, or enter a rank to ask for a card</Text>
+      <Text>
+        Press 'p' to see possible ranks, or enter a rank to ask for a card
+      </Text>
     )}
-    {gameOver && (
-      <Text>Press 'n' to start a new game</Text>
-    )}
+    {gameOver && <Text>Press 'n' to start a new game</Text>}
   </Box>
-);
+)
 ```
 
 ## Key Concepts

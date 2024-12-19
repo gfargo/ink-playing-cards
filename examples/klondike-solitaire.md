@@ -23,127 +23,146 @@ Before we dive into the implementation, let's review some key concepts:
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const KlondikeSolitaire: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <KlondikeSolitaire />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const KlondikeSolitaire: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [tableau, setTableau] = useState<Card[][]>([]);
-  const [foundation, setFoundation] = useState<Card[][]>([[], [], [], []]);
-  const [stock, setStock] = useState<Card[]>([]);
-  const [waste, setWaste] = useState<Card[]>([]);
-  const [selectedCard, setSelectedCard] = useState<{ pile: string; index: number } | null>(null);
-  const [message, setMessage] = useState('');
+  const { deck, shuffle, draw } = useDeck()
+  const [tableau, setTableau] = useState<Card[][]>([])
+  const [foundation, setFoundation] = useState<Card[][]>([[], [], [], []])
+  const [stock, setStock] = useState<Card[]>([])
+  const [waste, setWaste] = useState<Card[]>([])
+  const [selectedCard, setSelectedCard] = useState<{
+    pile: string
+    index: number
+  } | null>(null)
+  const [message, setMessage] = useState('')
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const newTableau: Card[][] = [];
+  shuffle()
+  const newTableau: Card[][] = []
   for (let i = 0; i < 7; i++) {
-    newTableau.push(draw(i + 1));
-    newTableau[i][newTableau[i].length - 1].faceUp = true;
+    newTableau.push(draw(i + 1))
+    newTableau[i][newTableau[i].length - 1].faceUp = true
   }
-  setTableau(newTableau);
-  setStock(draw(24));
-  setWaste([]);
-  setFoundation([[], [], [], []]);
-  setMessage('Use arrow keys to navigate, space to select/deselect, Enter to move');
-};
+  setTableau(newTableau)
+  setStock(draw(24))
+  setWaste([])
+  setFoundation([[], [], [], []])
+  setMessage(
+    'Use arrow keys to navigate, space to select/deselect, Enter to move'
+  )
+}
 ```
 
 ### 4. Core Game Logic
 
 ```typescript
-const isValidMove = (card: Card, destination: 'tableau' | 'foundation', index: number): boolean => {
+const isValidMove = (
+  card: Card,
+  destination: 'tableau' | 'foundation',
+  index: number
+): boolean => {
   if (destination === 'tableau') {
-    const targetPile = tableau[index];
+    const targetPile = tableau[index]
     if (targetPile.length === 0) {
-      return card.rank === 'K';
+      return card.rank === 'K'
     }
-    const targetCard = targetPile[targetPile.length - 1];
+    const targetCard = targetPile[targetPile.length - 1]
     return (
-      (card.color === 'red' ? targetCard.color === 'black' : targetCard.color === 'red') &&
-      card.value === targetCard.value - 1
-    );
+      (card.color === 'red'
+        ? targetCard.color === 'black'
+        : targetCard.color === 'red') && card.value === targetCard.value - 1
+    )
   } else {
-    const targetPile = foundation[index];
+    const targetPile = foundation[index]
     if (targetPile.length === 0) {
-      return card.rank === 'A';
+      return card.rank === 'A'
     }
-    const targetCard = targetPile[targetPile.length - 1];
-    return card.suit === targetCard.suit && card.value === targetCard.value + 1;
+    const targetCard = targetPile[targetPile.length - 1]
+    return card.suit === targetCard.suit && card.value === targetCard.value + 1
   }
-};
+}
 
-const moveCard = (from: { pile: string; index: number }, to: { pile: string; index: number }) => {
-  let sourceCards: Card[];
+const moveCard = (
+  from: { pile: string; index: number },
+  to: { pile: string; index: number }
+) => {
+  let sourceCards: Card[]
   if (from.pile === 'tableau') {
-    sourceCards = tableau[from.index].slice(from.index);
-    setTableau(tableau.map((pile, i) => 
-      i === from.index ? pile.slice(0, from.index) : pile
-    ));
+    sourceCards = tableau[from.index].slice(from.index)
+    setTableau(
+      tableau.map((pile, i) =>
+        i === from.index ? pile.slice(0, from.index) : pile
+      )
+    )
   } else if (from.pile === 'waste') {
-    sourceCards = [waste[waste.length - 1]];
-    setWaste(waste.slice(0, -1));
+    sourceCards = [waste[waste.length - 1]]
+    setWaste(waste.slice(0, -1))
   } else {
-    return; // Invalid source
+    return // Invalid source
   }
 
   if (to.pile === 'tableau') {
-    setTableau(tableau.map((pile, i) => 
-      i === to.index ? [...pile, ...sourceCards] : pile
-    ));
+    setTableau(
+      tableau.map((pile, i) =>
+        i === to.index ? [...pile, ...sourceCards] : pile
+      )
+    )
   } else if (to.pile === 'foundation') {
-    setFoundation(foundation.map((pile, i) => 
-      i === to.index ? [...pile, ...sourceCards] : pile
-    ));
+    setFoundation(
+      foundation.map((pile, i) =>
+        i === to.index ? [...pile, ...sourceCards] : pile
+      )
+    )
   }
 
   // Flip the top card of the source tableau pile if it's face down
   if (from.pile === 'tableau' && tableau[from.index].length > 0) {
-    const newTableau = [...tableau];
-    newTableau[from.index][newTableau[from.index].length - 1].faceUp = true;
-    setTableau(newTableau);
+    const newTableau = [...tableau]
+    newTableau[from.index][newTableau[from.index].length - 1].faceUp = true
+    setTableau(newTableau)
   }
-};
+}
 
 const drawFromStock = () => {
   if (stock.length === 0) {
-    setStock(waste.reverse());
-    setWaste([]);
+    setStock(waste.reverse())
+    setWaste([])
   } else {
-    const drawnCards = stock.slice(-3).reverse();
-    setStock(stock.slice(0, -3));
-    setWaste([...waste, ...drawnCards]);
+    const drawnCards = stock.slice(-3).reverse()
+    setStock(stock.slice(0, -3))
+    setWaste([...waste, ...drawnCards])
   }
-};
+}
 ```
 
 ### 5. User Input Handling
@@ -163,9 +182,9 @@ useInput((input, key) => {
   } else if (key.return) {
     // Attempt to move selected card
   } else if (input === 'd') {
-    drawFromStock();
+    drawFromStock()
   }
-});
+})
 ```
 
 ### 6. Rendering
@@ -200,14 +219,17 @@ return (
             key={cardIndex}
             {...card}
             faceUp={card.faceUp}
-            selected={selectedCard?.pile === 'tableau' && selectedCard.index === pileIndex}
+            selected={
+              selectedCard?.pile === 'tableau' &&
+              selectedCard.index === pileIndex
+            }
           />
         ))}
       </Box>
     ))}
     <Text>{message}</Text>
   </Box>
-);
+)
 ```
 
 ## Key Concepts

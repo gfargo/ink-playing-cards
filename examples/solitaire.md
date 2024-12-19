@@ -63,12 +63,16 @@ const initializeGame = () => {
   shuffle()
   const newTableau = []
   for (let i = 0; i < 7; i++) {
-    newTableau.push(deck.cards.slice(i * (i + 1) / 2, (i + 1) * (i + 2) / 2))
+    newTableau.push(
+      deck.cards.slice((i * (i + 1)) / 2, ((i + 1) * (i + 2)) / 2)
+    )
     newTableau[i][newTableau[i].length - 1].faceUp = true
   }
   setTableau(newTableau)
   setStock(deck.cards.slice(28))
-  setMessage('Use arrow keys to navigate, space to select/deselect, Enter to move')
+  setMessage(
+    'Use arrow keys to navigate, space to select/deselect, Enter to move'
+  )
 }
 ```
 
@@ -90,8 +94,10 @@ const moveCard = (from, to) => {
     if (newSourcePile.length > 0) {
       newSourcePile[newSourcePile.length - 1].faceUp = true
     }
-    setTableau(tableau.map((pile, i) => i === fromIndex ? newSourcePile : pile))
-  } 
+    setTableau(
+      tableau.map((pile, i) => (i === fromIndex ? newSourcePile : pile))
+    )
+  }
   // Handle moving from waste
   else if (fromPile === 'waste') {
     sourceCards = [waste[waste.length - 1]]
@@ -102,12 +108,14 @@ const moveCard = (from, to) => {
   // Handle moving to tableau
   if (toPile === 'tableau') {
     newDestPile = [...tableau[toIndex], ...sourceCards]
-    setTableau(tableau.map((pile, i) => i === toIndex ? newDestPile : pile))
-  } 
+    setTableau(tableau.map((pile, i) => (i === toIndex ? newDestPile : pile)))
+  }
   // Handle moving to foundation
   else if (toPile === 'foundation') {
     newDestPile = [...foundation[toIndex], ...sourceCards]
-    setFoundation(foundation.map((pile, i) => i === toIndex ? newDestPile : pile))
+    setFoundation(
+      foundation.map((pile, i) => (i === toIndex ? newDestPile : pile))
+    )
   }
 
   // Add move to history for undo functionality
@@ -139,7 +147,7 @@ const isValidMove = (card, destination) => {
     const targetCard = targetPile[targetPile.length - 1]
     // Check for alternating colors and descending rank
     return (
-      (isRed(card) !== isRed(targetCard)) &&
+      isRed(card) !== isRed(targetCard) &&
       rankValue(card) === rankValue(targetCard) - 1
     )
   }
@@ -163,7 +171,7 @@ const isValidMove = (card, destination) => {
 
 const checkForWin = () => {
   // The game is won when all foundation piles have 13 cards (Ace to King)
-  return foundation.every(pile => pile.length === 13)
+  return foundation.every((pile) => pile.length === 13)
 }
 
 // Utility functions
@@ -171,7 +179,21 @@ const checkForWin = () => {
 const isRed = (card) => ['hearts', 'diamonds'].includes(card.suit)
 
 const rankValue = (card) => {
-  const rankOrder = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+  const rankOrder = [
+    'A',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '10',
+    'J',
+    'Q',
+    'K',
+  ]
   return rankOrder.indexOf(card.rank)
 }
 
@@ -183,7 +205,7 @@ const getAvailableMoves = () => {
     if (pile.length === 0) return
 
     const card = pile[pile.length - 1]
-    
+
     // Check moves to other tableau piles
     tableau.forEach((destPile, toIndex) => {
       if (fromIndex !== toIndex && isValidMove(card, ['tableau', toIndex])) {
@@ -194,7 +216,10 @@ const getAvailableMoves = () => {
     // Check moves to foundation
     foundation.forEach((destPile, toIndex) => {
       if (isValidMove(card, ['foundation', toIndex])) {
-        moves.push({ from: ['tableau', fromIndex], to: ['foundation', toIndex] })
+        moves.push({
+          from: ['tableau', fromIndex],
+          to: ['foundation', toIndex],
+        })
       }
     })
   })
@@ -263,7 +288,9 @@ return (
     <Text>Solitaire</Text>
     <Box>
       <Text>Stock: </Text>
-      {stock.length > 0 && <MiniCard {...stock[stock.length - 1]} faceUp={false} />}
+      {stock.length > 0 && (
+        <MiniCard {...stock[stock.length - 1]} faceUp={false} />
+      )}
       <Text>Waste: </Text>
       {waste.length > 0 && <MiniCard {...waste[waste.length - 1]} />}
     </Box>

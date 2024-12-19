@@ -31,142 +31,144 @@ Accordion is a single-player card game where the goal is to consolidate all card
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect, useMemo } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect, useMemo } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const AccordionGame: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <AccordionGame />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const AccordionGame: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [piles, setPiles] = useState<Card[][]>([]);
-  const [selectedPile, setSelectedPile] = useState<number | null>(null);
-  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
-  const [message, setMessage] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { deck, shuffle, draw } = useDeck()
+  const [piles, setPiles] = useState<Card[][]>([])
+  const [selectedPile, setSelectedPile] = useState<number | null>(null)
+  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>(
+    'playing'
+  )
+  const [message, setMessage] = useState('')
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const newPiles = deck.map(card => [{ ...card, faceUp: true }]);
-  setPiles(newPiles);
-  setSelectedPile(null);
-  setGameState('playing');
-  setMessage('New game started. Select piles to move cards.');
-  setCurrentIndex(0);
-};
+  shuffle()
+  const newPiles = deck.map((card) => [{ ...card, faceUp: true }])
+  setPiles(newPiles)
+  setSelectedPile(null)
+  setGameState('playing')
+  setMessage('New game started. Select piles to move cards.')
+  setCurrentIndex(0)
+}
 ```
 
 ### 4. Game Logic
 
 ```typescript
 const selectPile = (pileIndex: number) => {
-  if (gameState !== 'playing') return;
+  if (gameState !== 'playing') return
 
   if (selectedPile === null) {
-    setSelectedPile(pileIndex);
+    setSelectedPile(pileIndex)
   } else {
     if (isValidMove(selectedPile, pileIndex)) {
-      movePile(selectedPile, pileIndex);
+      movePile(selectedPile, pileIndex)
     } else {
-      setMessage('Invalid move. Try again.');
+      setMessage('Invalid move. Try again.')
     }
-    setSelectedPile(null);
+    setSelectedPile(null)
   }
-};
+}
 
 const isValidMove = (fromIndex: number, toIndex: number): boolean => {
-  if (fromIndex === toIndex) return false;
-  if (toIndex !== fromIndex - 1 && toIndex !== fromIndex - 3) return false;
+  if (fromIndex === toIndex) return false
+  if (toIndex !== fromIndex - 1 && toIndex !== fromIndex - 3) return false
 
-  const fromCard = piles[fromIndex][0];
-  const toCard = piles[toIndex][0];
+  const fromCard = piles[fromIndex][0]
+  const toCard = piles[toIndex][0]
 
-  return fromCard.rank === toCard.rank || fromCard.suit === toCard.suit;
-};
+  return fromCard.rank === toCard.rank || fromCard.suit === toCard.suit
+}
 
 const movePile = (fromIndex: number, toIndex: number) => {
-  const newPiles = [...piles];
-  newPiles[toIndex] = [...piles[fromIndex], ...piles[toIndex]];
-  newPiles.splice(fromIndex, 1);
-  setPiles(newPiles);
-  setMessage('Pile moved successfully.');
-  checkGameState();
-};
+  const newPiles = [...piles]
+  newPiles[toIndex] = [...piles[fromIndex], ...piles[toIndex]]
+  newPiles.splice(fromIndex, 1)
+  setPiles(newPiles)
+  setMessage('Pile moved successfully.')
+  checkGameState()
+}
 
 const checkGameState = () => {
   if (piles.length === 1) {
-    setGameState('won');
-    setMessage('Congratulations! You won!');
+    setGameState('won')
+    setMessage('Congratulations! You won!')
   } else if (!hasValidMoves()) {
-    setGameState('lost');
-    setMessage('Game over. No more valid moves.');
+    setGameState('lost')
+    setMessage('Game over. No more valid moves.')
   }
-};
+}
 
 const hasValidMoves = (): boolean => {
   for (let i = 1; i < piles.length; i++) {
     if (isValidMove(i, i - 1) || (i >= 3 && isValidMove(i, i - 3))) {
-      return true;
+      return true
     }
   }
-  return false;
-};
+  return false
+}
 ```
 
 ### 5. Scrollable Container for Cards
 
 ```typescript
-const MAX_VISIBLE_PILES = 10;
+const MAX_VISIBLE_PILES = 10
 
 const visiblePiles = useMemo(() => {
-  return piles.slice(currentIndex, currentIndex + MAX_VISIBLE_PILES);
-}, [piles, currentIndex]);
+  return piles.slice(currentIndex, currentIndex + MAX_VISIBLE_PILES)
+}, [piles, currentIndex])
 
-const canScrollLeft = currentIndex > 0;
-const canScrollRight = currentIndex + MAX_VISIBLE_PILES < piles.length;
+const canScrollLeft = currentIndex > 0
+const canScrollRight = currentIndex + MAX_VISIBLE_PILES < piles.length
 
 useInput((input, key) => {
   if (gameState !== 'playing') {
-    if (input === 'r') startNewGame();
-    return;
+    if (input === 'r') startNewGame()
+    return
   }
 
   if (key.leftArrow && canScrollLeft) {
-    setCurrentIndex(currentIndex - 1);
+    setCurrentIndex(currentIndex - 1)
   } else if (key.rightArrow && canScrollRight) {
-    setCurrentIndex(currentIndex + 1);
+    setCurrentIndex(currentIndex + 1)
   } else {
-    const pileIndex = parseInt(input);
+    const pileIndex = parseInt(input)
     if (!isNaN(pileIndex) && pileIndex >= 1 && pileIndex <= MAX_VISIBLE_PILES) {
-      selectPile(currentIndex + pileIndex - 1);
+      selectPile(currentIndex + pileIndex - 1)
     }
   }
-});
+})
 ```
 
 ### 6. Rendering
@@ -190,18 +192,21 @@ return (
       ))}
     </Box>
     {gameState === 'playing' && (
-      <Text>Enter a number (1-{MAX_VISIBLE_PILES}) to select a pile, use arrow keys to scroll</Text>
+      <Text>
+        Enter a number (1-{MAX_VISIBLE_PILES}) to select a pile, use arrow keys
+        to scroll
+      </Text>
     )}
-    {gameState !== 'playing' && (
-      <Text>Press 'r' to start a new game</Text>
-    )}
+    {gameState !== 'playing' && <Text>Press 'r' to start a new game</Text>}
     {(canScrollLeft || canScrollRight) && (
       <Text dimColor italic>
-        Use left/right arrows to scroll ({currentIndex + 1}-{Math.min(currentIndex + MAX_VISIBLE_PILES, piles.length)} of {piles.length})
+        Use left/right arrows to scroll ({currentIndex + 1}-
+        {Math.min(currentIndex + MAX_VISIBLE_PILES, piles.length)} of{' '}
+        {piles.length})
       </Text>
     )}
   </Box>
-);
+)
 ```
 
 ## Key Concepts Explained

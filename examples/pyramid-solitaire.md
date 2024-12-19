@@ -20,127 +20,139 @@ Pyramid Solitaire is a single-player card game where the objective is to remove 
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const PyramidSolitaire: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <PyramidSolitaire />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const PyramidSolitaire: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [pyramid, setPyramid] = useState<(Card | null)[][]>([]);
-  const [wastePile, setWastePile] = useState<Card[]>([]);
-  const [stockPile, setStockPile] = useState<Card[]>([]);
-  const [score, setScore] = useState(0);
-  const [selectedCard, setSelectedCard] = useState<{ row: number; col: number } | null>(null);
-  const [message, setMessage] = useState('');
+  const { deck, shuffle, draw } = useDeck()
+  const [pyramid, setPyramid] = useState<(Card | null)[][]>([])
+  const [wastePile, setWastePile] = useState<Card[]>([])
+  const [stockPile, setStockPile] = useState<Card[]>([])
+  const [score, setScore] = useState(0)
+  const [selectedCard, setSelectedCard] = useState<{
+    row: number
+    col: number
+  } | null>(null)
+  const [message, setMessage] = useState('')
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const newPyramid: (Card | null)[][] = [];
+  shuffle()
+  const newPyramid: (Card | null)[][] = []
   for (let i = 0; i < 7; i++) {
-    newPyramid.push(draw(i + 1));
+    newPyramid.push(draw(i + 1))
   }
-  setPyramid(newPyramid);
-  setStockPile(draw(24));
-  setWastePile([]);
-  setScore(0);
-  setSelectedCard(null);
-  setMessage('New game started. Select cards that sum to 13.');
-};
+  setPyramid(newPyramid)
+  setStockPile(draw(24))
+  setWastePile([])
+  setScore(0)
+  setSelectedCard(null)
+  setMessage('New game started. Select cards that sum to 13.')
+}
 ```
 
 ### 4. Game Logic
 
 ```typescript
 const selectCard = (row: number, col: number) => {
-  const card = pyramid[row][col];
-  if (!card || !isCardSelectable(row, col)) return;
+  const card = pyramid[row][col]
+  if (!card || !isCardSelectable(row, col)) return
 
   if (selectedCard) {
     if (selectedCard.row === row && selectedCard.col === col) {
-      setSelectedCard(null);
+      setSelectedCard(null)
     } else {
-      const selectedPyramidCard = pyramid[selectedCard.row][selectedCard.col];
-      if (selectedPyramidCard && cardValue(card) + cardValue(selectedPyramidCard) === 13) {
-        removeCards(selectedCard.row, selectedCard.col, row, col);
+      const selectedPyramidCard = pyramid[selectedCard.row][selectedCard.col]
+      if (
+        selectedPyramidCard &&
+        cardValue(card) + cardValue(selectedPyramidCard) === 13
+      ) {
+        removeCards(selectedCard.row, selectedCard.col, row, col)
       } else {
-        setSelectedCard({ row, col });
+        setSelectedCard({ row, col })
       }
     }
   } else {
     if (cardValue(card) === 13) {
-      removeCards(row, col);
+      removeCards(row, col)
     } else {
-      setSelectedCard({ row, col });
+      setSelectedCard({ row, col })
     }
   }
-};
+}
 
 const isCardSelectable = (row: number, col: number): boolean => {
-  if (row === pyramid.length - 1) return true;
-  return !pyramid[row + 1][col] && !pyramid[row + 1][col + 1];
-};
+  if (row === pyramid.length - 1) return true
+  return !pyramid[row + 1][col] && !pyramid[row + 1][col + 1]
+}
 
 const cardValue = (card: Card): number => {
-  if (['J', 'Q', 'K'].includes(card.rank)) return 10 + ['J', 'Q', 'K'].indexOf(card.rank) + 1;
-  if (card.rank === 'A') return 1;
-  return parseInt(card.rank);
-};
+  if (['J', 'Q', 'K'].includes(card.rank))
+    return 10 + ['J', 'Q', 'K'].indexOf(card.rank) + 1
+  if (card.rank === 'A') return 1
+  return parseInt(card.rank)
+}
 
-const removeCards = (row1: number, col1: number, row2?: number, col2?: number) => {
-  const newPyramid = [...pyramid];
-  newPyramid[row1][col1] = null;
+const removeCards = (
+  row1: number,
+  col1: number,
+  row2?: number,
+  col2?: number
+) => {
+  const newPyramid = [...pyramid]
+  newPyramid[row1][col1] = null
   if (row2 !== undefined && col2 !== undefined) {
-    newPyramid[row2][col2] = null;
+    newPyramid[row2][col2] = null
   }
-  setPyramid(newPyramid);
-  setScore(score + 1);
-  setSelectedCard(null);
-  checkForWin();
-};
+  setPyramid(newPyramid)
+  setScore(score + 1)
+  setSelectedCard(null)
+  checkForWin()
+}
 
 const drawFromStock = () => {
   if (stockPile.length > 0) {
-    const [drawnCard, ...remainingStock] = stockPile;
-    setWastePile([drawnCard, ...wastePile]);
-    setStockPile(remainingStock);
+    const [drawnCard, ...remainingStock] = stockPile
+    setWastePile([drawnCard, ...wastePile])
+    setStockPile(remainingStock)
   } else {
-    setStockPile(wastePile.reverse());
-    setWastePile([]);
+    setStockPile(wastePile.reverse())
+    setWastePile([])
   }
-};
+}
 
 const checkForWin = () => {
-  if (pyramid.every(row => row.every(card => card === null))) {
-    setMessage(`Congratulations! You've won with a score of ${score}!`);
+  if (pyramid.every((row) => row.every((card) => card === null))) {
+    setMessage(`Congratulations! You've won with a score of ${score}!`)
   }
-};
+}
 ```
 
 ### 5. User Input Handling
@@ -153,13 +165,13 @@ useInput((input, key) => {
   } else if (input === ' ') {
     // Select card
     if (selectedCard) {
-      selectCard(selectedCard.row, selectedCard.col);
+      selectCard(selectedCard.row, selectedCard.col)
     }
   } else if (input === 'd') {
     // Draw from stock
-    drawFromStock();
+    drawFromStock()
   }
-});
+})
 ```
 
 ### 6. Rendering
@@ -178,7 +190,10 @@ return (
               <Card
                 {...card}
                 faceUp
-                selected={selectedCard?.row === rowIndex && selectedCard?.col === colIndex}
+                selected={
+                  selectedCard?.row === rowIndex &&
+                  selectedCard?.col === colIndex
+                }
               />
             ) : (
               <Box width={6} height={4} />
@@ -195,7 +210,7 @@ return (
     </Box>
     <Text>Press space to select/deselect, 'd' to draw from stock</Text>
   </Box>
-);
+)
 ```
 
 ## Key Concepts

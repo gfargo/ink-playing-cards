@@ -23,147 +23,154 @@ Before we dive into the implementation, let's review some key concepts:
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const MemoryGame: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <MemoryGame />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const MemoryGame: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [grid, setGrid] = useState<Card[]>([]);
-  const [flippedIndices, setFlippedIndices] = useState<number[]>([]);
-  const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState<'player' | 'ai'>('player');
-  const [scores, setScores] = useState({ player: 0, ai: 0 });
-  const [message, setMessage] = useState('');
-  const [gameMode, setGameMode] = useState<'single' | 'vs-ai'>('single');
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const { deck, shuffle, draw } = useDeck()
+  const [grid, setGrid] = useState<Card[]>([])
+  const [flippedIndices, setFlippedIndices] = useState<number[]>([])
+  const [matchedPairs, setMatchedPairs] = useState<string[]>([])
+  const [currentPlayer, setCurrentPlayer] = useState<'player' | 'ai'>('player')
+  const [scores, setScores] = useState({ player: 0, ai: 0 })
+  const [message, setMessage] = useState('')
+  const [gameMode, setGameMode] = useState<'single' | 'vs-ai'>('single')
+  const [selectedIndex, setSelectedIndex] = useState(0)
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const gameCards = draw(8).concat(draw(8));
-  shuffle(gameCards);
-  setGrid(gameCards);
-  setFlippedIndices([]);
-  setMatchedPairs([]);
-  setScores({ player: 0, ai: 0 });
-  setCurrentPlayer('player');
-  setMessage('Use arrow keys to move, space to flip a card.');
-};
+  shuffle()
+  const gameCards = draw(8).concat(draw(8))
+  shuffle(gameCards)
+  setGrid(gameCards)
+  setFlippedIndices([])
+  setMatchedPairs([])
+  setScores({ player: 0, ai: 0 })
+  setCurrentPlayer('player')
+  setMessage('Use arrow keys to move, space to flip a card.')
+}
 ```
 
 ### 4. Core Game Logic
 
 ```typescript
 const flipCard = (index: number) => {
-  if (flippedIndices.length === 2 || flippedIndices.includes(index) || matchedPairs.includes(grid[index].rank)) {
-    return;
+  if (
+    flippedIndices.length === 2 ||
+    flippedIndices.includes(index) ||
+    matchedPairs.includes(grid[index].rank)
+  ) {
+    return
   }
 
-  const newFlippedIndices = [...flippedIndices, index];
-  setFlippedIndices(newFlippedIndices);
+  const newFlippedIndices = [...flippedIndices, index]
+  setFlippedIndices(newFlippedIndices)
 
   if (newFlippedIndices.length === 2) {
-    const [firstIndex, secondIndex] = newFlippedIndices;
+    const [firstIndex, secondIndex] = newFlippedIndices
     if (grid[firstIndex].rank === grid[secondIndex].rank) {
-      setMatchedPairs([...matchedPairs, grid[firstIndex].rank]);
-      setScores(prevScores => ({
+      setMatchedPairs([...matchedPairs, grid[firstIndex].rank])
+      setScores((prevScores) => ({
         ...prevScores,
-        [currentPlayer]: prevScores[currentPlayer] + 1
-      }));
-      setMessage(`${currentPlayer === 'player' ? 'You' : 'AI'} found a match!`);
-      setFlippedIndices([]);
+        [currentPlayer]: prevScores[currentPlayer] + 1,
+      }))
+      setMessage(`${currentPlayer === 'player' ? 'You' : 'AI'} found a match!`)
+      setFlippedIndices([])
     } else {
-      setMessage('No match. Flipping cards back.');
+      setMessage('No match. Flipping cards back.')
       setTimeout(() => {
-        setFlippedIndices([]);
-        switchPlayer();
-      }, 2000);
+        setFlippedIndices([])
+        switchPlayer()
+      }, 2000)
     }
   }
-};
+}
 
 const switchPlayer = () => {
-  setCurrentPlayer(currentPlayer === 'player' ? 'ai' : 'player');
+  setCurrentPlayer(currentPlayer === 'player' ? 'ai' : 'player')
   if (gameMode === 'vs-ai' && currentPlayer === 'player') {
-    setTimeout(playAI, 1000);
+    setTimeout(playAI, 1000)
   }
-};
+}
 
 const playAI = () => {
   const unmatched = grid
     .map((card, index) => ({ card, index }))
-    .filter(({ card }) => !matchedPairs.includes(card.rank));
+    .filter(({ card }) => !matchedPairs.includes(card.rank))
 
-  let firstIndex: number, secondIndex: number;
+  let firstIndex: number, secondIndex: number
 
   // Check if AI remembers a pair
-  const knownPair = unmatched.find(({ card, index }) => 
-    unmatched.some(other => other.index !== index && other.card.rank === card.rank)
-  );
+  const knownPair = unmatched.find(({ card, index }) =>
+    unmatched.some(
+      (other) => other.index !== index && other.card.rank === card.rank
+    )
+  )
 
   if (knownPair) {
-    firstIndex = knownPair.index;
-    secondIndex = unmatched.find(({ card, index }) => 
-      index !== firstIndex && card.rank === knownPair.card.rank
-    )!.index;
+    firstIndex = knownPair.index
+    secondIndex = unmatched.find(
+      ({ card, index }) =>
+        index !== firstIndex && card.rank === knownPair.card.rank
+    )!.index
   } else {
     // Randomly select two cards
-    [firstIndex, secondIndex] = unmatched
+    ;[firstIndex, secondIndex] = unmatched
       .map(({ index }) => index)
       .sort(() => Math.random() - 0.5)
-      .slice(0, 2);
+      .slice(0, 2)
   }
 
-  flipCard(firstIndex);
-  setTimeout(() => flipCard(secondIndex), 1000);
-};
+  flipCard(firstIndex)
+  setTimeout(() => flipCard(secondIndex), 1000)
+}
 ```
 
 ### 5. User Input Handling
 
 ```typescript
 useInput((input, key) => {
-  if (currentPlayer !== 'player') return;
+  if (currentPlayer !== 'player') return
 
   if (key.leftArrow) {
-    setSelectedIndex(Math.max(0, selectedIndex - 1));
+    setSelectedIndex(Math.max(0, selectedIndex - 1))
   } else if (key.rightArrow) {
-    setSelectedIndex(Math.min(grid.length - 1, selectedIndex + 1));
+    setSelectedIndex(Math.min(grid.length - 1, selectedIndex + 1))
   } else if (key.upArrow) {
-    setSelectedIndex(Math.max(0, selectedIndex - 4));
+    setSelectedIndex(Math.max(0, selectedIndex - 4))
   } else if (key.downArrow) {
-    setSelectedIndex(Math.min(grid.length - 1, selectedIndex + 4));
+    setSelectedIndex(Math.min(grid.length - 1, selectedIndex + 4))
   } else if (input === ' ') {
-    flipCard(selectedIndex);
+    flipCard(selectedIndex)
   }
-});
+})
 ```
 
 ### 6. Rendering
@@ -172,23 +179,28 @@ useInput((input, key) => {
 return (
   <Box flexDirection="column">
     <Text>Memory/Concentration Game</Text>
-    <Text>Player Score: {scores.player} | AI Score: {scores.ai}</Text>
+    <Text>
+      Player Score: {scores.player} | AI Score: {scores.ai}
+    </Text>
     <Text>{message}</Text>
     <Box flexDirection="column">
-      {[0, 1, 2, 3].map(row => (
+      {[0, 1, 2, 3].map((row) => (
         <Box key={row}>
-          {[0, 1, 2, 3].map(col => {
-            const index = row * 4 + col;
-            const card = grid[index];
+          {[0, 1, 2, 3].map((col) => {
+            const index = row * 4 + col
+            const card = grid[index]
             return (
               <Box key={col} marginRight={1} marginBottom={1}>
                 <Card
                   {...card}
-                  faceUp={flippedIndices.includes(index) || matchedPairs.includes(card.rank)}
+                  faceUp={
+                    flippedIndices.includes(index) ||
+                    matchedPairs.includes(card.rank)
+                  }
                   selected={selectedIndex === index}
                 />
               </Box>
-            );
+            )
           })}
         </Box>
       ))}
@@ -198,7 +210,7 @@ return (
       <Text>Use arrow keys to move, space to flip a card</Text>
     )}
   </Box>
-);
+)
 ```
 
 ## Key Concepts

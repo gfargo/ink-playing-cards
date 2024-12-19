@@ -72,7 +72,9 @@ Now, let's implement the core game logic:
 const playRound = () => {
   if (player1Deck.length === 0 || player2Deck.length === 0) {
     setGameOver(true)
-    setMessage(`Game Over! ${player1Deck.length > 0 ? 'Player 1' : 'Player 2'} wins!`)
+    setMessage(
+      `Game Over! ${player1Deck.length > 0 ? 'Player 1' : 'Player 2'} wins!`
+    )
     return
   }
 
@@ -96,10 +98,11 @@ const handleWar = (card1, card2) => {
   setMessage('War!')
   const warCards1 = player1Deck.splice(0, 3)
   const warCards2 = player2Deck.splice(0, 3)
-  
+
   if (warCards1.length < 3 || warCards2.length < 3) {
     // One player doesn't have enough cards for war
-    const winner = warCards1.length >= warCards2.length ? 'Player 1' : 'Player 2'
+    const winner =
+      warCards1.length >= warCards2.length ? 'Player 1' : 'Player 2'
     setGameOver(true)
     setMessage(`Game Over! ${winner} wins due to insufficient cards for war!`)
     return
@@ -186,7 +189,9 @@ const WarGame = () => {
   const playRound = () => {
     if (player1Deck.length === 0 || player2Deck.length === 0) {
       setGameOver(true)
-      setMessage(`Game Over! ${player1Deck.length > 0 ? 'Player 1' : 'Player 2'} wins!`)
+      setMessage(
+        `Game Over! ${player1Deck.length > 0 ? 'Player 1' : 'Player 2'} wins!`
+      )
       return
     }
 
@@ -210,9 +215,10 @@ const WarGame = () => {
     setMessage('War!')
     const warCards1 = player1Deck.splice(0, 3)
     const warCards2 = player2Deck.splice(0, 3)
-    
+
     if (warCards1.length < 3 || warCards2.length < 3) {
-      const winner = warCards1.length >= warCards2.length ? 'Player 1' : 'Player 2'
+      const winner =
+        warCards1.length >= warCards2.length ? 'Player 1' : 'Player 2'
       setGameOver(true)
       setMessage(`Game Over! ${winner} wins due to insufficient cards for war!`)
       return

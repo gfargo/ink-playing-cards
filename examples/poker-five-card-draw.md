@@ -21,170 +21,189 @@ Five Card Draw is a poker variant where each player is dealt five cards, has the
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const PokerGame: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <PokerGame />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const PokerGame: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [players, setPlayers] = useState<{ hand: Card[], chips: number, bet: number }[]>([]);
-  const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [pot, setPot] = useState(0);
-  const [gamePhase, setGamePhase] = useState<'deal' | 'discard' | 'betting' | 'showdown'>('deal');
-  const [message, setMessage] = useState('');
+  const { deck, shuffle, draw } = useDeck()
+  const [players, setPlayers] = useState<
+    { hand: Card[]; chips: number; bet: number }[]
+  >([])
+  const [currentPlayer, setCurrentPlayer] = useState(0)
+  const [pot, setPot] = useState(0)
+  const [gamePhase, setGamePhase] = useState<
+    'deal' | 'discard' | 'betting' | 'showdown'
+  >('deal')
+  const [message, setMessage] = useState('')
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const newPlayers = Array(4).fill(null).map(() => ({
-    hand: draw(5),
-    chips: 1000,
-    bet: 0
-  }));
-  setPlayers(newPlayers);
-  setCurrentPlayer(0);
-  setPot(0);
-  setGamePhase('betting');
-  setMessage('Betting round: Player 1 to act');
-};
+  shuffle()
+  const newPlayers = Array(4)
+    .fill(null)
+    .map(() => ({
+      hand: draw(5),
+      chips: 1000,
+      bet: 0,
+    }))
+  setPlayers(newPlayers)
+  setCurrentPlayer(0)
+  setPot(0)
+  setGamePhase('betting')
+  setMessage('Betting round: Player 1 to act')
+}
 ```
 
 ### 4. Hand Evaluation
 
 ```typescript
-const handRanks = ['High Card', 'Pair', 'Two Pair', 'Three of a Kind', 'Straight', 'Flush', 'Full House', 'Four of a Kind', 'Straight Flush', 'Royal Flush'];
+const handRanks = [
+  'High Card',
+  'Pair',
+  'Two Pair',
+  'Three of a Kind',
+  'Straight',
+  'Flush',
+  'Full House',
+  'Four of a Kind',
+  'Straight Flush',
+  'Royal Flush',
+]
 
-const evaluateHand = (hand: Card[]): { rank: number, name: string } => {
+const evaluateHand = (hand: Card[]): { rank: number; name: string } => {
   // Implement hand evaluation logic here
   // This is a simplified version and doesn't cover all cases
-  const ranks = hand.map(card => card.rank);
-  const suits = hand.map(card => card.suit);
-  
+  const ranks = hand.map((card) => card.rank)
+  const suits = hand.map((card) => card.suit)
+
   const rankCounts = ranks.reduce((acc, rank) => {
-    acc[rank] = (acc[rank] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+    acc[rank] = (acc[rank] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
 
-  const maxCount = Math.max(...Object.values(rankCounts));
+  const maxCount = Math.max(...Object.values(rankCounts))
 
-  if (maxCount === 4) return { rank: 7, name: 'Four of a Kind' };
-  if (maxCount === 3 && Object.keys(rankCounts).length === 2) return { rank: 6, name: 'Full House' };
-  if (new Set(suits).size === 1) return { rank: 5, name: 'Flush' };
-  if (maxCount === 3) return { rank: 3, name: 'Three of a Kind' };
-  if (maxCount === 2 && Object.keys(rankCounts).length === 3) return { rank: 2, name: 'Two Pair' };
-  if (maxCount === 2) return { rank: 1, name: 'Pair' };
-  
-  return { rank: 0, name: 'High Card' };
-};
+  if (maxCount === 4) return { rank: 7, name: 'Four of a Kind' }
+  if (maxCount === 3 && Object.keys(rankCounts).length === 2)
+    return { rank: 6, name: 'Full House' }
+  if (new Set(suits).size === 1) return { rank: 5, name: 'Flush' }
+  if (maxCount === 3) return { rank: 3, name: 'Three of a Kind' }
+  if (maxCount === 2 && Object.keys(rankCounts).length === 3)
+    return { rank: 2, name: 'Two Pair' }
+  if (maxCount === 2) return { rank: 1, name: 'Pair' }
+
+  return { rank: 0, name: 'High Card' }
+}
 ```
 
 ### 5. Betting Logic
 
 ```typescript
 const bet = (amount: number) => {
-  const player = players[currentPlayer];
+  const player = players[currentPlayer]
   if (amount > player.chips) {
-    setMessage('Not enough chips');
-    return;
+    setMessage('Not enough chips')
+    return
   }
 
-  const newPlayers = [...players];
-  newPlayers[currentPlayer].bet += amount;
-  newPlayers[currentPlayer].chips -= amount;
-  setPlayers(newPlayers);
-  setPot(pot + amount);
+  const newPlayers = [...players]
+  newPlayers[currentPlayer].bet += amount
+  newPlayers[currentPlayer].chips -= amount
+  setPlayers(newPlayers)
+  setPot(pot + amount)
 
-  nextPlayer();
-};
+  nextPlayer()
+}
 
 const fold = () => {
-  const newPlayers = [...players];
-  newPlayers[currentPlayer].hand = [];
-  setPlayers(newPlayers);
-  nextPlayer();
-};
+  const newPlayers = [...players]
+  newPlayers[currentPlayer].hand = []
+  setPlayers(newPlayers)
+  nextPlayer()
+}
 
 const nextPlayer = () => {
-  let nextPlayerIndex = (currentPlayer + 1) % players.length;
+  let nextPlayerIndex = (currentPlayer + 1) % players.length
   while (players[nextPlayerIndex].hand.length === 0) {
-    nextPlayerIndex = (nextPlayerIndex + 1) % players.length;
+    nextPlayerIndex = (nextPlayerIndex + 1) % players.length
   }
 
   if (nextPlayerIndex === 0) {
-    setGamePhase('discard');
-    setMessage('Discard phase: Choose cards to discard');
+    setGamePhase('discard')
+    setMessage('Discard phase: Choose cards to discard')
   } else {
-    setCurrentPlayer(nextPlayerIndex);
-    setMessage(`Player ${nextPlayerIndex + 1} to act`);
+    setCurrentPlayer(nextPlayerIndex)
+    setMessage(`Player ${nextPlayerIndex + 1} to act`)
   }
-};
+}
 ```
 
 ### 6. AI Logic
 
 ```typescript
 const playAI = () => {
-  const player = players[currentPlayer];
-  const handStrength = evaluateHand(player.hand);
+  const player = players[currentPlayer]
+  const handStrength = evaluateHand(player.hand)
 
   if (handStrength.rank >= 3) {
     // Strong hand, bet or raise
-    bet(Math.min(50, player.chips));
+    bet(Math.min(50, player.chips))
   } else if (handStrength.rank >= 1) {
     // Mediocre hand, call or check
-    const callAmount = Math.max(...players.map(p => p.bet)) - player.bet;
-    bet(Math.min(callAmount, player.chips));
+    const callAmount = Math.max(...players.map((p) => p.bet)) - player.bet
+    bet(Math.min(callAmount, player.chips))
   } else {
     // Weak hand, fold
-    fold();
+    fold()
   }
-};
+}
 ```
 
 ### 7. User Input Handling
 
 ```typescript
 useInput((input, key) => {
-  if (currentPlayer !== 0) return; // Only handle input for human player
+  if (currentPlayer !== 0) return // Only handle input for human player
 
   if (gamePhase === 'betting') {
-    if (input === 'c') bet(10); // Call
-    if (input === 'r') bet(20); // Raise
-    if (input === 'f') fold();
+    if (input === 'c') bet(10) // Call
+    if (input === 'r') bet(20) // Raise
+    if (input === 'f') fold()
   } else if (gamePhase === 'discard') {
-    const index = parseInt(input);
+    const index = parseInt(input)
     if (!isNaN(index) && index >= 1 && index <= 5) {
-      discardCard(index - 1);
+      discardCard(index - 1)
     }
-    if (input === 'd') finishDiscard();
+    if (input === 'd') finishDiscard()
   }
-});
+})
 ```
 
 ### 8. Rendering
@@ -199,7 +218,9 @@ return (
     <Text>{message}</Text>
     {players.map((player, index) => (
       <Box key={index} flexDirection="column" marginY={1}>
-        <Text>Player {index + 1} (Chips: ${player.chips}, Bet: ${player.bet})</Text>
+        <Text>
+          Player {index + 1} (Chips: ${player.chips}, Bet: ${player.bet})
+        </Text>
         <Box>
           {player.hand.map((card, cardIndex) => (
             <Card key={cardIndex} {...card} faceUp={index === 0} />
@@ -214,7 +235,7 @@ return (
       <Text>Enter card numbers to discard, 'd' when done</Text>
     )}
   </Box>
-);
+)
 ```
 
 ## Key Concepts

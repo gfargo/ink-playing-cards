@@ -76,12 +76,16 @@ useEffect(() => {
 const initializeGame = () => {
   shuffle()
   const initialDraw = draw(13) // 6 for player, 6 for AI, 1 for discard pile
-  setPlayerGrid(initialDraw.slice(0, 6).map(card => ({ ...card, faceUp: false })))
-  setAiGrid(initialDraw.slice(6, 12).map(card => ({ ...card, faceUp: false })))
+  setPlayerGrid(
+    initialDraw.slice(0, 6).map((card) => ({ ...card, faceUp: false }))
+  )
+  setAiGrid(
+    initialDraw.slice(6, 12).map((card) => ({ ...card, faceUp: false }))
+  )
   setDiscardPile([initialDraw[12]])
-  setDrawPile(deck.cards.filter(card => !initialDraw.includes(card)))
+  setDrawPile(deck.cards.filter((card) => !initialDraw.includes(card)))
   setGamePhase('initial')
-  setMessage("Look at your bottom two cards. Click to flip them.")
+  setMessage('Look at your bottom two cards. Click to flip them.')
 }
 ```
 
@@ -97,7 +101,7 @@ const flipInitialCards = (index) => {
   setPlayerGrid(newGrid)
   if (newGrid[4].faceUp && newGrid[5].faceUp) {
     setGamePhase('main')
-    setMessage("Your turn. Draw a card from the deck or discard pile.")
+    setMessage('Your turn. Draw a card from the deck or discard pile.')
   }
 }
 
@@ -111,11 +115,12 @@ const drawCard = (source) => {
     setSelectedCard(drawnCard)
     setDiscardPile(remainingDiscard)
   }
-  setMessage("Select a card to replace or discard the drawn card.")
+  setMessage('Select a card to replace or discard the drawn card.')
 }
 
 const replaceCard = (index) => {
-  if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main') return
+  if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
+    return
   const newGrid = [...playerGrid]
   const replacedCard = newGrid[index]
   newGrid[index] = { ...selectedCard, faceUp: true }
@@ -123,7 +128,7 @@ const replaceCard = (index) => {
   setDiscardPile([replacedCard, ...discardPile])
   setSelectedCard(null)
   checkForTriples(newGrid)
-  if (newGrid.every(card => card.faceUp)) {
+  if (newGrid.every((card) => card.faceUp)) {
     endRound()
   } else {
     setCurrentPlayer('ai')
@@ -133,7 +138,8 @@ const replaceCard = (index) => {
 }
 
 const discardDrawnCard = () => {
-  if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main') return
+  if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
+    return
   setDiscardPile([selectedCard, ...discardPile])
   setSelectedCard(null)
   setCurrentPlayer('ai')
@@ -159,17 +165,18 @@ const aiTurn = () => {
     if (!card.faceUp) acc.push(index)
     return acc
   }, [])
-  const replaceIndex = faceDownIndices[Math.floor(Math.random() * faceDownIndices.length)]
+  const replaceIndex =
+    faceDownIndices[Math.floor(Math.random() * faceDownIndices.length)]
   const replacedCard = newGrid[replaceIndex]
   newGrid[replaceIndex] = { ...drawnCard, faceUp: true }
   setAiGrid(newGrid)
   setDiscardPile([replacedCard, ...discardPile])
   checkForTriples(newGrid)
-  if (newGrid.every(card => card.faceUp)) {
+  if (newGrid.every((card) => card.faceUp)) {
     endRound()
   } else {
     setCurrentPlayer('player')
-    setMessage("Your turn. Draw a card from the deck or discard pile.")
+    setMessage('Your turn. Draw a card from the deck or discard pile.')
   }
 }
 
@@ -242,8 +249,8 @@ return (
     {gamePhase === 'main' && currentPlayer === 'player' && (
       <Text>
         {selectedCard
-          ? "Press 1-6 to replace a card, or X to discard"
-          : "Press D to draw from deck, P to draw from discard pile"}
+          ? 'Press 1-6 to replace a card, or X to discard'
+          : 'Press D to draw from deck, P to draw from discard pile'}
       </Text>
     )}
   </Box>
@@ -277,12 +284,16 @@ const GolfGame = () => {
   const initializeGame = () => {
     shuffle()
     const initialDraw = draw(13)
-    setPlayerGrid(initialDraw.slice(0, 6).map(card => ({ ...card, faceUp: false })))
-    setAiGrid(initialDraw.slice(6, 12).map(card => ({ ...card, faceUp: false })))
+    setPlayerGrid(
+      initialDraw.slice(0, 6).map((card) => ({ ...card, faceUp: false }))
+    )
+    setAiGrid(
+      initialDraw.slice(6, 12).map((card) => ({ ...card, faceUp: false }))
+    )
     setDiscardPile([initialDraw[12]])
-    setDrawPile(deck.cards.filter(card => !initialDraw.includes(card)))
+    setDrawPile(deck.cards.filter((card) => !initialDraw.includes(card)))
     setGamePhase('initial')
-    setMessage("Look at your bottom two cards. Click to flip them.")
+    setMessage('Look at your bottom two cards. Click to flip them.')
   }
 
   const flipInitialCards = (index) => {
@@ -292,7 +303,7 @@ const GolfGame = () => {
     setPlayerGrid(newGrid)
     if (newGrid[4].faceUp && newGrid[5].faceUp) {
       setGamePhase('main')
-      setMessage("Your turn. Draw a card from the deck or discard pile.")
+      setMessage('Your turn. Draw a card from the deck or discard pile.')
     }
   }
 
@@ -306,11 +317,12 @@ const GolfGame = () => {
       setSelectedCard(drawnCard)
       setDiscardPile(remainingDiscard)
     }
-    setMessage("Select a card to replace or discard the drawn card.")
+    setMessage('Select a card to replace or discard the drawn card.')
   }
 
   const replaceCard = (index) => {
-    if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main') return
+    if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
+      return
     const newGrid = [...playerGrid]
     const replacedCard = newGrid[index]
     newGrid[index] = { ...selectedCard, faceUp: true }
@@ -318,7 +330,7 @@ const GolfGame = () => {
     setDiscardPile([replacedCard, ...discardPile])
     setSelectedCard(null)
     checkForTriples(newGrid)
-    if (newGrid.every(card => card.faceUp)) {
+    if (newGrid.every((card) => card.faceUp)) {
       endRound()
     } else {
       setCurrentPlayer('ai')
@@ -328,7 +340,8 @@ const GolfGame = () => {
   }
 
   const discardDrawnCard = () => {
-    if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main') return
+    if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
+      return
     setDiscardPile([selectedCard, ...discardPile])
     setSelectedCard(null)
     setCurrentPlayer('ai')
@@ -352,17 +365,18 @@ const GolfGame = () => {
       if (!card.faceUp) acc.push(index)
       return acc
     }, [])
-    const replaceIndex = faceDownIndices[Math.floor(Math.random() * faceDownIndices.length)]
+    const replaceIndex =
+      faceDownIndices[Math.floor(Math.random() * faceDownIndices.length)]
     const replacedCard = newGrid[replaceIndex]
     newGrid[replaceIndex] = { ...drawnCard, faceUp: true }
     setAiGrid(newGrid)
     setDiscardPile([replacedCard, ...discardPile])
     checkForTriples(newGrid)
-    if (newGrid.every(card => card.faceUp)) {
+    if (newGrid.every((card) => card.faceUp)) {
       endRound()
     } else {
       setCurrentPlayer('player')
-      setMessage("Your turn. Draw a card from the deck or discard pile.")
+      setMessage('Your turn. Draw a card from the deck or discard pile.')
     }
   }
 
@@ -423,8 +437,8 @@ const GolfGame = () => {
       {gamePhase === 'main' && currentPlayer === 'player' && (
         <Text>
           {selectedCard
-            ? "Press 1-6 to replace a card, or X to discard"
-            : "Press D to draw from deck, P to draw from discard pile"}
+            ? 'Press 1-6 to replace a card, or X to discard'
+            : 'Press D to draw from deck, P to draw from discard pile'}
         </Text>
       )}
     </Box>

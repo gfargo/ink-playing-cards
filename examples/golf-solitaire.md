@@ -20,121 +20,125 @@ Golf Solitaire is a single-player card game where the objective is to move all c
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const GolfSolitaire: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <GolfSolitaire />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const GolfSolitaire: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [tableau, setTableau] = useState<Card[][]>([]);
-  const [wastePile, setWastePile] = useState<Card[]>([]);
-  const [stockPile, setStockPile] = useState<Card[]>([]);
-  const [score, setScore] = useState(0);
-  const [message, setMessage] = useState('');
+  const { deck, shuffle, draw } = useDeck()
+  const [tableau, setTableau] = useState<Card[][]>([])
+  const [wastePile, setWastePile] = useState<Card[]>([])
+  const [stockPile, setStockPile] = useState<Card[]>([])
+  const [score, setScore] = useState(0)
+  const [message, setMessage] = useState('')
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const newTableau: Card[][] = [];
+  shuffle()
+  const newTableau: Card[][] = []
   for (let i = 0; i < 7; i++) {
-    newTableau.push(draw(5));
+    newTableau.push(draw(5))
   }
-  setTableau(newTableau);
-  setWastePile([draw(1)[0]]);
-  setStockPile(draw(17));
-  setScore(0);
-  setMessage('New game started. Remove cards one rank up or down.');
-};
+  setTableau(newTableau)
+  setWastePile([draw(1)[0]])
+  setStockPile(draw(17))
+  setScore(0)
+  setMessage('New game started. Remove cards one rank up or down.')
+}
 ```
 
 ### 4. Game Logic
 
 ```typescript
 const moveCard = (row: number, col: number) => {
-  const card = tableau[row][col];
-  const topWasteCard = wastePile[wastePile.length - 1];
+  const card = tableau[row][col]
+  const topWasteCard = wastePile[wastePile.length - 1]
 
   if (isValidMove(card, topWasteCard)) {
-    const newTableau = [...tableau];
-    newTableau[row].splice(col, 1);
-    setTableau(newTableau);
-    setWastePile([...wastePile, card]);
-    setScore(score + 1);
-    checkForWin();
+    const newTableau = [...tableau]
+    newTableau[row].splice(col, 1)
+    setTableau(newTableau)
+    setWastePile([...wastePile, card])
+    setScore(score + 1)
+    checkForWin()
   } else {
-    setMessage('Invalid move. Cards must be one rank up or down.');
+    setMessage('Invalid move. Cards must be one rank up or down.')
   }
-};
+}
 
 const isValidMove = (card: Card, topWasteCard: Card): boolean => {
-  const cardValue = getCardValue(card);
-  const topWasteValue = getCardValue(topWasteCard);
-  return Math.abs(cardValue - topWasteValue) === 1 || Math.abs(cardValue - topWasteValue) === 12;
-};
+  const cardValue = getCardValue(card)
+  const topWasteValue = getCardValue(topWasteCard)
+  return (
+    Math.abs(cardValue - topWasteValue) === 1 ||
+    Math.abs(cardValue - topWasteValue) === 12
+  )
+}
 
 const getCardValue = (card: Card): number => {
-  if (card.rank === 'A') return 1;
-  if (card.rank === 'J') return 11;
-  if (card.rank === 'Q') return 12;
-  if (card.rank === 'K') return 13;
-  return parseInt(card.rank);
-};
+  if (card.rank === 'A') return 1
+  if (card.rank === 'J') return 11
+  if (card.rank === 'Q') return 12
+  if (card.rank === 'K') return 13
+  return parseInt(card.rank)
+}
 
 const drawFromStock = () => {
   if (stockPile.length > 0) {
-    const [drawnCard, ...remainingStock] = stockPile;
-    setWastePile([...wastePile, drawnCard]);
-    setStockPile(remainingStock);
-    checkForGameOver();
+    const [drawnCard, ...remainingStock] = stockPile
+    setWastePile([...wastePile, drawnCard])
+    setStockPile(remainingStock)
+    checkForGameOver()
   } else {
-    setMessage('No more cards in the stock pile.');
+    setMessage('No more cards in the stock pile.')
   }
-};
+}
 
 const checkForWin = () => {
-  if (tableau.every(column => column.length === 0)) {
-    setMessage(`Congratulations! You've won with a score of ${score}!`);
+  if (tableau.every((column) => column.length === 0)) {
+    setMessage(`Congratulations! You've won with a score of ${score}!`)
   }
-};
+}
 
 const checkForGameOver = () => {
   if (stockPile.length === 0 && !hasValidMoves()) {
-    setMessage(`Game over. Your final score is ${score}.`);
+    setMessage(`Game over. Your final score is ${score}.`)
   }
-};
+}
 
 const hasValidMoves = (): boolean => {
-  const topWasteCard = wastePile[wastePile.length - 1];
-  return tableau.some(column => 
-    column.length > 0 && isValidMove(column[column.length - 1], topWasteCard)
-  );
-};
+  const topWasteCard = wastePile[wastePile.length - 1]
+  return tableau.some(
+    (column) =>
+      column.length > 0 && isValidMove(column[column.length - 1], topWasteCard)
+  )
+}
 ```
 
 ### 5. User Input Handling
@@ -149,9 +153,9 @@ useInput((input, key) => {
     // Implement logic to select a card based on current selection
   } else if (input === 'd') {
     // Draw from stock
-    drawFromStock();
+    drawFromStock()
   }
-});
+})
 ```
 
 ### 6. Rendering
@@ -173,13 +177,15 @@ return (
     ))}
     <Box marginY={1}>
       <Text>Waste Pile: </Text>
-      {wastePile.length > 0 && <Card {...wastePile[wastePile.length - 1]} faceUp />}
+      {wastePile.length > 0 && (
+        <Card {...wastePile[wastePile.length - 1]} faceUp />
+      )}
       <Text marginLeft={2}>Stock Pile: </Text>
       {stockPile.length > 0 && <Card {...stockPile[0]} faceUp={false} />}
     </Box>
     <Text>Press space to select a card, 'd' to draw from stock</Text>
   </Box>
-);
+)
 ```
 
 ## Key Concepts

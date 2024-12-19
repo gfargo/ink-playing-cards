@@ -31,169 +31,200 @@ Aces Up! is a solitaire card game where the goal is to discard all cards except 
 ### 1. Setup and Imports
 
 ```typescript
-import React, { useState, useEffect } from 'react';
-import { Box, Text, useInput } from 'ink';
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards';
+import React, { useState, useEffect } from 'react'
+import { Box, Text, useInput } from 'ink'
+import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const AcesUpGame: React.FC = () => {
   // Component logic will go here
-};
+}
 
 const App: React.FC = () => (
   <DeckProvider>
     <AcesUpGame />
   </DeckProvider>
-);
+)
 
-export default App;
+export default App
 ```
 
 ### 2. Game State
 
 ```typescript
 const AcesUpGame: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck();
-  const [piles, setPiles] = useState<Card[][]>([[], [], [], []]);
-  const [drawPile, setDrawPile] = useState<Card[]>([]);
-  const [foundation, setFoundation] = useState<Card[]>([]);
-  const [selectedPile, setSelectedPile] = useState<number | null>(null);
-  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
-  const [message, setMessage] = useState('');
+  const { deck, shuffle, draw } = useDeck()
+  const [piles, setPiles] = useState<Card[][]>([[], [], [], []])
+  const [drawPile, setDrawPile] = useState<Card[]>([])
+  const [foundation, setFoundation] = useState<Card[]>([])
+  const [selectedPile, setSelectedPile] = useState<number | null>(null)
+  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>(
+    'playing'
+  )
+  const [message, setMessage] = useState('')
 
   // Rest of the component logic
-};
+}
 ```
 
 ### 3. Game Initialization
 
 ```typescript
 useEffect(() => {
-  startNewGame();
-}, []);
+  startNewGame()
+}, [])
 
 const startNewGame = () => {
-  shuffle();
-  const initialCards = draw(4);
-  const newPiles = initialCards.map(card => [card]);
-  setPiles(newPiles);
-  setDrawPile(deck.slice(4));
-  setFoundation([]);
-  setSelectedPile(null);
-  setGameState('playing');
-  setMessage('New game started. Select piles to discard or move cards.');
-};
+  shuffle()
+  const initialCards = draw(4)
+  const newPiles = initialCards.map((card) => [card])
+  setPiles(newPiles)
+  setDrawPile(deck.slice(4))
+  setFoundation([])
+  setSelectedPile(null)
+  setGameState('playing')
+  setMessage('New game started. Select piles to discard or move cards.')
+}
 ```
 
 ### 4. Game Logic
 
 ```typescript
 const selectPile = (pileIndex: number) => {
-  if (gameState !== 'playing') return;
+  if (gameState !== 'playing') return
 
   if (selectedPile === null) {
-    setSelectedPile(pileIndex);
+    setSelectedPile(pileIndex)
   } else {
     if (piles[pileIndex].length === 0) {
-      moveToPile(selectedPile, pileIndex);
+      moveToPile(selectedPile, pileIndex)
     } else {
-      setSelectedPile(pileIndex);
+      setSelectedPile(pileIndex)
     }
   }
-};
+}
 
 const moveToPile = (fromIndex: number, toIndex: number) => {
-  if (piles[fromIndex].length === 0) return;
+  if (piles[fromIndex].length === 0) return
 
-  const newPiles = [...piles];
-  const movedCard = newPiles[fromIndex].pop()!;
-  newPiles[toIndex].push(movedCard);
-  setPiles(newPiles);
-  setSelectedPile(null);
-  setMessage('Card moved successfully.');
-  checkForDiscards();
-};
+  const newPiles = [...piles]
+  const movedCard = newPiles[fromIndex].pop()!
+  newPiles[toIndex].push(movedCard)
+  setPiles(newPiles)
+  setSelectedPile(null)
+  setMessage('Card moved successfully.')
+  checkForDiscards()
+}
 
 const discardCard = (pileIndex: number) => {
-  const card = piles[pileIndex][piles[pileIndex].length - 1];
+  const card = piles[pileIndex][piles[pileIndex].length - 1]
   if (canDiscard(card)) {
-    const newPiles = [...piles];
-    const discardedCard = newPiles[pileIndex].pop()!;
-    setFoundation([...foundation, discardedCard]);
-    setPiles(newPiles);
-    setMessage('Card discarded successfully.');
-    checkForDiscards();
+    const newPiles = [...piles]
+    const discardedCard = newPiles[pileIndex].pop()!
+    setFoundation([...foundation, discardedCard])
+    setPiles(newPiles)
+    setMessage('Card discarded successfully.')
+    checkForDiscards()
   } else {
-    setMessage('Cannot discard this card.');
+    setMessage('Cannot discard this card.')
   }
-};
+}
 
 const canDiscard = (card: Card): boolean => {
-  return piles.some(pile => {
-    const topCard = pile[pile.length - 1];
-    return topCard && topCard.suit === card.suit && compareRanks(topCard.rank, card.rank) > 0;
-  });
-};
+  return piles.some((pile) => {
+    const topCard = pile[pile.length - 1]
+    return (
+      topCard &&
+      topCard.suit === card.suit &&
+      compareRanks(topCard.rank, card.rank) > 0
+    )
+  })
+}
 
 const compareRanks = (rank1: string, rank2: string): number => {
-  const rankOrder = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-  return rankOrder.indexOf(rank1) - rankOrder.indexOf(rank2);
-};
+  const rankOrder = [
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '10',
+    'J',
+    'Q',
+    'K',
+    'A',
+  ]
+  return rankOrder.indexOf(rank1) - rankOrder.indexOf(rank2)
+}
 
 const checkForDiscards = () => {
-  let discardMade = false;
-  const newPiles = piles.map(pile => {
-    if (pile.length === 0) return pile;
-    const topCard = pile[pile.length - 1];
+  let discardMade = false
+  const newPiles = piles.map((pile) => {
+    if (pile.length === 0) return pile
+    const topCard = pile[pile.length - 1]
     if (canDiscard(topCard)) {
-      discardMade = true;
-      setFoundation([...foundation, topCard]);
-      return pile.slice(0, -1);
+      discardMade = true
+      setFoundation([...foundation, topCard])
+      return pile.slice(0, -1)
     }
-    return pile;
-  });
+    return pile
+  })
 
   if (discardMade) {
-    setPiles(newPiles);
-    setMessage('Automatic discards made.');
-    checkForDiscards(); // Recursively check for more discards
+    setPiles(newPiles)
+    setMessage('Automatic discards made.')
+    checkForDiscards() // Recursively check for more discards
   } else {
-    checkGameState();
+    checkGameState()
   }
-};
+}
 
 const dealCards = () => {
   if (drawPile.length === 0) {
-    setMessage('No more cards to deal.');
-    return;
+    setMessage('No more cards to deal.')
+    return
   }
 
   const newPiles = piles.map((pile, index) => {
     if (drawPile[index]) {
-      return [...pile, drawPile[index]];
+      return [...pile, drawPile[index]]
     }
-    return pile;
-  });
+    return pile
+  })
 
-  setPiles(newPiles);
-  setDrawPile(drawPile.slice(4));
-  checkForDiscards();
-};
+  setPiles(newPiles)
+  setDrawPile(drawPile.slice(4))
+  checkForDiscards()
+}
 
 const checkGameState = () => {
-  if (drawPile.length === 0 && piles.every(pile => pile.length === 0 || (pile.length === 1 && pile[0].rank === 'A'))) {
-    setGameState('won');
-    setMessage('Congratulations! You won!');
+  if (
+    drawPile.length === 0 &&
+    piles.every(
+      (pile) => pile.length === 0 || (pile.length === 1 && pile[0].rank === 'A')
+    )
+  ) {
+    setGameState('won')
+    setMessage('Congratulations! You won!')
   } else if (drawPile.length === 0 && !canMakeAnyMove()) {
-    setGameState('lost');
-    setMessage('Game over. No more moves possible.');
+    setGameState('lost')
+    setMessage('Game over. No more moves possible.')
   }
-};
+}
 
 const canMakeAnyMove = (): boolean => {
-  return piles.some((pile, index) => 
-    pile.length > 0 && (canDiscard(pile[pile.length - 1]) || piles.some((_, emptyIndex) => piles[emptyIndex].length === 0 && emptyIndex !== index))
-  );
-};
+  return piles.some(
+    (pile, index) =>
+      pile.length > 0 &&
+      (canDiscard(pile[pile.length - 1]) ||
+        piles.some(
+          (_, emptyIndex) =>
+            piles[emptyIndex].length === 0 && emptyIndex !== index
+        ))
+  )
+}
 ```
 
 ### 5. User Input Handling
@@ -201,19 +232,19 @@ const canMakeAnyMove = (): boolean => {
 ```typescript
 useInput((input, key) => {
   if (gameState !== 'playing') {
-    if (input === 'r') startNewGame();
-    return;
+    if (input === 'r') startNewGame()
+    return
   }
 
-  const pileIndex = parseInt(input);
+  const pileIndex = parseInt(input)
   if (!isNaN(pileIndex) && pileIndex >= 1 && pileIndex <= 4) {
-    selectPile(pileIndex - 1);
+    selectPile(pileIndex - 1)
   } else if (input === 'd') {
-    discardCard(selectedPile!);
+    discardCard(selectedPile!)
   } else if (input === 'n') {
-    dealCards();
+    dealCards()
   }
-});
+})
 ```
 
 ### 6. Rendering
@@ -242,14 +273,13 @@ return (
     <Text>Foundation: {foundation.length} cards</Text>
     {gameState === 'playing' && (
       <Text>
-        Enter 1-4 to select a pile, 'd' to discard selected card, 'n' to deal new cards
+        Enter 1-4 to select a pile, 'd' to discard selected card, 'n' to deal
+        new cards
       </Text>
     )}
-    {gameState !== 'playing' && (
-      <Text>Press 'r' to start a new game</Text>
-    )}
+    {gameState !== 'playing' && <Text>Press 'r' to start a new game</Text>}
   </Box>
-);
+)
 ```
 
 ## Key Concepts Explained
