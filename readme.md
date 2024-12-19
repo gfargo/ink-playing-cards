@@ -1,4 +1,4 @@
-# Card Game Library for Ink
+# Ink Playing Cards
 
 This library provides a flexible and extensible framework for building card games using React and Ink. It offers a set of components, hooks, and utilities that make it easy to create various types of card games, from simple to complex.
 
@@ -16,7 +16,7 @@ This library provides a flexible and extensible framework for building card game
 ## Installation
 
 ```bash
-npm install card-game-library-ink
+npm install ink-playing-cards
 ```
 
 ## Basic Usage
@@ -26,7 +26,7 @@ Here's a simple example of how to use the library to create a basic card game:
 ```jsx
 import React from 'react'
 import { Box, Text } from 'ink'
-import { DeckProvider, useDeck, Card, CardStack } from 'card-game-library-ink'
+import { DeckProvider, useDeck, Card, CardStack } from 'ink-playing-cards'
 
 const Game = () => {
   const { deck, hand, draw, shuffle } = useDeck()
