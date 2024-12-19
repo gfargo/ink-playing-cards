@@ -42,6 +42,32 @@ test('render a three of diamonds face up', (t) => {
   }
 })
 
+test('render a 6 of clubs face up micro', (t) => {
+  const { lastFrame } = render(
+    <MiniCard id="six-clubs" suit="clubs" value="6" variant="micro" />
+  )
+  const sixClubsLastFrame = lastFrame()
+  t.snapshot(sixClubsLastFrame)
+
+  // Check it contains clubs symbol
+  if (sixClubsLastFrame) {
+    t.true(sixClubsLastFrame.includes('♣'))
+  }
+})
+
+test('render a 7 of spades face up micro', (t) => {
+  const { lastFrame } = render(
+    <MiniCard id="seven-spades" suit="spades" value="7" variant="micro" />
+  )
+  const sevenSpadesLastFrame = lastFrame()
+  t.snapshot(sevenSpadesLastFrame)
+
+  // Check it contains spades symbol
+  if (sevenSpadesLastFrame) {
+    t.true(sevenSpadesLastFrame.includes('♠'))
+  }
+})
+
 test('render a 6 of clubs face up', (t) => {
   const { lastFrame } = render(
     <MiniCard id="six-clubs" suit="clubs" value="6" />
@@ -91,6 +117,32 @@ test('render a jack of diamonds face up', (t) => {
   // Check it contains diamonds symbol
   if (jackDiamondsLastFrame) {
     t.true(jackDiamondsLastFrame.includes('♦'))
+  }
+})
+
+test('render a queen of clubs face up', (t) => {
+  const { lastFrame } = render(
+    <MiniCard id="queen-clubs" suit="clubs" value="Q" />
+  )
+  const queenClubsLastFrame = lastFrame()
+  t.snapshot(queenClubsLastFrame)
+
+  // Check it contains clubs symbol
+  if (queenClubsLastFrame) {
+    t.true(queenClubsLastFrame.includes('♣'))
+  }
+})
+
+test('render a king of hearts micro face up', (t) => {
+  const { lastFrame } = render(
+    <MiniCard id="king-hearts" suit="hearts" value="K" variant="micro" />
+  )
+  const kingHeartsLastFrame = lastFrame()
+  t.snapshot(kingHeartsLastFrame)
+
+  // Check it contains hearts symbol
+  if (kingHeartsLastFrame) {
+    t.true(kingHeartsLastFrame.includes('♥'))
   }
 })
 
