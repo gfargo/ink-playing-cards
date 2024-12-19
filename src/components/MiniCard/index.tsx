@@ -45,7 +45,7 @@ export function MiniCard({
       ) : (
         <>
           {variant === 'mini' && <Text>{` `}</Text>}
-          <Text>{variant === 'mini' ? ` ☻ ` : '☻'}</Text>
+          <Text>{variant === 'mini' ? ` ☺︎ ` : '☺︎'}</Text>
           <Text>{variant === 'mini' ? ` ☕︎ ` : '☕︎'}</Text>
         </>
       )}
