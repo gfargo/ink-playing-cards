@@ -12,7 +12,7 @@ test('render custom card with ASCII art', (t) => {
       asciiArt={`
    _____
   |A .  |
-  | /.\ |
+  | /.\\ |
   |(_._)|
   |  |  |
   |____V|
@@ -31,7 +31,7 @@ test('render custom card with ASCII art', (t) => {
 
 test('render custom card with different sizes', (t) => {
   const sizes = ['small', 'medium', 'large'] as const
-  sizes.forEach(size => {
+  for (const size of sizes) {
     const { lastFrame } = render(
       <CustomCard
         size={size}
@@ -41,16 +41,12 @@ test('render custom card with different sizes', (t) => {
     )
     const customCardLastFrame = lastFrame()
     t.snapshot(customCardLastFrame)
-  })
+  }
 })
 
 test('render face down custom card', (t) => {
   const { lastFrame } = render(
-    <CustomCard
-      size="medium"
-      title="Face Down Card"
-      faceUp={false}
-    />
+    <CustomCard size="medium" title="Face Down Card" faceUp={false} />
   )
   const customCardLastFrame = lastFrame()
   t.snapshot(customCardLastFrame)

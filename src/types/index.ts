@@ -49,7 +49,7 @@ export type CustomCardProps = {
     color?: string
   }>
   borderColor?: string
-  // backgroundColor?: string
+  // BackgroundColor?: string
   textColor?: string
   onClick?: () => void
   faceUp?: boolean

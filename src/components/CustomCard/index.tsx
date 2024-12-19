@@ -13,14 +13,14 @@ export function CustomCard({
   description,
   symbols = [],
   borderColor = 'white',
-  // backgroundColor = 'black',
+  // BackgroundColor = 'black',
   textColor = 'white',
   faceUp = true,
 }: CustomCardProps) {
   const { backArtwork } = useDeck()
 
-  const cardWidth = width || getDefaultWidth(size)
-  const cardHeight = height || getDefaultHeight(size)
+  const cardWidth = width ?? getDefaultWidth(size)
+  const cardHeight = height ?? getDefaultHeight(size)
 
   const cardStyle: BoxProps = {
     borderStyle: 'round',
@@ -30,7 +30,7 @@ export function CustomCard({
     alignItems: 'center',
     justifyContent: 'center',
     borderColor,
-    // backgroundColor,
+    // BackgroundColor,
   }
 
   if (!faceUp) {
@@ -42,16 +42,18 @@ export function CustomCard({
   }
 
   const renderCardContent = () => {
-    let content = new Array(cardHeight).fill(' '.repeat(cardWidth))
+    const content = Array.from({ length: cardHeight }, () =>
+      ' '.repeat(cardWidth)
+    )
 
     // Paint ASCII art
     if (asciiArt) {
       const artLines = asciiArt.split('\n')
-      artLines.forEach((line, index) => {
+      for (const [index, line] of artLines.entries()) {
         if (index < cardHeight) {
           content[index] = line.padEnd(cardWidth).slice(0, cardWidth)
         }
-      })
+      }
     }
 
     // Add title
@@ -62,33 +64,44 @@ export function CustomCard({
     // Add description
     if (description) {
       const wrappedDesc = wrapText(description, cardWidth)
-      wrappedDesc.forEach((line, index) => {
+      for (const [index, line] of wrappedDesc.entries()) {
         if (index + 2 < cardHeight) {
           content[index + 2] = line
         }
-      })
+      }
     }
 
     // Add symbols
-    symbols.forEach(({ char, position, color }) => {
-      const symbolColor = color ? (chalk as any)[color] : (chalk as any)[textColor]
+    for (const { char, position, color } of symbols) {
+      const symbolColor = color
+        ? (chalk as any)[color]
+        : (chalk as any)[textColor]
       switch (position) {
-        case 'top-left':
-          content[0] = symbolColor(char) + content[0].slice(1)
+        case 'top-left': {
+          content[0] &&= `${symbolColor(char)} ${content[0].slice(1)}`
           break
-        case 'top-right':
-          content[0] = content[0].slice(0, -1) + symbolColor(char)
+        }
+
+        case 'top-right': {
+          content[0] &&= `${content[0].slice(0, -1)} ${symbolColor(char)}`
           break
-        case 'bottom-left':
-          content[cardHeight - 1] =
-            symbolColor(char) + content[cardHeight - 1].slice(1)
+        }
+
+        case 'bottom-left': {
+          const lastLine = content[cardHeight - 1] ?? ''
+          content[cardHeight - 1] = `${symbolColor(char)} ${lastLine.slice(1)}`
           break
-        case 'bottom-right':
-          content[cardHeight - 1] =
-            content[cardHeight - 1].slice(0, -1) + symbolColor(char)
+        }
+
+        case 'bottom-right': {
+          const lastLine = content[cardHeight - 1] ?? ''
+          content[cardHeight - 1] = `${lastLine.slice(0, -1)} ${symbolColor(
+            char
+          )}`
           break
+        }
       }
-    })
+    }
 
     return content.map((line, index) => (
       <Text key={index} color={textColor}>
@@ -101,29 +114,47 @@ export function CustomCard({
 }
 
 // Helper functions
-const getDefaultWidth = (size: 'small' | 'medium' | 'large'): number => {
+const getDefaultWidth = (
+  size: 'small' | 'medium' | 'large' | unknown
+): number => {
   switch (size) {
-    case 'small':
+    case 'small': {
       return 10
-    case 'medium':
+    }
+
+    case 'medium': {
       return 15
-    case 'large':
+    }
+
+    case 'large': {
       return 20
-    default:
+    }
+
+    default: {
       return 15
+    }
   }
 }
 
-const getDefaultHeight = (size: 'small' | 'medium' | 'large'): number => {
+const getDefaultHeight = (
+  size: 'small' | 'medium' | 'large' | unknown
+): number => {
   switch (size) {
-    case 'small':
+    case 'small': {
       return 5
-    case 'medium':
+    }
+
+    case 'medium': {
       return 7
-    case 'large':
+    }
+
+    case 'large': {
       return 10
-    default:
+    }
+
+    default: {
       return 7
+    }
   }
 }
 
@@ -132,14 +163,14 @@ const wrapText = (text: string, maxWidth: number): string[] => {
   const lines: string[] = []
   let currentLine = ''
 
-  words.forEach((word) => {
+  for (const word of words) {
     if ((currentLine + word).length <= maxWidth) {
       currentLine += (currentLine ? ' ' : '') + word
     } else {
       lines.push(currentLine)
       currentLine = word
     }
-  })
+  }
 
   if (currentLine) {
     lines.push(currentLine)
