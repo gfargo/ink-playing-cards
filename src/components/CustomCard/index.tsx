@@ -13,9 +13,8 @@ export function CustomCard({
   description,
   symbols = [],
   borderColor = 'white',
-  backgroundColor = 'black',
+  // backgroundColor = 'black',
   textColor = 'white',
-  onClick,
   faceUp = true,
 }: CustomCardProps) {
   const { backArtwork } = useDeck()
@@ -31,7 +30,7 @@ export function CustomCard({
     alignItems: 'center',
     justifyContent: 'center',
     borderColor,
-    backgroundColor,
+    // backgroundColor,
   }
 
   if (!faceUp) {
@@ -72,7 +71,7 @@ export function CustomCard({
 
     // Add symbols
     symbols.forEach(({ char, position, color }) => {
-      const symbolColor = color ? chalk.red[color] : chalk[textColor]
+      const symbolColor = color ? (chalk as any)[color] : (chalk as any)[textColor]
       switch (position) {
         case 'top-left':
           content[0] = symbolColor(char) + content[0].slice(1)
@@ -81,10 +80,12 @@ export function CustomCard({
           content[0] = content[0].slice(0, -1) + symbolColor(char)
           break
         case 'bottom-left':
-          content[cardHeight - 1] = symbolColor(char) + content[cardHeight - 1].slice(1)
+          content[cardHeight - 1] =
+            symbolColor(char) + content[cardHeight - 1].slice(1)
           break
         case 'bottom-right':
-          content[cardHeight - 1] = content[cardHeight - 1].slice(0, -1) + symbolColor(char)
+          content[cardHeight - 1] =
+            content[cardHeight - 1].slice(0, -1) + symbolColor(char)
           break
       }
     })
@@ -96,11 +97,7 @@ export function CustomCard({
     ))
   }
 
-  return (
-    <Box {...cardStyle} onClick={onClick}>
-      {renderCardContent()}
-    </Box>
-  )
+  return <Box {...cardStyle}>{renderCardContent()}</Box>
 }
 
 // Helper functions
@@ -135,7 +132,7 @@ const wrapText = (text: string, maxWidth: number): string[] => {
   const lines: string[] = []
   let currentLine = ''
 
-  words.forEach(word => {
+  words.forEach((word) => {
     if ((currentLine + word).length <= maxWidth) {
       currentLine += (currentLine ? ' ' : '') + word
     } else {

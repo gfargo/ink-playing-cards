@@ -22,7 +22,6 @@ test('render custom card with ASCII art', (t) => {
         { char: '♠', position: 'bottom-right', color: 'white' },
       ]}
       borderColor="green"
-      backgroundColor="black"
       textColor="white"
     />
   )
