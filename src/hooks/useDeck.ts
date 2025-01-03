@@ -24,7 +24,7 @@ export const useDeck = () => {
   }
 
   const reset = () => {
-    dispatch({ type: 'RESET' })
+    dispatch({ type: 'RESET', payload: { deck } })
   }
 
   const setBackArtwork = (artwork: Partial<BackArtwork>) => {

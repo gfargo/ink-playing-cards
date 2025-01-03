@@ -93,10 +93,17 @@ const deckReducer = (
     }
 
     case 'RESET': {
-      const newDeck = new Deck([...state.zones.discardPile.cards])
+      const { deck } = action.payload
+
+      const discardedDeck = new Deck([...state.zones.discardPile.cards])
+      discardedDeck.shuffle()
+
       return {
         ...initialState,
-        zones: { ...state.zones, deck: newDeck},
+        zones: {
+          ...state.zones,
+          deck: deck ? deck : discardedDeck,
+        },
         dispatch: state.dispatch,
       }
     }
