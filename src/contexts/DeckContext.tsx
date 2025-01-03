@@ -103,6 +103,7 @@ const deckReducer = (
         zones: {
           ...state.zones,
           deck: deck ?? discardedDeck,
+          discardPile: new DiscardPile(),
         },
         dispatch: state.dispatch,
       }

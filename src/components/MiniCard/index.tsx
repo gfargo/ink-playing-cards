@@ -36,10 +36,10 @@ export function MiniCard({
     >
       {faceUp ? (
         <>
-          {variant === 'mini' && <Text>{` `}</Text>}
+          {variant === 'mini' ? <Text>{` `}</Text> : null}
           <Text color={color}>
             {variant === 'mini'
-              ? ` ${value.length > 1 ? `${value} ` : value}`
+              ? `${value.length > 1 ? ` ${value} ` : value}`
               : value}
           </Text>
           <Text color={color}>
