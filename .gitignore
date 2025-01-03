@@ -55,3 +55,5 @@ jspm_packages/
 .yarn/install-state.gz
 
 prompts/
+
+.DS_Store
