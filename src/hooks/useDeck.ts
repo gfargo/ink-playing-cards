@@ -1,5 +1,6 @@
 import { useContext } from 'react'
 import { DeckContext } from '../contexts/DeckContext.js'
+import { Deck } from '../systems/Zones.js'
 import {
   type BackArtwork,
   type CustomCardProps,
@@ -23,7 +24,7 @@ export const useDeck = () => {
     dispatch({ type: 'DRAW', payload: { count, playerId } })
   }
 
-  const reset = () => {
+  const reset = (deck?: Deck) => {
     dispatch({ type: 'RESET', payload: { deck } })
   }
 
