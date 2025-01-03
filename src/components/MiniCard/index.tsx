@@ -37,7 +37,11 @@ export function MiniCard({
       {faceUp ? (
         <>
           {variant === 'mini' && <Text>{` `}</Text>}
-          <Text color={color}>{variant === 'mini' ? ` ${value} ` : value}</Text>
+          <Text color={color}>
+            {variant === 'mini'
+              ? ` ${value.length > 1 ? `${value} ` : value}`
+              : value}
+          </Text>
           <Text color={color}>
             {variant === 'mini' ? ` ${suitSymbol} ` : suitSymbol}
           </Text>

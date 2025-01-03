@@ -96,10 +96,6 @@ These components can be easily customized and styled to fit your game's needs.
 
 For more advanced usage, including custom cards, multiple players, and complex game logic, please refer to the examples in the `examples/` directory.
 
-## API Reference
-
-For detailed information about the available components, hooks, and utilities, please refer to the API documentation.
-
 ## Contributing
 
 Contributions are welcome! Please read our contributing guidelines for details on how to submit pull requests, report issues, or request features.
