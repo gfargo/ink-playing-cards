@@ -1,4 +1,4 @@
-import { TCard, TCardValue, TSuit } from '../../types/index.js'
+import { type TCard, type TCardValue, type TSuit } from '../../types/index.js'
 
 export const createStandardDeck = (): TCard[] => {
   const suits: TSuit[] = ['hearts', 'diamonds', 'clubs', 'spades']

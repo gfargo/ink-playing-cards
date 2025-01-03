@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import { DeckContext } from '../contexts/DeckContext.js'
-import { Deck } from '../systems/Zones.js'
+import { type Deck } from '../systems/Zones.js'
 import {
   type BackArtwork,
   type CustomCardProps,

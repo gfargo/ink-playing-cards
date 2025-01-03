@@ -25,12 +25,12 @@ export function MiniCard({
 
   const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
 
-  // Micro cards are 3x4, mini cards are 5x6
+  // Micro cards are 3x2, mini cards are 3x4
   return (
     <Box
       flexDirection="column"
-      width={variant === 'mini' ? 5 : 3}
-      height={variant === 'mini' ? 6 : 4}
+      width={3}
+      height={variant === 'mini' ? 4 : 2}
       borderStyle={selected ? 'double' : rounded ? 'round' : 'single'}
       borderColor={selected ? 'yellow' : 'white'}
     >

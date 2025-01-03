@@ -102,7 +102,7 @@ const deckReducer = (
         ...initialState,
         zones: {
           ...state.zones,
-          deck: deck ? deck : discardedDeck,
+          deck: deck ?? discardedDeck,
         },
         dispatch: state.dispatch,
       }
