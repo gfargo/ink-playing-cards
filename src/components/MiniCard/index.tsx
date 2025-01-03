@@ -25,11 +25,11 @@ export function MiniCard({
 
   const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
 
-  // Micro cards are 3x2, mini cards are 3x4
+  // Micro cards are 2x4, mini cards are 5x4
   return (
     <Box
       flexDirection="column"
-      width={3}
+      width={variant === 'mini' ? 5 : 4}
       height={variant === 'mini' ? 4 : 2}
       borderStyle={selected ? 'double' : rounded ? 'round' : 'single'}
       borderColor={selected ? 'yellow' : 'white'}
@@ -48,8 +48,8 @@ export function MiniCard({
         </>
       ) : (
         <>
-          {variant === 'mini' && <Text>{` `}</Text>}
-          <Text>{variant === 'mini' ? ` ☼ ` : '☼'}</Text>
+          {variant === 'mini' ? <Text>{` `}</Text> : null}
+          {variant === 'mini' ? <Text>{` `}</Text> : null}
           <Text>{variant === 'mini' ? ` ☕︎ ` : '☕︎'}</Text>
         </>
       )}
