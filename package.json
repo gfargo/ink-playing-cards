@@ -6,6 +6,7 @@
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "engines": {
     "node": ">=16"
   },
