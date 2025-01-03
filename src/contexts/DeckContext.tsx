@@ -93,8 +93,10 @@ const deckReducer = (
     }
 
     case 'RESET': {
+      const newDeck = new Deck([...state.zones.discardPile.cards])
       return {
         ...initialState,
+        zones: { ...state.zones, deck: newDeck},
         dispatch: state.dispatch,
       }
     }
@@ -195,7 +197,10 @@ export function DeckProvider({
   })
 
   const contextValue = useMemo(
-    () => ({ ...state, dispatch }),
+    () => ({
+      ...state,
+      dispatch,
+    }),
     [state, dispatch]
   )
 
