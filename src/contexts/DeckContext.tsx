@@ -20,22 +20,18 @@ const generateDefaultBackArtwork = (
   switch (variant) {
     case 'ascii': {
       return `
-  🂠 🂠 🂠    
-  🂠 🂠 🂠    
-  🂠 🂠 🂠    
+?
 `.trim()
     }
 
     case 'simple': {
       return `
-  🂠 🂠  
-  🂠 🂠  
-  🂠 🂠  
+?
 `.trim()
     }
 
     case 'minimal': {
-      return '🂠'
+      return '?'
     }
   }
 }
