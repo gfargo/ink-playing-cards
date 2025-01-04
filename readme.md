@@ -1,6 +1,6 @@
 # Ink Playing Cards
 
-This library provides a flexible and extensible framework for building card games using React and Ink. It offers a set of components, hooks, and utilities that make it easy to create various types of card games, from simple to complex.
+This library provides a flexible and extensible framework for building card games using [React](https://react.dev/) and [Ink](https://github.com/vadimdemedes/ink). It offers a set of components, hooks, and utilities that make it easy to create various types of card games, from simple to complex.
 
 ## Features
 
@@ -95,6 +95,65 @@ These components can be easily customized and styled to fit your game's needs.
 ## Advanced Usage
 
 For more advanced usage, including custom cards, multiple players, and complex game logic, please refer to the examples in the `examples/` directory.
+
+## Interactive Component Showcase
+
+The library includes an interactive storybook-style component showcase that helps you explore and understand all available components and their configurations.
+
+### Running the Showcase
+
+```bash
+# Install dependencies
+yarn install
+
+# Start the showcase
+yarn dev
+```
+
+### Features
+
+The showcase provides an interactive CLI interface to explore:
+
+- **Card Components**
+  - Standard Card (simple, ASCII, and minimal variants)
+  - MiniCard (compact card representations)
+  - CardStack (various card arrangements)
+  - Deck (full deck management)
+  - CustomCard (highly customizable cards)
+
+- **Component Configuration**
+  - Interactive property controls
+  - Real-time preview
+  - Multiple variant support
+  - Style customization
+
+### Navigation
+
+The showcase uses a step-by-step navigation system:
+1. Select a component to view
+2. Configure basic properties (variant, suit, value)
+3. Adjust display options (face up/down)
+4. Customize styling (borders, selection state)
+
+Each step provides:
+- Hotkey support for quick navigation
+- Visual indicators for current state
+- Forward/back navigation
+- Live component preview
+
+### Development
+
+The showcase is particularly useful during development:
+- Test component changes in real-time
+- Verify visual appearance across variants
+- Ensure proper prop handling
+- Debug styling issues
+
+To modify or extend the showcase:
+1. Components are in `src/components/`
+2. Showcase views are in `src/storybook/views/`
+3. Each component has its own view file
+4. Views follow a consistent pattern for state management and navigation
 
 ## Contributing
 
