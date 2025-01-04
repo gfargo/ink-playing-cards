@@ -2,6 +2,7 @@ import { Box, Text } from 'ink'
 import React from 'react'
 import { type CardProps, type TCard } from '../../types/index.js'
 import Card from '../Card/index.js'
+import { MiniCard } from '../MiniCard/index.js'
 
 type CardStackProperties = {
   readonly cards: TCard[]
@@ -9,7 +10,7 @@ type CardStackProperties = {
   readonly isFaceUp?: boolean
   readonly maxDisplay?: number
   // Readonly onCardClick?: (card: TCard) => void
-  readonly variant?: 'simple' | 'ascii' | 'minimal'
+  readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
   readonly stackDirection?: 'vertical' | 'horizontal'
 }
 
@@ -37,6 +38,14 @@ CardStackProperties) {
       case 'minimal': {
         return { marginLeft: -2, marginTop: 0 }
       }
+
+      case 'mini': {
+        return { marginLeft: -3, marginTop: 1 }
+      }
+
+      case 'micro': {
+        return { marginLeft: -2, marginTop: 0 }
+      }
     }
   }
 
@@ -58,12 +67,21 @@ CardStackProperties) {
               stackDirection === 'vertical' && index > 0 ? marginTop : 0
             }
           >
-            <Card
-              suit={(card as CardProps).suit}
-              value={(card as CardProps).value}
-              faceUp={isFaceUp}
-              variant={variant}
-            />
+            {variant === 'mini' || variant === 'micro' ? (
+              <MiniCard
+                suit={(card as CardProps).suit}
+                value={(card as CardProps).value}
+                faceUp={isFaceUp}
+                variant={variant}
+              />
+            ) : (
+              <Card
+                suit={(card as CardProps).suit}
+                value={(card as CardProps).value}
+                faceUp={isFaceUp}
+                variant={variant}
+              />
+            )}
           </Box>
         ))}
       </Box>
