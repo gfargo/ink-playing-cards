@@ -3,8 +3,6 @@ import React from 'react'
 import { type CardProps } from '../../types/index.js'
 
 type MiniCardProps = {
-  readonly selected?: boolean
-  readonly rounded?: boolean
   readonly variant?: 'mini' | 'micro'
 } & CardProps
 

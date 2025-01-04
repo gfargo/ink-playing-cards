@@ -32,8 +32,11 @@ export type CardProps = {
   id?: string
   value: TCardValue
   suit: TSuit
-  faceUp?: boolean
   effects?: CardEffect[]
+
+  readonly faceUp?: boolean
+  readonly selected?: boolean
+  readonly rounded?: boolean
 }
 
 export type CustomCardProps = {
@@ -53,6 +56,8 @@ export type CustomCardProps = {
   textColor?: string
   onClick?: () => void
   faceUp?: boolean
+  selected?: boolean
+  rounded?: boolean
   // Keeping these for backwards compatibility
   id?: string
   value?: TCardValue | string

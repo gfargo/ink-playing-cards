@@ -8,493 +8,307 @@ import {
   type TSuitIcon,
 } from '../../types/index.js'
 
+type PipConfig = {
+  left: number
+  center: number
+  right: number
+}
+
+type CardConfig = {
+  width: number
+  height: number
+  padding: number
+  pip?: PipConfig
+}
+
+// Constants for card dimensions and layouts
+const CARD_DIMENSIONS: Record<'ascii' | 'simple' | 'minimal', CardConfig> = {
+  ascii: {
+    width: 15,
+    height: 11,
+    pip: { left: 2, center: 6, right: 10 },
+    padding: 0,
+  },
+  simple: {
+    width: 11,
+    height: 9,
+    pip: { left: 2, center: 4, right: 6 },
+    padding: 0,
+  },
+  minimal: {
+    width: 6,
+    height: 5,
+    padding: 0,
+  },
+}
+
 export const SUIT_SYMBOL_MAP: Record<TSuit, TSuitIcon> = {
   hearts: '♥',
   diamonds: '♦',
   clubs: '♣',
   spades: '♠',
+} as const
+
+// Utility functions
+const spaces = (count: number) => ` `.repeat(Math.max(0, count))
+
+const center = (text: string, width: number) => {
+  const padding = Math.max(0, width - 2 - text.length) / 2
+  return spaces(Math.floor(padding)) + text + spaces(Math.ceil(padding))
 }
 
-// Const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-
-// Utilities
-const spaces = (count: number) => ' '.repeat(count)
-
-function topLine(rank: TCardValue, suit: TSuitIcon, width: number): string {
-  const leftPart = `${rank} ${suit}`
-  const rightSuit = suit
-  const remainingSpaces = width - (leftPart.length + rightSuit.length)
-  return leftPart + spaces(remainingSpaces) + rightSuit
+const left = (text: string, width: number) => {
+  return text + spaces(Math.max(0, width - 2 - text.length))
 }
 
-function bottomLine(rank: TCardValue, suit: TSuitIcon, width: number): string {
-  const rightPart = `${suit} ${rank}`
-  const totalSpaces = width - rightPart.length
-  return spaces(totalSpaces) + rightPart
+const right = (text: string, width: number) => {
+  return spaces(Math.max(0, width - 2 - text.length)) + text
 }
 
-function createPipLines(
-  // @ts-ignore
+// Card border functions
+function createTopLine(
+  rank: TCardValue,
+  suit: TSuitIcon,
+  width: number
+): string {
+  const leftPart = `${rank}${suit}`
+  console.log('testing:::', leftPart.length, left(leftPart, width).length)
+  return left(leftPart, width)
+  // return leftPart
+}
+
+function createBottomLine(
+  rank: TCardValue,
+  suit: TSuitIcon,
+  width: number
+): string {
+  const rightPart = `${suit}${rank}`
+  return right(rightPart, width)
+}
+
+// Pip layout configurations
+type PipLayout = Array<[number, number]> // [row, col]
+
+const createPipLayout = (
+  rank: TCardValue,
+  { left, center, right }: PipConfig
+): PipLayout => {
+  const layouts: Partial<Record<TCardValue, PipLayout>> = {
+    '2': [
+      [0, center],
+      [4, center],
+    ],
+    '3': [
+      [0, center],
+      [2, center],
+      [4, center],
+    ],
+    '4': [
+      [0, left],
+      [0, right],
+      [4, left],
+      [4, right],
+    ],
+    '5': [
+      [0, left],
+      [0, right],
+      [2, center],
+      [4, left],
+      [4, right],
+    ],
+    '6': [
+      [0, left],
+      [0, right],
+      [2, left],
+      [2, right],
+      [4, left],
+      [4, right],
+    ],
+    '7': [
+      [1, left],
+      [1, right],
+      [2, center],
+      [3, left],
+      [3, right],
+      [4, center],
+      [5, center],
+    ],
+    '8': [
+      [1, left],
+      [1, right],
+      [2, center],
+      [3, left],
+      [3, right],
+      [4, center],
+      [5, left],
+      [5, right],
+    ],
+    '9': [
+      [1, left],
+      [1, right],
+      [2, center],
+      [3, left],
+      [3, right],
+      [4, center],
+      [5, left],
+      [5, right],
+      [5, center],
+    ],
+    '10': [
+      [1, left],
+      [1, right],
+      [2, left],
+      [2, right],
+      [3, center],
+      [3, center],
+      [4, left],
+      [4, right],
+      [5, left],
+      [5, right],
+    ],
+  }
+
+  return layouts[rank] || []
+}
+
+// Special card art (face cards and ace)
+const createSpecialArt = (
   rank: TCardValue,
   suit: TSuitIcon,
   width: number,
-  pipPositions: number[][]
-): string[] {
-  const lines = Array.from(
-    {
-      length:
-        // eslint-disable-next-line unicorn/no-array-reduce
-        pipPositions.reduce((max, pos) => Math.max(max, pos[0] ?? 0), 0) + 1,
-    },
-    () => spaces(width)
-  )
-  // Insert pips:
-  // pipPositions is array of [lineIndex, colIndex]
-  // Make sure the array covers all required lines. We'll assume pipPositions only covers the internal lines.
-  let maxLine = 0
-  for (const [posLine] of pipPositions) {
-    if (posLine && posLine > maxLine) {
-      maxLine = posLine
+  variant: 'ascii' | 'simple'
+): string[] => {
+  const w = width
+
+  if (variant === 'ascii') {
+    const art: Partial<Record<TCardValue, string[]>> = {
+      A: [
+        center(`${suit}`, w),
+        center(`${suit} ${suit}`, w),
+        center(`${suit}${suit}${suit}`, w),
+        center(`${suit} ${suit}`, w),
+        center(`${suit}`, w),
+      ],
+      J: [
+        center('(^ ^)', w),
+        center(`(${suit})`, w),
+        center('/|\\', w),
+        center('/ \\', w),
+      ],
+      Q: [
+        center('(o o)', w),
+        center(`(${suit})`, w),
+        center('\\|/', w),
+        center(' | ', w),
+      ],
+      K: [
+        center('\\^/', w),
+        center(`(${suit})`, w),
+        center('/|\\', w),
+        center('/ \\', w),
+      ],
     }
+    return art[rank] || []
   }
 
-  for (const [posLine, posCol] of pipPositions) {
-    // Skip invalid positions:
-    if (!posLine || posLine < 0 || posLine > maxLine) {
-      // Console.error('Invalid pip position:', posLine, posCol)
-      continue
-    }
-
-    const arr = [...lines[posLine]!]
-    arr[posCol!] = suit
-    lines[posLine] = arr.join('')
+  // Simple variant - more compact art
+  const simpleArt: Partial<Record<TCardValue, string[]>> = {
+    A: [center(`${suit}`, w), center(`${suit}`, w), center(`${suit}`, w)],
+    J: [center(`J${suit}`, w), center('|', w), center('/', w)],
+    Q: [center(`Q${suit}`, w), center('|', w), center('\\', w)],
+    K: [center(`K${suit}`, w), center('|', w), center('Y', w)],
   }
-
-  // Pad lines if needed:
-  while (lines.length <= maxLine) {
-    lines.push(spaces(width))
-  }
-
-  return lines
+  return simpleArt[rank] || []
 }
 
-/** Variant Configurations **/
-
-type VariantConfig = {
-  width: number
-  height: number
-  // Given a rank, return pip positions [lineIndex, colIndex] for the internal lines of that variant.
-  pipPositionsForRank: (rank: TCardValue) => number[][]
-  // Handle special ranks (A, J, Q, K).
-  specialArt?: (rank: TCardValue, suit: TSuitIcon, width: number) => string[]
-}
-
-// ASCII Variant
-const asciiConfig: VariantConfig = {
-  width: 15,
-  height: 11,
-  pipPositionsForRank(rank: TCardValue): number[][] {
-    // Using the previous large-card logic:
-    const C = 7 // Center
-    const L = 3
-    const R = 11
-    // LineIndex: 0..8 -> lines 2..10 internally
-    // For clarity, in ascii variant we start counting internal lines at 0 = line2
-    // We'll just reuse the previously defined logic. Adjust line indices to start at 0:
-    switch (rank) {
-      case '2': {
-        return [
-          [1, C],
-          [7, C],
-        ]
-      }
-
-      case '3': {
-        return [
-          [1, C],
-          [4, C],
-          [7, C],
-        ]
-      }
-
-      case '4': {
-        return [
-          [1, L],
-          [1, R],
-          [7, L],
-          [7, R],
-        ]
-      }
-
-      case '5': {
-        return [
-          [1, L],
-          [1, R],
-          [4, C],
-          [7, L],
-          [7, R],
-        ]
-      }
-
-      case '6': {
-        return [
-          [1, L],
-          [1, R],
-          [4, L],
-          [4, R],
-          [7, L],
-          [7, R],
-        ]
-      }
-
-      case '7': {
-        return [
-          [0, C],
-          [1, L],
-          [1, R],
-          [4, L],
-          [4, R],
-          [7, L],
-          [7, R],
-        ]
-      }
-
-      case '8': {
-        return [
-          [0, C],
-          [1, L],
-          [1, R],
-          [4, L],
-          [4, R],
-          [6, C],
-          [7, L],
-          [7, R],
-        ]
-      }
-
-      case '9': {
-        return [
-          [0, C],
-          [1, L],
-          [1, R],
-          [3, C],
-          [4, L],
-          [4, R],
-          [6, C],
-          [7, L],
-          [7, R],
-        ]
-      }
-
-      case '10': {
-        return [
-          [0, C],
-          [1, L],
-          [1, R],
-          [2, L],
-          [2, R],
-          [3, C],
-          [4, L],
-          [4, R],
-          [6, C],
-          [7, L],
-          [7, R],
-        ]
-      }
-
-      default: {
-        return []
-      }
-    }
-  },
-  specialArt(rank: TCardValue, suit: TSuitIcon, width: number): string[] {
-    // For ASCII variant we had fancy art (omitted here for brevity, but reuse previous logic)
-    // Just reuse the previously defined large ASCII art.
-    if (rank === 'A') {
-      return [
-        spaces(width),
-        '     ' + suit + '   ' + suit + '    ',
-        '    ' + suit + '     ' + suit + '   ',
-        '    ' + suit + '     ' + suit + '   ',
-        '     ' + suit + '   ' + suit + '    ',
-        '       ' + suit + '      ',
-        spaces(width),
-        spaces(width),
-        spaces(width),
-      ]
-    }
-
-    if (rank === 'J') {
-      return [
-        spaces(width),
-        '    (\\   /)   ',
-        '     ( o o )   ',
-        '      (  ' + suit + '  )    ',
-        '       \\|/     ',
-        '       / \\     ',
-        spaces(width),
-        spaces(width),
-        spaces(width),
-      ]
-    }
-
-    if (rank === 'Q') {
-      return [
-        spaces(width),
-        '    (\\   /)   ',
-        '     ( ^ ^ )   ',
-        '      (  ' + suit + '  )    ',
-        '      (  v  )   ',
-        '       \\ | /    ',
-        spaces(width),
-        spaces(width),
-        spaces(width),
-      ]
-    }
-
-    if (rank === 'K') {
-      return [
-        spaces(width),
-        '    (\\___/)   ',
-        '    (  ' + suit + '  )   ',
-        '   (   ^   )  ',
-        '    (  v  )   ',
-        '     \\ | /    ',
-        spaces(width),
-        spaces(width),
-        spaces(width),
-      ]
-    }
-
-    return []
-  },
-}
-
-// Simple Variant
-// Smaller card: width=9, height=7
-// We'll have fewer lines for pips. Let's say internal lines = 3 (lines 2..4).
-// Adjust pip positions for a smaller layout.
-const simpleConfig: VariantConfig = {
-  width: 9,
-  height: 7,
-  pipPositionsForRank(rank: TCardValue): number[][] {
-    // We'll choose a simpler layout. internal lines = 3 lines (index:0..2)
-    // We'll place pips in a 3-wide pattern: L=2, C=4, R=6 for example.
-    const C = 4
-    const L = 2
-    const R = 6
-    switch (rank) {
-      case '2': {
-        return [
-          [0, C],
-          [2, C],
-        ]
-      }
-
-      case '3': {
-        return [
-          [0, C],
-          [1, C],
-          [2, C],
-        ]
-      }
-
-      case '4': {
-        return [
-          [0, L],
-          [0, R],
-          [2, L],
-          [2, R],
-        ]
-      }
-
-      case '5': {
-        return [
-          [0, L],
-          [0, R],
-          [1, C],
-          [2, L],
-          [2, R],
-        ]
-      }
-
-      case '6': {
-        return [
-          [0, L],
-          [0, R],
-          [1, L],
-          [1, R],
-          [2, L],
-          [2, R],
-        ]
-      }
-
-      case '7': {
-        return [
-          [0, L],
-          [0, R],
-          [1, L],
-          [1, R],
-          [1, C],
-          [2, L],
-          [2, R],
-        ]
-      }
-
-      case '8': {
-        return [
-          [0, L],
-          [0, R],
-          [1, L],
-          [1, R],
-          [1, C],
-          [2, L],
-          [2, R],
-          [2, C],
-        ]
-      }
-
-      case '9': {
-        return [
-          [0, L],
-          [0, R],
-          [0, C],
-          [1, L],
-          [1, R],
-          [2, L],
-          [2, R],
-          [2, C],
-        ]
-      }
-
-      case '10': {
-        return [
-          [0, L],
-          [0, R],
-          [0, C],
-          [1, L],
-          [1, R],
-          [2, L],
-          [2, R],
-          [2, C],
-        ]
-      }
-
-      default: {
-        return []
-      }
-    }
-  },
-  // @ts-ignore
-  specialArt(rank: TCardValue, suit: TSuitIcon, width: number): string[] {
-    // Simple variant: just put a big symbol in center line for A/J/Q/K
-    // We'll have 3 internal lines: index 0..2
-    // Center line is index 1
-    const centerLine = spaces(4) + suit + spaces(width - 5)
-    return [spaces(width), centerLine, spaces(width)]
-  },
-}
-
-// Minimal Variant
-// Very small: width=5, height=6
-// Minimal: Just rank & suit at top line, suit in center, rank at bottom line.
-// No pips, no special art.
-const minimalConfig: VariantConfig = {
-  width: 6,
-  height: 5,
-  pipPositionsForRank: () => [],
-}
-
-// Build a card's text given the variant, rank, and suit
-function makeCard(
+// Create the complete card content
+function createCardContent(
   rank: TCardValue,
   suit: TSuitIcon,
-  config: VariantConfig
+  variant: 'ascii' | 'simple' | 'minimal',
+  config = CARD_DIMENSIONS[variant]
 ): string {
-  const { width, pipPositionsForRank, specialArt } = config
-  const top = topLine(rank, suit, width)
-  const bottom = bottomLine(rank, suit, width)
+  const { width, height } = config
 
-  let middle: string[]
-  if (['J', 'Q', 'K', 'A'].includes(rank) && specialArt) {
-    // Use special art if available:
-    middle = specialArt(rank, suit, width)
-  } else {
-    const pips = pipPositionsForRank(rank)
-    if (pips.length > 0) {
-      middle = createPipLines(rank, suit, width, pips)
-    } else {
-      // No pips (e.g. minimal or rank that doesn't match)
-      // Minimal just center a suit symbol in the middle line
-      // For minimal, we have height=5, internal lines=3 (since top+bottom),
-      // so line index for center = 1 (0-based internal)
-      const centerLineIndex = Math.floor((config.height - 2) / 2)
-      middle = Array.from({ length: config.height - 2 }, () => spaces(width))
-      if (config === minimalConfig) {
-        // Place suit in center
-        const arr = [...(middle[centerLineIndex] ?? '')]
-        arr[Math.floor(width / 2)] = suit
-        middle[centerLineIndex] = arr.join('')
+  // For minimal variant, just return a centered suit
+  if (variant === 'minimal') {
+    console.log('rank adjustment:::', rank.length > 1 ? 2 : 0)
+    return `
+${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}
+`
+  }
+
+  const lines: string[] = []
+  const isSpecialCard = ['A', 'J', 'Q', 'K'].includes(rank)
+
+  // Add top border line
+  lines.push(createTopLine(rank, suit, width))
+
+  // Add middle content
+  if (isSpecialCard) {
+
+    while (lines.length < height / 2 - 3) {
+      lines.push(spaces(width - 2))
+    }
+
+    const art = createSpecialArt(rank, suit, width, variant)
+    lines.push(...art)
+    // Pad to full height
+    while (lines.length < height - 2 - 1) {
+      lines.push(spaces(width - 2))
+    }
+  } else if (config.pip) {
+    const pipLayout = createPipLayout(rank, config.pip)
+    const middleLines = Array.from({ length: height - 4 }, () =>
+      spaces(width - 2)
+    )
+
+    // Place pips
+    for (const [row, col] of pipLayout) {
+      if (row < middleLines.length && middleLines[row]) {
+        const line = middleLines[row].split('')
+        if (col < line.length) {
+          line[col] = suit
+          middleLines[row] = line.join('')
+        }
       }
     }
+    lines.push(...middleLines)
+  } else {
+    // For variants without pip configuration, add empty lines
+    const middleLines = Array.from({ length: height - 4 }, () =>
+      spaces(width - 2)
+    )
+    lines.push(...middleLines)
   }
 
-  return [top, ...middle, bottom].join('\n')
+  // Add bottom border line
+  lines.push(createBottomLine(rank, suit, width))
+
+  return lines.join('\n')
 }
 
-function getVariantConfig(
-  variant: 'simple' | 'ascii' | 'minimal'
-): VariantConfig {
-  if (variant === 'ascii') {
-    return asciiConfig
-  }
-
-  if (variant === 'minimal') {
-    return minimalConfig
-  }
-
-  return simpleConfig
-}
-
-// Const asciiCards: Record<string, TCard> = {
-//   hearts: {},
-//   diamonds: {},
-//   clubs: {},
-//   spades: {},
-// };
-
-// Prebuild asciiCards for ascii variant (optional, or we can build on the fly)
-// for (const suit in suitSymbols) {
-//   const symbol = suitSymbols[suit]!;
-//   for (const rank of ranks) {
-//     if (!asciiCards[suit]) {
-//       asciiCards[suit] = {};
-//     }
-//     asciiCards[suit][rank] = makeCard(rank, symbol, asciiConfig);
-// }
-
-type ExtendedCardProps = {
-  readonly variant?: 'simple' | 'ascii' | 'minimal'
-} & CardProps
-
+// Main Card component
 export function Card({
   suit,
   value,
   faceUp = true,
+  selected = false,
+  rounded = true,
   variant = 'simple',
-}: ExtendedCardProps) {
+}: CardProps & { variant?: 'ascii' | 'simple' | 'minimal' }) {
   const { backArtwork } = useDeck()
+  const config = CARD_DIMENSIONS[variant]
 
-  const config = getVariantConfig(variant)
-
-  // The box size depends on variant:
-  // We'll provide just border and small dimension for minimal, etc.
   const cardStyle: BoxProps = {
     flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingX: 1,
-    borderStyle: 'single',
+    // alignItems: 'center',
+    // justifyContent: 'center',
+    paddingX: config.padding,
+
+    borderStyle: selected ? 'double' : rounded ? 'round' : 'single',
+    borderColor: selected ? 'yellow' : 'white',
+
     height: config.height,
     width: config.width,
   }
@@ -511,11 +325,11 @@ export function Card({
 
   const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
   const symbol = SUIT_SYMBOL_MAP[suit]
-  const cardText = makeCard(value, symbol, config)
+  const cardContent = createCardContent(value, symbol, variant)
 
   return (
     <Box {...cardStyle}>
-      <Text color={color}>{cardText}</Text>
+      <Text color={color}>{cardContent}</Text>
     </Box>
   )
 }
