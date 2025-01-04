@@ -96,6 +96,7 @@ const deckReducer = (
       const { deck } = action.payload
 
       const discardedDeck = new Deck([...state.zones.discardPile.cards])
+      const newDiscardPile = new DiscardPile([]);
       discardedDeck.shuffle()
 
       return {
@@ -103,7 +104,7 @@ const deckReducer = (
         zones: {
           ...state.zones,
           deck: deck ?? discardedDeck,
-          discardPile: new DiscardPile(),
+          discardPile: newDiscardPile,
         },
         dispatch: state.dispatch,
       }
