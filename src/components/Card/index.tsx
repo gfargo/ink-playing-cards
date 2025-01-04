@@ -25,7 +25,7 @@ type CardConfig = {
 const CARD_DIMENSIONS: Record<'ascii' | 'simple' | 'minimal', CardConfig> = {
   ascii: {
     width: 15,
-    height: 11,
+    height: 12,
     pip: { left: 2, center: 6, right: 10 },
     padding: 0,
   },
