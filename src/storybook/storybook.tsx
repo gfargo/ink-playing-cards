@@ -6,6 +6,7 @@ import { CardStackView } from './views/CardStackView.js'
 import { CardView } from './views/CardView.js'
 import { CustomCardView } from './views/CustomCardView.js'
 import { DeckView } from './views/DeckView.js'
+import { GridView } from './views/GridView.js'
 import { MiniCardView } from './views/MiniCardView.js'
 
 type ComponentView =
@@ -14,6 +15,7 @@ type ComponentView =
   | 'custom-card'
   | 'card-stack'
   | 'deck'
+  | 'grid'
   | undefined
 
   
@@ -75,6 +77,12 @@ export function Storybook() {
                 hotkey: 'd',
               },
               {
+                label: 'Grid',
+                value: 'grid',
+                indicator: <Text color="cyan">▦</Text>,
+                hotkey: 'g',
+              },
+              {
                 label: 'Exit',
                 value: 'exit',
                 indicator: <Text color="red">⏍</Text>,
@@ -106,6 +114,9 @@ export function Storybook() {
       )}
       {currentComponent === 'custom-card' && (
         <CustomCardView goBack={() => setCurrentComponent(undefined)} />
+      )}
+      {currentComponent === 'grid' && (
+        <GridView goBack={() => setCurrentComponent(undefined)} />
       )}
     </Box>
   )

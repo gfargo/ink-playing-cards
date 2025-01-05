@@ -20,8 +20,11 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
   const [direction, setDirection] = React.useState<'vertical' | 'horizontal'>('horizontal')
   const [faceUp, setFaceUp] = React.useState(true)
   const [maxDisplay, setMaxDisplay] = React.useState(3)
+  const [overlap, setOverlap] = React.useState(-2)
+  const [margin, setMargin] = React.useState(1)
+  const [alignment, setAlignment] = React.useState<'start' | 'center' | 'end'>('start')
   const [currentSelect, setCurrentSelect] = React.useState<
-    'variant' | 'direction' | 'face' | 'display'
+    'variant' | 'direction' | 'face' | 'display' | 'spacing' | 'alignment'
   >('variant')
 
   const renderSelector = () => {
@@ -196,6 +199,12 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
                   hotkey: num.toString(),
                 })),
                 {
+                  label: 'Next (Spacing)',
+                  value: 'next',
+                  indicator: <Text color="yellow">→</Text>,
+                  hotkey: 'n',
+                },
+                {
                   label: 'Back (Face)',
                   value: 'back',
                   indicator: <Text color="yellow">←</Text>,
@@ -205,8 +214,107 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
               onSelect={(item) => {
                 if (item.value === 'back') {
                   setCurrentSelect('face')
+                } else if (item.value === 'next') {
+                  setCurrentSelect('spacing')
                 } else {
                   setMaxDisplay(Number(item.value))
+                }
+              }}
+            />
+          </>
+        )
+      }
+
+      case 'spacing': {
+        return (
+          <>
+            <Text dimColor>Adjust card spacing:</Text>
+            <EnhancedSelectInput
+              orientation="horizontal"
+              items={[
+                {
+                  label: 'More Overlap',
+                  value: 'more-overlap',
+                  indicator: <Text color="cyan">←</Text>,
+                  hotkey: 'o',
+                },
+                {
+                  label: `Gap: ${overlap}`,
+                  value: 'current',
+                  indicator: <Text color="cyan">↔</Text>,
+                },
+                {
+                  label: 'Less Overlap',
+                  value: 'less-overlap',
+                  indicator: <Text color="cyan">→</Text>,
+                  hotkey: 'l',
+                },
+                {
+                  label: 'Next (Alignment)',
+                  value: 'next',
+                  indicator: <Text color="yellow">→</Text>,
+                  hotkey: 'n',
+                },
+                {
+                  label: 'Back (Display)',
+                  value: 'back',
+                  indicator: <Text color="yellow">←</Text>,
+                  hotkey: 'b',
+                },
+              ]}
+              onSelect={(item) => {
+                if (item.value === 'back') {
+                  setCurrentSelect('display')
+                } else if (item.value === 'next') {
+                  setCurrentSelect('alignment')
+                } else if (item.value === 'more-overlap') {
+                  setOverlap(Math.max(-5, overlap - 1))
+                } else if (item.value === 'less-overlap') {
+                  setOverlap(Math.min(5, overlap + 1))
+                }
+              }}
+            />
+          </>
+        )
+      }
+
+      case 'alignment': {
+        return (
+          <>
+            <Text dimColor>Select stack alignment:</Text>
+            <EnhancedSelectInput
+              orientation="horizontal"
+              items={[
+                {
+                  label: 'Start',
+                  value: 'start',
+                  indicator: alignment === 'start' ? <Text color="yellow">✓</Text> : undefined,
+                  hotkey: 's',
+                },
+                {
+                  label: 'Center',
+                  value: 'center',
+                  indicator: alignment === 'center' ? <Text color="yellow">✓</Text> : undefined,
+                  hotkey: 'c',
+                },
+                {
+                  label: 'End',
+                  value: 'end',
+                  indicator: alignment === 'end' ? <Text color="yellow">✓</Text> : undefined,
+                  hotkey: 'e',
+                },
+                {
+                  label: 'Back (Spacing)',
+                  value: 'back',
+                  indicator: <Text color="yellow">←</Text>,
+                  hotkey: 'b',
+                },
+              ]}
+              onSelect={(item) => {
+                if (item.value === 'back') {
+                  setCurrentSelect('spacing')
+                } else {
+                  setAlignment(item.value as 'start' | 'center' | 'end')
                 }
               }}
             />
@@ -222,7 +330,7 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
         <Text>CardStack Preview:</Text>
         <Text dimColor>
           {variant} - {direction} - {faceUp ? 'face up' : 'face down'} - max:{' '}
-          {maxDisplay}
+          {maxDisplay} - gap: {overlap} - align: {alignment}
         </Text>
       </Box>
       <Box marginY={1}>
@@ -233,6 +341,8 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
           stackDirection={direction}
           isFaceUp={faceUp}
           maxDisplay={maxDisplay}
+          spacing={{ overlap, margin }}
+          alignment={alignment}
         />
       </Box>
       {renderSelector()}

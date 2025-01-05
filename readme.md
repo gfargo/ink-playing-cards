@@ -87,10 +87,113 @@ This system is useful for implementing card abilities, special rules, and comple
 
 The library provides pre-built UI components for common card game elements:
 
-- `Card`: Represents a single card
-- `CardStack`: Displays a stack of cards (e.g., deck, hand, discard pile)
+#### Card
 
-These components can be easily customized and styled to fit your game's needs.
+Standard playing card with multiple display variants:
+
+```jsx
+<Card
+  suit="hearts"
+  value="A"
+  variant="simple"  // 'simple' | 'ascii' | 'minimal'
+  faceUp={true}
+  selected={false}
+  rounded={true}
+/>
+```
+
+#### MiniCard
+
+Compact card representation for space-efficient layouts:
+
+```jsx
+<MiniCard
+  suit="spades"
+  value="K"
+  variant="mini"  // 'mini' | 'micro'
+  faceUp={true}
+  selected={false}
+  rounded={true}
+/>
+```
+
+#### CustomCard
+
+Highly customizable card for special game mechanics:
+
+```jsx
+<CustomCard
+  size="medium"  // 'small' | 'medium' | 'large'
+  title="Special Card"
+  description="Custom effect description"
+  asciiArt={customArt}
+  symbols={[
+    { char: '★', position: 'top-left', color: 'yellow' }
+  ]}
+  borderColor="blue"
+  textColor="white"
+  faceUp={true}
+/>
+```
+
+#### CardStack
+
+Displays a stack of cards with customizable spacing and alignment:
+
+```jsx
+<CardStack
+  cards={handCards}
+  name="Player Hand"
+  variant="simple"
+  stackDirection="horizontal"  // 'horizontal' | 'vertical'
+  spacing={{ overlap: -2, margin: 1 }}
+  alignment="center"  // 'start' | 'center' | 'end'
+  maxDisplay={5}
+  isFaceUp={true}
+/>
+```
+
+#### Grid
+
+Arranges cards in a customizable grid layout:
+
+```jsx
+<Grid
+  rows={3}
+  cols={3}
+  cards={gameBoard}
+  variant="simple"
+  spacing={{ row: 1, col: 1 }}
+  alignment={{
+    horizontal: 'center',  // 'left' | 'center' | 'right'
+    vertical: 'middle'     // 'top' | 'middle' | 'bottom'
+  }}
+  fillEmpty={true}
+  isFaceUp={true}
+/>
+```
+
+#### Deck
+
+Manages and displays a complete deck of cards:
+
+```jsx
+<Deck
+  variant="simple"
+  showTopCard={true}
+  placeholderCard={{ suit: 'hearts', value: 'A' }}
+/>
+```
+
+Each component supports:
+
+- Multiple display variants
+- Customizable styling
+- Flexible layout options
+- Interactive states
+- Type-safe props
+
+These components can be easily customized and styled to fit your game's needs. For more advanced usage and complex configurations, refer to the examples in the `examples/` directory.
 
 ## Advanced Usage
 
@@ -130,12 +233,14 @@ The showcase provides an interactive CLI interface to explore:
 ### Navigation
 
 The showcase uses a step-by-step navigation system:
+
 1. Select a component to view
 2. Configure basic properties (variant, suit, value)
 3. Adjust display options (face up/down)
 4. Customize styling (borders, selection state)
 
 Each step provides:
+
 - Hotkey support for quick navigation
 - Visual indicators for current state
 - Forward/back navigation
@@ -144,12 +249,14 @@ Each step provides:
 ### Development
 
 The showcase is particularly useful during development:
+
 - Test component changes in real-time
 - Verify visual appearance across variants
 - Ensure proper prop handling
 - Debug styling issues
 
 To modify or extend the showcase:
+
 1. Components are in `src/components/`
 2. Showcase views are in `src/storybook/views/`
 3. Each component has its own view file
