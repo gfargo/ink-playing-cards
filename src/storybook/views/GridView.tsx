@@ -1,19 +1,20 @@
 import { Box, Text } from 'ink'
 import React from 'react'
-import { CardGrid } from '../../components/CardGrid/index.js'
-import { type TCard } from '../../types/index.js'
+import { CardGrid, type GridCard } from '../../components/CardGrid/index.js'
+import { type TCardValue, type TSuit } from '../../types/index.js'
+import EnhancedSelectInput from '../utils/EnhancedSelectInput.js'
 
 // Sample cards for demonstration
-const sampleCards: TCard[] = [
-  { id: '1', suit: 'hearts', value: 'A' },
-  { id: '2', suit: 'spades', value: 'K' },
-  { id: '3', suit: 'diamonds', value: 'Q' },
-  { id: '4', suit: 'clubs', value: 'J' },
-  { id: '5', suit: 'hearts', value: '10' },
-  { id: '6', suit: 'diamonds', value: '9' },
-  { id: '7', suit: 'spades', value: '8' },
-  { id: '8', suit: 'clubs', value: '7' },
-  { id: '9', suit: 'hearts', value: '6' },
+const sampleCards: GridCard[] = [
+  { id: '1', suit: 'hearts' as TSuit, value: 'A' as TCardValue },
+  { id: '2', suit: 'spades' as TSuit, value: 'K' as TCardValue },
+  { id: '3', suit: 'diamonds' as TSuit, value: 'Q' as TCardValue },
+  { id: '4', suit: 'clubs' as TSuit, value: 'J' as TCardValue },
+  { id: '5', suit: 'hearts' as TSuit, value: '10' as TCardValue },
+  { id: '6', suit: 'diamonds' as TSuit, value: '9' as TCardValue },
+  { id: '7', suit: 'spades' as TSuit, value: '8' as TCardValue },
+  { id: '8', suit: 'clubs' as TSuit, value: '7' as TCardValue },
+  { id: '9', suit: 'hearts' as TSuit, value: '6' as TCardValue },
 ]
 
 type GridVariant = 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
@@ -367,6 +368,8 @@ export function GridView({ goBack }: { goBack?: () => void }) {
         )
       }
     }
+
+    return null
   }
 
   return (
