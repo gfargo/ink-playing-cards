@@ -5,11 +5,14 @@ import { DeckProvider } from '../../contexts/DeckContext.js'
 import { type TCardValue, type TSuit } from '../../types/index.js'
 import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
-export function DeckView({ goBack }: { goBack?: () => void }) {
-  const [variant, setVariant] = React.useState<'simple' | 'ascii' | 'minimal'>('simple')
+export function DeckView({ goBack }: { readonly goBack?: () => void }) {
+  const [variant, setVariant] = React.useState<'simple' | 'ascii' | 'minimal'>(
+    'simple'
+  )
   const [showTopCard, setShowTopCard] = React.useState(false)
   const [placeholderSuit, setPlaceholderSuit] = React.useState<TSuit>('hearts')
-  const [placeholderValue, setPlaceholderValue] = React.useState<TCardValue>('A')
+  const [placeholderValue, setPlaceholderValue] =
+    React.useState<TCardValue>('A')
   const [currentSelect, setCurrentSelect] = React.useState<
     'variant' | 'top-card' | 'placeholder-suit' | 'placeholder-value'
   >('variant')
@@ -30,7 +33,7 @@ export function DeckView({ goBack }: { goBack?: () => void }) {
                   hotkey: 's',
                 },
                 {
-                  label: 'ASCII',
+                  label: 'ascii',
                   value: 'ascii',
                   indicator: <Text color="cyan">⌲</Text>,
                   hotkey: 'a',
@@ -55,8 +58,8 @@ export function DeckView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  goBack && goBack()
+                if (item.value === 'back' && goBack) {
+                  goBack()
                 } else if (item.value === 'next') {
                   setCurrentSelect('top-card')
                 } else {
@@ -78,13 +81,17 @@ export function DeckView({ goBack }: { goBack?: () => void }) {
                 {
                   label: 'Show',
                   value: 'show',
-                  indicator: showTopCard ? <Text color="yellow">✓</Text> : undefined,
+                  indicator: showTopCard ? (
+                    <Text color="yellow">✓</Text>
+                  ) : undefined,
                   hotkey: 's',
                 },
                 {
                   label: 'Hide',
                   value: 'hide',
-                  indicator: !showTopCard ? <Text color="yellow">✓</Text> : undefined,
+                  indicator: showTopCard ? undefined : (
+                    <Text color="yellow">✓</Text>
+                  ),
                   hotkey: 'h',
                 },
                 {

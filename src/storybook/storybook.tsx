@@ -18,7 +18,6 @@ type ComponentView =
   | 'grid'
   | undefined
 
-  
 export function Storybook() {
   const { exit } = useApp()
 
@@ -40,7 +39,7 @@ export function Storybook() {
         <Text dimColor>component: {currentComponent ?? 'n/a'}</Text>
       </Box>
 
-      {!currentComponent ? (
+      {currentComponent ? null : (
         <>
           <Text dimColor>Select a component to view:</Text>
           <EnhancedSelectInput
@@ -98,25 +97,49 @@ export function Storybook() {
             }}
           />
         </>
-      ) : null}
+      )}
 
       {currentComponent === 'card' && (
-        <CardView goBack={() => setCurrentComponent(undefined)} />
+        <CardView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
       )}
       {currentComponent === 'mini-card' && (
-        <MiniCardView goBack={() => setCurrentComponent(undefined)} />
+        <MiniCardView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
       )}
       {currentComponent === 'card-stack' && (
-        <CardStackView goBack={() => setCurrentComponent(undefined)} />
+        <CardStackView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
       )}
       {currentComponent === 'deck' && (
-        <DeckView goBack={() => setCurrentComponent(undefined)} />
+        <DeckView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
       )}
       {currentComponent === 'custom-card' && (
-        <CustomCardView goBack={() => setCurrentComponent(undefined)} />
+        <CustomCardView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
       )}
       {currentComponent === 'grid' && (
-        <GridView goBack={() => setCurrentComponent(undefined)} />
+        <GridView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
       )}
     </Box>
   )

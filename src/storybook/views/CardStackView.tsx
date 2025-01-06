@@ -15,14 +15,18 @@ const sampleCards: TCard[] = [
 
 type CardStackVariant = 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
 
-export function CardStackView({ goBack }: { goBack?: () => void }) {
+export function CardStackView({ goBack }: { readonly goBack?: () => void }) {
   const [variant, setVariant] = React.useState<CardStackVariant>('simple')
-  const [direction, setDirection] = React.useState<'vertical' | 'horizontal'>('horizontal')
+  const [direction, setDirection] = React.useState<'vertical' | 'horizontal'>(
+    'horizontal'
+  )
   const [faceUp, setFaceUp] = React.useState(true)
   const [maxDisplay, setMaxDisplay] = React.useState(3)
   const [overlap, setOverlap] = React.useState(-2)
   const margin = 1
-  const [alignment, setAlignment] = React.useState<'start' | 'center' | 'end'>('start')
+  const [alignment, setAlignment] = React.useState<'start' | 'center' | 'end'>(
+    'start'
+  )
   const [currentSelect, setCurrentSelect] = React.useState<
     'variant' | 'direction' | 'face' | 'display' | 'spacing' | 'alignment'
   >('variant')
@@ -43,7 +47,7 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
                   hotkey: 's',
                 },
                 {
-                  label: 'ASCII',
+                  label: 'ascii',
                   value: 'ascii',
                   indicator: <Text color="cyan">⌲</Text>,
                   hotkey: 'a',
@@ -80,8 +84,8 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  goBack && goBack()
+                if (item.value === 'back' && goBack) {
+                  goBack()
                 } else if (item.value === 'next') {
                   setCurrentSelect('direction')
                 } else {
@@ -195,7 +199,10 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
                 ...[1, 2, 3, 4, 5].map((num) => ({
                   label: num.toString(),
                   value: num.toString(),
-                  indicator: maxDisplay === num ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    maxDisplay === num ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: num.toString(),
                 })),
                 {
@@ -263,14 +270,34 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('display')
-                } else if (item.value === 'next') {
-                  setCurrentSelect('alignment')
-                } else if (item.value === 'more-overlap') {
-                  setOverlap(Math.max(-5, overlap - 1))
-                } else if (item.value === 'less-overlap') {
-                  setOverlap(Math.min(5, overlap + 1))
+                switch (item.value) {
+                  case 'back': {
+                    setCurrentSelect('display')
+                    break
+                  }
+
+                  case 'next': {
+                    setCurrentSelect('alignment')
+                    break
+                  }
+
+                  case 'more-overlap': {
+                    setOverlap(Math.max(-5, overlap - 1))
+                    break
+                  }
+
+                  case 'less-overlap': {
+                    setOverlap(Math.min(5, overlap + 1))
+                    break
+                  }
+
+                  case 'current': {
+                    break
+                  }
+
+                  default: {
+                    break
+                  }
                 }
               }}
             />
@@ -288,19 +315,28 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
                 {
                   label: 'Start',
                   value: 'start',
-                  indicator: alignment === 'start' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    alignment === 'start' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 's',
                 },
                 {
                   label: 'Center',
                   value: 'center',
-                  indicator: alignment === 'center' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    alignment === 'center' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 'c',
                 },
                 {
                   label: 'End',
                   value: 'end',
-                  indicator: alignment === 'end' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    alignment === 'end' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 'e',
                 },
                 {

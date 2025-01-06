@@ -6,7 +6,7 @@ import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
 type CardVariant = 'simple' | 'ascii' | 'minimal'
 
-export function CardView({ goBack }: { goBack?: () => void }) {
+export function CardView({ goBack }: { readonly goBack?: () => void }) {
   const [variant, setVariant] = React.useState<CardVariant>('simple')
   const [suit, setSuit] = React.useState<TSuit>('spades')
   const [value, setValue] = React.useState<TCardValue>('A')
@@ -33,7 +33,7 @@ export function CardView({ goBack }: { goBack?: () => void }) {
                   hotkey: 's',
                 },
                 {
-                  label: 'ASCII',
+                  label: 'ascii',
                   value: 'ascii',
                   indicator: <Text color="cyan">⌲</Text>,
                   hotkey: 'a',
@@ -58,10 +58,9 @@ export function CardView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  goBack && goBack()
-                }
-                if (item.value === 'next') {
+                if (item.value === 'back' && goBack) {
+                  goBack()
+                } else if (item.value === 'next') {
                   setCurrentSelect('suit')
                 } else {
                   setVariant(item.value as CardVariant)
@@ -240,13 +239,17 @@ export function CardView({ goBack }: { goBack?: () => void }) {
                 {
                   label: 'Selected',
                   value: 'selected',
-                  indicator: selected ? <Text color="yellow">✓</Text> : undefined,
+                  indicator: selected ? (
+                    <Text color="yellow">✓</Text>
+                  ) : undefined,
                   hotkey: 's',
                 },
                 {
                   label: 'Rounded',
                   value: 'rounded',
-                  indicator: rounded ? <Text color="yellow">✓</Text> : undefined,
+                  indicator: rounded ? (
+                    <Text color="yellow">✓</Text>
+                  ) : undefined,
                   hotkey: 'r',
                 },
                 {
@@ -257,12 +260,27 @@ export function CardView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('face')
-                } else if (item.value === 'selected') {
-                  setSelected(!selected)
-                } else if (item.value === 'rounded') {
-                  setRounded(!rounded)
+                switch (item.value) {
+                  case 'back': {
+                    setCurrentSelect('face')
+
+                    break
+                  }
+
+                  case 'selected': {
+                    setSelected(!selected)
+
+                    break
+                  }
+
+                  case 'rounded': {
+                    setRounded(!rounded)
+                    break
+                  }
+
+                  default: {
+                    break
+                  }
                 }
               }}
             />
@@ -278,7 +296,8 @@ export function CardView({ goBack }: { goBack?: () => void }) {
         <Text>Card Preview:</Text>
         <Text dimColor>
           {variant} - {suit} - {value} - {faceUp ? 'face up' : 'face down'} -{' '}
-          {selected ? 'selected' : 'not selected'} - {rounded ? 'rounded' : 'square'}
+          {selected ? 'selected' : 'not selected'} -{' '}
+          {rounded ? 'rounded' : 'square'}
         </Text>
       </Box>
       <Box marginY={1}>

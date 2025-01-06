@@ -1,14 +1,13 @@
 import { Box, Text } from 'ink'
+import React from 'react'
+import { CustomCard } from '../../components/CustomCard/index.js'
+import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
 type TSymbol = {
   char: string
   position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   color: string
 }
-
-import React from 'react'
-import { CustomCard } from '../../components/CustomCard/index.js'
-import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
 const sampleAsciiArt = `  /\\  /\\
  /  \\/  \\
@@ -17,13 +16,16 @@ const sampleAsciiArt = `  /\\  /\\
  \\  /\\  /
   \\/  \\/`
 
-export function CustomCardView({ goBack }: { goBack?: () => void }) {
+export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
   const [size, setSize] = React.useState<'small' | 'medium' | 'large'>('medium')
   const [faceUp, setFaceUp] = React.useState(true)
-  const [title,  ] = React.useState('Sample Card')
-  const [description,  ] = React.useState(
+  // Const [title, setTitle] = React.useState('Sample Card')
+  // const [description, setDescription] = React.useState(
+  //   'This is a custom card with a description that might wrap.'
+  // )
+  const title = 'Sample Card'
+  const description =
     'This is a custom card with a description that might wrap.'
-  )
   const [borderColor, setBorderColor] = React.useState('white')
   const [textColor, setTextColor] = React.useState('white')
   const [symbols, setSymbols] = React.useState<TSymbol[]>([
@@ -83,8 +85,8 @@ export function CustomCardView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  goBack && goBack()
+                if (item.value === 'back' && goBack) {
+                  goBack()
                 } else if (item.value === 'next') {
                   setCurrentSelect('face')
                 } else {
@@ -330,6 +332,7 @@ export function CustomCardView({ goBack }: { goBack?: () => void }) {
                     if (exists) {
                       return prev.filter((s) => s.position !== position)
                     }
+
                     const symbolMap = {
                       'top-left': { char: '★', color: 'yellow' },
                       'top-right': { char: '♦', color: 'red' },
@@ -347,6 +350,24 @@ export function CustomCardView({ goBack }: { goBack?: () => void }) {
                 }
               }}
             />
+          </>
+        )
+      }
+
+      case 'title': {
+        return (
+          <>
+            <Text dimColor>Edit title:</Text>
+            <Text>Title editing not implemented yet</Text>
+          </>
+        )
+      }
+
+      case 'description': {
+        return (
+          <>
+            <Text dimColor>Edit description:</Text>
+            <Text>Description editing not implemented yet</Text>
           </>
         )
       }

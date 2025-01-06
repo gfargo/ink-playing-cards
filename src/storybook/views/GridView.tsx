@@ -19,7 +19,7 @@ const sampleCards: GridCard[] = [
 
 type GridVariant = 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
 
-export function GridView({ goBack }: { goBack?: () => void }) {
+export function GridView({ goBack }: { readonly goBack?: () => void }) {
   const [variant, setVariant] = React.useState<GridVariant>('simple')
   const [rows, setRows] = React.useState(2)
   const [cols, setCols] = React.useState(3)
@@ -27,8 +27,12 @@ export function GridView({ goBack }: { goBack?: () => void }) {
   const [fillEmpty, setFillEmpty] = React.useState(true)
   const [rowGap, setRowGap] = React.useState(1)
   const [colGap, setColGap] = React.useState(1)
-  const [horizontalAlign, setHorizontalAlign] = React.useState<'left' | 'center' | 'right'>('center')
-  const [verticalAlign, setVerticalAlign] = React.useState<'top' | 'middle' | 'bottom'>('middle')
+  const [horizontalAlign, setHorizontalAlign] = React.useState<
+    'left' | 'center' | 'right'
+  >('center')
+  const [verticalAlign, setVerticalAlign] = React.useState<
+    'top' | 'middle' | 'bottom'
+  >('middle')
 
   const [currentSelect, setCurrentSelect] = React.useState<
     'variant' | 'size' | 'face' | 'spacing' | 'alignment' | 'style'
@@ -50,7 +54,7 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                   hotkey: 's',
                 },
                 {
-                  label: 'ASCII',
+                  label: 'ascii',
                   value: 'ascii',
                   indicator: <Text color="cyan">⌲</Text>,
                   hotkey: 'a',
@@ -87,8 +91,8 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  goBack && goBack()
+                if (item.value === 'back' && goBack) {
+                  goBack()
                 } else if (item.value === 'next') {
                   setCurrentSelect('size')
                 } else {
@@ -157,18 +161,45 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('variant')
-                } else if (item.value === 'next') {
-                  setCurrentSelect('face')
-                } else if (item.value === 'more-rows') {
-                  setRows(Math.min(5, rows + 1))
-                } else if (item.value === 'less-rows') {
-                  setRows(Math.max(1, rows - 1))
-                } else if (item.value === 'more-cols') {
-                  setCols(Math.min(6, cols + 1))
-                } else if (item.value === 'less-cols') {
-                  setCols(Math.max(1, cols - 1))
+                switch (item.value) {
+                  case 'back': {
+                    setCurrentSelect('variant')
+                    break
+                  }
+
+                  case 'next': {
+                    setCurrentSelect('face')
+                    break
+                  }
+
+                  case 'more-rows': {
+                    setRows(Math.min(5, rows + 1))
+                    break
+                  }
+
+                  case 'less-rows': {
+                    setRows(Math.max(1, rows - 1))
+                    break
+                  }
+
+                  case 'more-cols': {
+                    setCols(Math.min(6, cols + 1))
+                    break
+                  }
+
+                  case 'less-cols': {
+                    setCols(Math.max(1, cols - 1))
+                    break
+                  }
+
+                  case 'rows':
+                  case 'cols': {
+                    break
+                  }
+
+                  default: {
+                    break
+                  }
                 }
               }}
             />
@@ -192,13 +223,15 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                 {
                   label: 'Face Down',
                   value: 'down',
-                  indicator: !faceUp ? <Text color="red">↓</Text> : undefined,
+                  indicator: faceUp ? undefined : <Text color="red">↓</Text>,
                   hotkey: 'd',
                 },
                 {
                   label: 'Fill Empty',
                   value: 'fill',
-                  indicator: fillEmpty ? <Text color="yellow">✓</Text> : undefined,
+                  indicator: fillEmpty ? (
+                    <Text color="yellow">✓</Text>
+                  ) : undefined,
                   hotkey: 'f',
                 },
                 {
@@ -215,14 +248,31 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('size')
-                } else if (item.value === 'next') {
-                  setCurrentSelect('spacing')
-                } else if (item.value === 'up' || item.value === 'down') {
-                  setFaceUp(item.value === 'up')
-                } else if (item.value === 'fill') {
-                  setFillEmpty(!fillEmpty)
+                switch (item.value) {
+                  case 'back': {
+                    setCurrentSelect('size')
+                    break
+                  }
+
+                  case 'next': {
+                    setCurrentSelect('spacing')
+                    break
+                  }
+
+                  case 'up':
+                  case 'down': {
+                    setFaceUp(item.value === 'up')
+                    break
+                  }
+
+                  case 'fill': {
+                    setFillEmpty(!fillEmpty)
+                    break
+                  }
+
+                  default: {
+                    break
+                  }
                 }
               }}
             />
@@ -285,18 +335,45 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('face')
-                } else if (item.value === 'next') {
-                  setCurrentSelect('alignment')
-                } else if (item.value === 'row-less') {
-                  setRowGap(Math.max(0, rowGap - 1))
-                } else if (item.value === 'row-more') {
-                  setRowGap(Math.min(5, rowGap + 1))
-                } else if (item.value === 'col-less') {
-                  setColGap(Math.max(0, colGap - 1))
-                } else if (item.value === 'col-more') {
-                  setColGap(Math.min(5, colGap + 1))
+                switch (item.value) {
+                  case 'back': {
+                    setCurrentSelect('face')
+                    break
+                  }
+
+                  case 'next': {
+                    setCurrentSelect('alignment')
+                    break
+                  }
+
+                  case 'row-less': {
+                    setRowGap(Math.max(0, rowGap - 1))
+                    break
+                  }
+
+                  case 'row-more': {
+                    setRowGap(Math.min(5, rowGap + 1))
+                    break
+                  }
+
+                  case 'col-less': {
+                    setColGap(Math.max(0, colGap - 1))
+                    break
+                  }
+
+                  case 'col-more': {
+                    setColGap(Math.min(5, colGap + 1))
+                    break
+                  }
+
+                  case 'row':
+                  case 'col': {
+                    break
+                  }
+
+                  default: {
+                    break
+                  }
                 }
               }}
             />
@@ -314,37 +391,55 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                 {
                   label: 'Left',
                   value: 'left',
-                  indicator: horizontalAlign === 'left' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    horizontalAlign === 'left' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 'l',
                 },
                 {
                   label: 'Center',
                   value: 'center',
-                  indicator: horizontalAlign === 'center' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    horizontalAlign === 'center' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 'c',
                 },
                 {
                   label: 'Right',
                   value: 'right',
-                  indicator: horizontalAlign === 'right' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    horizontalAlign === 'right' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 'r',
                 },
                 {
                   label: 'Top',
                   value: 'top',
-                  indicator: verticalAlign === 'top' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    verticalAlign === 'top' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 't',
                 },
                 {
                   label: 'Middle',
                   value: 'middle',
-                  indicator: verticalAlign === 'middle' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    verticalAlign === 'middle' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 'm',
                 },
                 {
                   label: 'Bottom',
                   value: 'bottom',
-                  indicator: verticalAlign === 'bottom' ? <Text color="yellow">✓</Text> : undefined,
+                  indicator:
+                    verticalAlign === 'bottom' ? (
+                      <Text color="yellow">✓</Text>
+                    ) : undefined,
                   hotkey: 'b',
                 },
                 {
@@ -355,21 +450,40 @@ export function GridView({ goBack }: { goBack?: () => void }) {
                 },
               ]}
               onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('spacing')
-                } else if (['left', 'center', 'right'].includes(item.value)) {
-                  setHorizontalAlign(item.value as 'left' | 'center' | 'right')
-                } else if (['top', 'middle', 'bottom'].includes(item.value)) {
-                  setVerticalAlign(item.value as 'top' | 'middle' | 'bottom')
+                switch (item.value) {
+                  case 'back': {
+                    setCurrentSelect('spacing')
+                    break
+                  }
+
+                  case 'left':
+                  case 'center':
+                  case 'right': {
+                    setHorizontalAlign(item.value)
+                    break
+                  }
+
+                  case 'top':
+                  case 'middle':
+                  case 'bottom': {
+                    setVerticalAlign(item.value)
+                    break
+                  }
+
+                  default: {
+                    break
+                  }
                 }
               }}
             />
           </>
         )
       }
-    }
 
-    return null
+      case 'style': {
+        return null
+      }
+    }
   }
 
   return (
