@@ -21,7 +21,7 @@ export function CardStackView({ goBack }: { goBack?: () => void }) {
   const [faceUp, setFaceUp] = React.useState(true)
   const [maxDisplay, setMaxDisplay] = React.useState(3)
   const [overlap, setOverlap] = React.useState(-2)
-  const [margin, setMargin] = React.useState(1)
+  const margin = 1
   const [alignment, setAlignment] = React.useState<'start' | 'center' | 'end'>('start')
   const [currentSelect, setCurrentSelect] = React.useState<
     'variant' | 'direction' | 'face' | 'display' | 'spacing' | 'alignment'

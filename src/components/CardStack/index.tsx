@@ -1,4 +1,4 @@
-import { Box, Text } from 'ink'
+import { Box, Text, type BoxProps } from 'ink'
 import React from 'react'
 import { type CardProps, type TCard } from '../../types/index.js'
 import Card from '../Card/index.js'
@@ -9,9 +9,13 @@ type CardStackProperties = {
   readonly name: string
   readonly isFaceUp?: boolean
   readonly maxDisplay?: number
-  // Readonly onCardClick?: (card: TCard) => void
   readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
   readonly stackDirection?: 'vertical' | 'horizontal'
+  readonly spacing?: {
+    overlap?: number
+    margin?: number
+  }
+  readonly alignment?: 'start' | 'center' | 'end'
 }
 
 export function CardStack({
@@ -21,38 +25,41 @@ export function CardStack({
   maxDisplay = 3,
   variant = 'simple',
   stackDirection = 'vertical',
-}: // OnCardClick,
-CardStackProperties) {
+  spacing = { overlap: -2, margin: 1 },
+  alignment = 'start',
+}: CardStackProperties) {
   const displayCards = cards.slice(-maxDisplay)
 
+  // Calculate overlap based on variant and custom spacing
   const getOverlap = () => {
-    switch (variant) {
-      case 'ascii': {
-        return { marginLeft: -10, marginTop: 2 }
-      }
+    const baseOverlap = spacing.overlap ?? -2
+    const scale = variant === 'mini' || variant === 'micro' ? 0.5 : 1
 
-      case 'simple': {
-        return { marginLeft: -6, marginTop: 1 }
-      }
-
-      case 'minimal': {
-        return { marginLeft: -2, marginTop: 0 }
-      }
-
-      case 'mini': {
-        return { marginLeft: -3, marginTop: 1 }
-      }
-
-      case 'micro': {
-        return { marginLeft: -2, marginTop: 0 }
-      }
+    return {
+      marginLeft: baseOverlap * scale,
+      marginTop: Math.abs(baseOverlap) * 0.5 * scale,
     }
   }
 
   const { marginLeft, marginTop } = getOverlap()
 
+  // Get alignment style
+  const getAlignmentStyle = (): BoxProps => {
+    const alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch' = 
+      alignment === 'start' ? 'flex-start' :
+      alignment === 'end' ? 'flex-end' :
+      'center'
+    
+    return { alignItems }
+  }
+
   return (
-    <Box flexDirection="column" alignItems="center">
+    <Box 
+      flexDirection="column" 
+      marginX={spacing.margin}
+      marginY={spacing.margin}
+      {...getAlignmentStyle()}
+    >
       <Text>
         {name} ({cards.length})
       </Text>

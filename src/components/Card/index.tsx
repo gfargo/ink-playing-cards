@@ -72,9 +72,7 @@ function createTopLine(
   width: number
 ): string {
   const leftPart = `${rank}${suit}`
-  console.log('testing:::', leftPart.length, left(leftPart, width).length)
   return left(leftPart, width)
-  // return leftPart
 }
 
 function createBottomLine(
@@ -232,7 +230,6 @@ function createCardContent(
 
   // For minimal variant, just return a centered suit
   if (variant === 'minimal') {
-    console.log('rank adjustment:::', rank.length > 1 ? 2 : 0)
     return `
 ${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}
 `
@@ -246,7 +243,6 @@ ${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}
 
   // Add middle content
   if (isSpecialCard) {
-
     while (lines.length < height / 2 - 3) {
       lines.push(spaces(width - 2))
     }
@@ -311,6 +307,7 @@ export function Card({
 
     height: config.height,
     width: config.width,
+    overflow: 'hidden',
   }
 
   if (!faceUp) {
