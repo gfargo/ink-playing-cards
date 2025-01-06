@@ -13,12 +13,7 @@ const sampleCards: GridCard[] = [
 
 test('render 2x2 grid face up', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={2}
-      cols={2}
-      cards={sampleCards}
-      isFaceUp={true}
-    />
+    <CardGrid isFaceUp rows={2} cols={2} cards={sampleCards} />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -34,12 +29,7 @@ test('render 2x2 grid face up', (t) => {
 
 test('render 2x2 grid face down', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={2}
-      cols={2}
-      cards={sampleCards}
-      isFaceUp={false}
-    />
+    <CardGrid rows={2} cols={2} cards={sampleCards} isFaceUp={false} />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -48,10 +38,10 @@ test('render 2x2 grid face down', (t) => {
 test('render 3x2 grid with empty cells', (t) => {
   const { lastFrame } = render(
     <CardGrid
+      fillEmpty
       rows={3}
       cols={2}
-      cards={sampleCards}  // Only 4 cards for 6 cells
-      fillEmpty={true}
+      cards={sampleCards} // Only 4 cards for 6 cells
     />
   )
   const gridFrame = lastFrame()
@@ -60,12 +50,7 @@ test('render 3x2 grid with empty cells', (t) => {
 
 test('render grid with mini variant', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={2}
-      cols={2}
-      cards={sampleCards}
-      variant="mini"
-    />
+    <CardGrid rows={2} cols={2} cards={sampleCards} variant="mini" />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -73,12 +58,7 @@ test('render grid with mini variant', (t) => {
 
 test('render grid with micro variant', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={2}
-      cols={2}
-      cards={sampleCards}
-      variant="micro"
-    />
+    <CardGrid rows={2} cols={2} cards={sampleCards} variant="micro" />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -151,12 +131,7 @@ test('render grid with bottom alignment', (t) => {
 
 test('render minimal variant grid', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={2}
-      cols={2}
-      cards={sampleCards}
-      variant="minimal"
-    />
+    <CardGrid rows={2} cols={2} cards={sampleCards} variant="minimal" />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -164,12 +139,7 @@ test('render minimal variant grid', (t) => {
 
 test('render ascii variant grid', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={2}
-      cols={2}
-      cards={sampleCards}
-      variant="ascii"
-    />
+    <CardGrid rows={2} cols={2} cards={sampleCards} variant="ascii" />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -177,11 +147,7 @@ test('render ascii variant grid', (t) => {
 
 test('render 1x4 horizontal grid', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={1}
-      cols={4}
-      cards={sampleCards}
-    />
+    <CardGrid rows={1} cols={4} cards={sampleCards} />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -189,11 +155,7 @@ test('render 1x4 horizontal grid', (t) => {
 
 test('render 4x1 vertical grid', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={4}
-      cols={1}
-      cards={sampleCards}
-    />
+    <CardGrid rows={4} cols={1} cards={sampleCards} />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -201,12 +163,7 @@ test('render 4x1 vertical grid', (t) => {
 
 test('render empty grid with placeholders', (t) => {
   const { lastFrame } = render(
-    <CardGrid
-      rows={2}
-      cols={2}
-      cards={[]}
-      fillEmpty={true}
-    />
+    <CardGrid fillEmpty rows={2} cols={2} cards={[]} />
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
@@ -217,7 +174,7 @@ test('render partial grid without placeholders', (t) => {
     <CardGrid
       rows={2}
       cols={2}
-      cards={[sampleCards[0]!]}  // Only one card
+      cards={[sampleCards[0]!]} // Only one card
       fillEmpty={false}
     />
   )

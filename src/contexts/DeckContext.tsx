@@ -92,7 +92,7 @@ const deckReducer = (
       const { deck } = action.payload
 
       const discardedDeck = new Deck([...state.zones.discardPile.cards])
-      const newDiscardPile = new DiscardPile([]);
+      const newDiscardPile = new DiscardPile([])
       discardedDeck.shuffle()
 
       return {

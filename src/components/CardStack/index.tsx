@@ -45,17 +45,19 @@ export function CardStack({
 
   // Get alignment style
   const getAlignmentStyle = (): BoxProps => {
-    const alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch' = 
-      alignment === 'start' ? 'flex-start' :
-      alignment === 'end' ? 'flex-end' :
-      'center'
-    
+    const alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch' =
+      alignment === 'start'
+        ? 'flex-start'
+        : alignment === 'end'
+          ? 'flex-end'
+          : 'center'
+
     return { alignItems }
   }
 
   return (
-    <Box 
-      flexDirection="column" 
+    <Box
+      flexDirection="column"
       marginX={spacing.margin}
       marginY={spacing.margin}
       {...getAlignmentStyle()}

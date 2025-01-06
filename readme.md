@@ -95,7 +95,7 @@ Standard playing card with multiple display variants:
 <Card
   suit="hearts"
   value="A"
-  variant="simple"  // 'simple' | 'ascii' | 'minimal'
+  variant="simple" // 'simple' | 'ascii' | 'minimal'
   faceUp={true}
   selected={false}
   rounded={true}
@@ -110,7 +110,7 @@ Compact card representation for space-efficient layouts:
 <MiniCard
   suit="spades"
   value="K"
-  variant="mini"  // 'mini' | 'micro'
+  variant="mini" // 'mini' | 'micro'
   faceUp={true}
   selected={false}
   rounded={true}
@@ -123,13 +123,11 @@ Highly customizable card for special game mechanics:
 
 ```jsx
 <CustomCard
-  size="medium"  // 'small' | 'medium' | 'large'
+  size="medium" // 'small' | 'medium' | 'large'
   title="Special Card"
   description="Custom effect description"
   asciiArt={customArt}
-  symbols={[
-    { char: '★', position: 'top-left', color: 'yellow' }
-  ]}
+  symbols={[{ char: '★', position: 'top-left', color: 'yellow' }]}
   borderColor="blue"
   textColor="white"
   faceUp={true}
@@ -145,9 +143,9 @@ Displays a stack of cards with customizable spacing and alignment:
   cards={handCards}
   name="Player Hand"
   variant="simple"
-  stackDirection="horizontal"  // 'horizontal' | 'vertical'
+  stackDirection="horizontal" // 'horizontal' | 'vertical'
   spacing={{ overlap: -2, margin: 1 }}
-  alignment="center"  // 'start' | 'center' | 'end'
+  alignment="center" // 'start' | 'center' | 'end'
   maxDisplay={5}
   isFaceUp={true}
 />
@@ -165,8 +163,8 @@ Arranges cards in a customizable grid layout:
   variant="simple"
   spacing={{ row: 1, col: 1 }}
   alignment={{
-    horizontal: 'center',  // 'left' | 'center' | 'right'
-    vertical: 'middle'     // 'top' | 'middle' | 'bottom'
+    horizontal: 'center', // 'left' | 'center' | 'right'
+    vertical: 'middle', // 'top' | 'middle' | 'bottom'
   }}
   fillEmpty={true}
   isFaceUp={true}
@@ -218,6 +216,7 @@ yarn dev
 The showcase provides an interactive CLI interface to explore:
 
 - **Card Components**
+
   - Standard Card (simple, ASCII, and minimal variants)
   - MiniCard (compact card representations)
   - CardStack (various card arrangements)

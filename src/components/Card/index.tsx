@@ -166,7 +166,7 @@ const createPipLayout = (
     ],
   }
 
-  return layouts[rank] || []
+  return layouts[rank] ?? []
 }
 
 // Special card art (face cards and ace)
@@ -206,7 +206,7 @@ const createSpecialArt = (
         center('/ \\', w),
       ],
     }
-    return art[rank] || []
+    return art[rank] ?? []
   }
 
   // Simple variant - more compact art
@@ -216,7 +216,7 @@ const createSpecialArt = (
     Q: [center(`Q${suit}`, w), center('|', w), center('\\', w)],
     K: [center(`K${suit}`, w), center('|', w), center('Y', w)],
   }
-  return simpleArt[rank] || []
+  return simpleArt[rank] ?? []
 }
 
 // Create the complete card content
@@ -262,13 +262,14 @@ ${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}
     // Place pips
     for (const [row, col] of pipLayout) {
       if (row < middleLines.length && middleLines[row]) {
-        const line = middleLines[row].split('')
+        const line = [...middleLines[row]]
         if (col < line.length) {
           line[col] = suit
           middleLines[row] = line.join('')
         }
       }
     }
+
     lines.push(...middleLines)
   } else {
     // For variants without pip configuration, add empty lines
@@ -292,13 +293,13 @@ export function Card({
   selected = false,
   rounded = true,
   variant = 'simple',
-}: CardProps & { variant?: 'ascii' | 'simple' | 'minimal' }) {
+}: CardProps & { readonly variant?: 'ascii' | 'simple' | 'minimal' }) {
   const { backArtwork } = useDeck()
   const config = CARD_DIMENSIONS[variant]
 
   const cardStyle: BoxProps = {
     flexDirection: 'column',
-    // alignItems: 'center',
+    // AlignItems: 'center',
     // justifyContent: 'center',
     paddingX: config.padding,
 

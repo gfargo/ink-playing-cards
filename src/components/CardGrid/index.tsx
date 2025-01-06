@@ -14,15 +14,15 @@ export type GridCard = {
 type CardGridProps = {
   readonly rows: number
   readonly cols: number
-  readonly cards: Array<GridCard | null>  // null for empty cells
+  readonly cards: Array<GridCard | undefined> // Null for empty cells
   readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
   readonly spacing?: {
-    row?: number        // Space between rows
-    col?: number        // Space between columns
-    margin?: number     // Space around the entire grid
+    row?: number // Space between rows
+    col?: number // Space between columns
+    margin?: number // Space around the entire grid
   }
   readonly isFaceUp?: boolean
-  readonly fillEmpty?: boolean  // Whether to show placeholder for empty cells
+  readonly fillEmpty?: boolean // Whether to show placeholder for empty cells
   readonly alignment?: {
     horizontal?: 'left' | 'center' | 'right'
     vertical?: 'top' | 'middle' | 'bottom'
@@ -41,31 +41,40 @@ export function CardGrid({
 }: CardGridProps) {
   // Split cards into rows
   const grid = React.useMemo(() => {
-    const result: Array<Array<GridCard | null>> = []
+    const result: Array<Array<GridCard | undefined>> = []
     for (let i = 0; i < rows; i++) {
       result.push(cards.slice(i * cols, (i + 1) * cols))
       // Pad with null if row is incomplete
       while (result[i]!.length < cols) {
-        result[i]!.push(null)
+        result[i]!.push(undefined)
       }
     }
+
     return result
   }, [cards, rows, cols])
 
   // Get alignment styles
   const getAlignmentStyle = (): BoxProps => {
     let alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch' | undefined
-    let justifyContent: 'flex-start' | 'flex-end' | 'space-between' | 'space-around' | 'center' | undefined
+    let justifyContent:
+      | 'flex-start'
+      | 'flex-end'
+      | 'space-between'
+      | 'space-around'
+      | 'center'
+      | undefined
 
     switch (alignment.horizontal) {
       case 'left': {
         alignItems = 'flex-start'
         break
       }
+
       case 'right': {
         alignItems = 'flex-end'
         break
       }
+
       default: {
         alignItems = 'center'
       }
@@ -76,10 +85,12 @@ export function CardGrid({
         justifyContent = 'flex-start'
         break
       }
+
       case 'bottom': {
         justifyContent = 'flex-end'
         break
       }
+
       default: {
         justifyContent = 'center'
       }
@@ -94,15 +105,19 @@ export function CardGrid({
       case 'mini': {
         return { width: 5, height: 4 }
       }
+
       case 'micro': {
         return { width: 3, height: 2 }
       }
+
       case 'minimal': {
         return { width: 5, height: 3 }
       }
+
       case 'ascii': {
         return { width: 13, height: 11 }
       }
+
       default: {
         return { width: 9, height: 7 }
       }
@@ -110,23 +125,16 @@ export function CardGrid({
   }
 
   return (
-    <Box 
+    <Box
       flexDirection="column"
       marginX={spacing.margin}
       marginY={spacing.margin}
       {...getAlignmentStyle()}
     >
       {grid.map((row, rowIndex) => (
-        <Box 
-          key={rowIndex}
-          flexDirection="row"
-          marginY={spacing.row}
-        >
+        <Box key={rowIndex} flexDirection="row" marginY={spacing.row}>
           {row.map((card, colIndex) => (
-            <Box 
-              key={`${rowIndex}-${colIndex}`}
-              marginX={spacing.col}
-            >
+            <Box key={`${rowIndex}-${colIndex}`} marginX={spacing.col}>
               {card ? (
                 variant === 'mini' || variant === 'micro' ? (
                   <MiniCard
@@ -145,10 +153,7 @@ export function CardGrid({
                 )
               ) : fillEmpty ? (
                 // Render empty placeholder
-                <Box 
-                  {...getPlaceholderSize()}
-                  borderStyle="single"
-                />
+                <Box {...getPlaceholderSize()} borderStyle="single" />
               ) : null}
             </Box>
           ))}

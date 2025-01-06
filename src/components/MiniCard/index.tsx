@@ -27,7 +27,7 @@ export function MiniCard({
   return (
     <Box
       flexDirection="column"
-      overflow='hidden'
+      overflow="hidden"
       width={variant === 'mini' ? 5 : 4}
       height={variant === 'mini' ? 4 : 4}
       borderStyle={selected ? 'double' : rounded ? 'round' : 'single'}
