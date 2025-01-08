@@ -16,7 +16,11 @@ export function Card({
   selected = false,
   rounded = true,
   variant = 'simple',
-}: CardProps & { readonly variant?: 'ascii' | 'simple' | 'minimal' }) {
+  theme = 'original',
+}: CardProps & { 
+  readonly variant?: 'ascii' | 'simple' | 'minimal'
+  readonly theme?: AsciiTheme 
+}) {
   const { backArtwork } = useDeck()
   const config = CARD_DIMENSIONS[variant]
 
@@ -42,7 +46,7 @@ export function Card({
 
   const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
   const symbol = SUIT_SYMBOL_MAP[suit]
-  const cardContent = createCardContent(value, symbol, variant, config)
+  const cardContent = createCardContent(value, symbol, variant, config, theme)
 
   return (
     <Box {...cardStyle}>

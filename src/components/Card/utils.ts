@@ -1,6 +1,65 @@
-import { ASCII_CARD_ART, SIMPLE_CARD_ART } from '../../constants/cardArt.js'
-import type { TCardValue, TSuitIcon } from '../../types/index.js'
+import { SYMBOL_SUIT_MAP } from '../../constants/card.js'
+import {
+  ANIMAL_FEATURES,
+  GEOMETRIC_SYMBOLS,
+  MEDIEVAL_FEATURES,
+  PIXEL_FEATURES,
+  ROBOT_FEATURES,
+  SIMPLE_CARD_ART,
+  THEME_MAP,
+} from '../../constants/cardArt.js'
+import type { AsciiTheme, TCardValue, TSuit, TSuitIcon } from '../../types/index.js'
 import { center, left, right, spaces } from '../../utils/text.js'
+
+/**
+ * Get theme-specific replacements for a given suit
+ */
+function getThemeReplacements(theme: AsciiTheme, suit: TSuit): Record<string, string> {
+  console.log('theme:', theme, 'suit:', suit)
+  const replacements: Record<AsciiTheme, Record<string, string>> = {
+    'geometric': {
+      outline: GEOMETRIC_SYMBOLS[suit]?.outline ?? '',
+      filled: GEOMETRIC_SYMBOLS[suit]?.filled ?? '',
+    },
+    'animal': {
+      eyes: ANIMAL_FEATURES[suit]?.eyes ?? '',
+      mouth: ANIMAL_FEATURES[suit]?.mouth ?? '',
+      fur: ANIMAL_FEATURES[suit]?.fur ?? '',
+      paw: ANIMAL_FEATURES[suit]?.paw ?? '',
+    },
+    'robot': {
+      eyes: ROBOT_FEATURES[suit]?.eyes ?? '',
+      data: ROBOT_FEATURES[suit]?.data ?? '',
+      circuit: ROBOT_FEATURES[suit]?.circuit ?? '',
+      core: ROBOT_FEATURES[suit]?.core ?? '',
+    },
+    'pixel': {
+      crown: PIXEL_FEATURES[suit]?.crown ?? '',
+      face: PIXEL_FEATURES[suit]?.face ?? '',
+      base: PIXEL_FEATURES[suit]?.base ?? '',
+    },
+    'medieval': {
+      class: MEDIEVAL_FEATURES[suit]?.class ?? '',
+      crown: MEDIEVAL_FEATURES[suit]?.crown ?? '',
+      deco: MEDIEVAL_FEATURES[suit]?.deco ?? '',
+      base: MEDIEVAL_FEATURES[suit]?.base ?? '',
+    },
+    'original': {},
+  }
+
+  return replacements[theme] ?? {}
+}
+
+/**
+ * Apply theme-specific replacements to a line of art
+ */
+function applyThemeReplacements(line: string, replacements: Record<string, string>): string {
+  let result = line
+  for (const [key, value] of Object.entries(replacements)) {
+    result = result.replace(new RegExp(`{${key}}`, 'g'), value)
+  }
+  return result
+}
 
 /**
  * Creates the top line of a card with rank and suit
@@ -14,7 +73,7 @@ export function createTopLine(
   if (variant === 'simple') {
     return left(rank, width)
   }
-  const leftPart = `${rank}${suit}`
+  const leftPart = `${rank} ${suit}`
   return left(leftPart, width)
 }
 
@@ -30,7 +89,7 @@ export function createBottomLine(
   if (variant === 'simple') {
     return right(rank, width)
   }
-  const rightPart = `${suit}${rank}`
+  const rightPart = `${suit} ${rank}`
   return right(rightPart, width)
 }
 
@@ -206,19 +265,36 @@ export function createSimplePipLayout(
 
 /**
  * Creates special card art for face cards and aces
+ * @param rank - The card rank (A, 2-10, J, Q, K)
+ * @param suit - The card suit symbol
+ * @param width - The width of the card
+ * @param variant - The card variant (ascii or simple)
+ * @param theme - The ASCII art theme to use
+ * @returns An array of strings representing the card art
  */
 export function createSpecialArt(
   rank: TCardValue,
   suit: TSuitIcon,
   width: number,
-  variant: 'ascii' | 'simple'
+  variant: 'ascii' | 'simple',
+  theme: AsciiTheme = 'original'
 ): string[] {
   const w = width
 
   if (variant === 'ascii') {
-    const art = ASCII_CARD_ART[rank]?.map(line => 
-      center(line.replace(/{suit}/g, suit), w)
-    )
+    const themeArt = THEME_MAP[theme]!
+    const replacements = getThemeReplacements(theme, SYMBOL_SUIT_MAP[suit])
+
+    const art = themeArt[rank]?.map(line => {
+      // First replace the suit
+      let processedLine = line.replace(/{suit}/g, suit)
+      
+      // Then apply theme-specific replacements
+      processedLine = applyThemeReplacements(processedLine, replacements)
+      
+      return center(processedLine, w)
+    })
+
     return art ?? []
   }
 
@@ -247,7 +323,8 @@ export function createCardContent(
     height: 9,
     pip: { left: 2, center: 4, right: 6 },
     padding: 0,
-  }
+  },
+  theme: AsciiTheme = 'original'
 ): string {
   const { width, height } = config
 
@@ -268,7 +345,7 @@ export function createCardContent(
       lines.push(spaces(width - 2))
     }
 
-    const art = createSpecialArt(rank, suit, width, variant)
+    const art = createSpecialArt(rank, suit, width, variant, theme)
     lines.push(...art)
     
     // Pad to full height

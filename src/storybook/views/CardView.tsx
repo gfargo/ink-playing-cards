@@ -1,7 +1,7 @@
 import { Box, Text } from 'ink'
 import React from 'react'
 import Card from '../../components/Card/index.js'
-import { type TCardValue, type TSuit } from '../../types/index.js'
+import { type AsciiTheme, type TCardValue, type TSuit } from '../../types/index.js'
 import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
 type CardVariant = 'simple' | 'ascii' | 'minimal'
@@ -9,13 +9,17 @@ type CardVariant = 'simple' | 'ascii' | 'minimal'
 export function CardView({ goBack }: { readonly goBack?: () => void }) {
   const [variant, setVariant] = React.useState<CardVariant>('simple')
   const [suit, setSuit] = React.useState<TSuit>('spades')
-  const [value, setValue] = React.useState<TCardValue>('A')
+  const [value, setValue] = React.useState<TCardValue>('Q')
   const [faceUp, setFaceUp] = React.useState(true)
   const [selected, setSelected] = React.useState(false)
   const [rounded, setRounded] = React.useState(true)
+  const [theme, setTheme] = React.useState<AsciiTheme>('original')
   const [currentSelect, setCurrentSelect] = React.useState<
-    'variant' | 'suit' | 'value' | 'face' | 'style'
+    'variant' | 'theme' | 'suit' | 'value' | 'face' | 'style'
   >('variant')
+  
+  // Track if we're in ASCII mode and came through theme selection
+  const [isAsciiThemeFlow, setIsAsciiThemeFlow] = React.useState(false)
 
   const renderSelector = () => {
     switch (currentSelect) {
@@ -61,9 +65,86 @@ export function CardView({ goBack }: { readonly goBack?: () => void }) {
                 if (item.value === 'back' && goBack) {
                   goBack()
                 } else if (item.value === 'next') {
-                  setCurrentSelect('suit')
+                  if (variant === 'ascii') {
+                    setCurrentSelect('theme')
+                    setIsAsciiThemeFlow(true)
+                  } else {
+                    setCurrentSelect('suit')
+                    setIsAsciiThemeFlow(false)
+                  }
                 } else {
                   setVariant(item.value as CardVariant)
+                }
+              }}
+            />
+          </>
+        )
+      }
+
+      case 'theme': {
+        return (
+          <>
+            <Text dimColor>Select ASCII theme:</Text>
+            <EnhancedSelectInput
+              orientation="horizontal"
+              items={[
+                {
+                  label: 'Original',
+                  value: 'original',
+                  indicator: <Text color="cyan">⌱</Text>,
+                  hotkey: 'o',
+                },
+                {
+                  label: 'Geometric',
+                  value: 'geometric',
+                  indicator: <Text color="cyan">◇</Text>,
+                  hotkey: 'g',
+                },
+                {
+                  label: 'Animal',
+                  value: 'animal',
+                  indicator: <Text color="cyan">◉</Text>,
+                  hotkey: 'a',
+                },
+                {
+                  label: 'Robot',
+                  value: 'robot',
+                  indicator: <Text color="cyan">⚡</Text>,
+                  hotkey: 'r',
+                },
+                {
+                  label: 'Pixel',
+                  value: 'pixel',
+                  indicator: <Text color="cyan">█</Text>,
+                  hotkey: 'p',
+                },
+                {
+                  label: 'Medieval',
+                  value: 'medieval',
+                  indicator: <Text color="cyan">⚔</Text>,
+                  hotkey: 'm',
+                },
+                {
+                  label: 'Next (Suit)',
+                  value: 'next',
+                  indicator: <Text color="yellow">→</Text>,
+                  hotkey: 'n',
+                },
+                {
+                  label: 'Back (Variant)',
+                  value: 'back',
+                  indicator: <Text color="yellow">←</Text>,
+                  hotkey: 'b',
+                },
+              ]}
+              onSelect={(item) => {
+                if (item.value === 'back') {
+                  setCurrentSelect('variant')
+                  setIsAsciiThemeFlow(false)
+                } else if (item.value === 'next') {
+                  setCurrentSelect('suit')
+                } else {
+                  setTheme(item.value as AsciiTheme)
                 }
               }}
             />
@@ -117,7 +198,12 @@ export function CardView({ goBack }: { readonly goBack?: () => void }) {
               ]}
               onSelect={(item) => {
                 if (item.value === 'back') {
-                  setCurrentSelect('variant')
+                  // If we're in ASCII theme flow, go back to theme selection
+                  if (isAsciiThemeFlow) {
+                    setCurrentSelect('theme')
+                  } else {
+                    setCurrentSelect('variant')
+                  }
                 } else if (item.value === 'next') {
                   setCurrentSelect('value')
                 } else {
@@ -295,7 +381,7 @@ export function CardView({ goBack }: { readonly goBack?: () => void }) {
       <Box gap={2}>
         <Text>Card Preview:</Text>
         <Text dimColor>
-          {variant} - {suit} - {value} - {faceUp ? 'face up' : 'face down'} -{' '}
+          {variant}{variant === 'ascii' ? ` (${theme})` : ''} - {suit} - {value} - {faceUp ? 'face up' : 'face down'} -{' '}
           {selected ? 'selected' : 'not selected'} -{' '}
           {rounded ? 'rounded' : 'square'}
         </Text>
@@ -308,6 +394,7 @@ export function CardView({ goBack }: { readonly goBack?: () => void }) {
           faceUp={faceUp}
           selected={selected}
           rounded={rounded}
+          theme={theme}
         />
       </Box>
       {renderSelector()}

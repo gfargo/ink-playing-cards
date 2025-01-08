@@ -32,3 +32,10 @@ export const SUIT_SYMBOL_MAP: Record<TSuit, TSuitIcon> = {
   clubs: '♣',
   spades: '♠',
 } as const
+
+export const SYMBOL_SUIT_MAP: Record<TSuitIcon, TSuit> = {
+  '♥': 'hearts',
+  '♦': 'diamonds',
+  '♣': 'clubs',
+  '♠': 'spades',
+} as const

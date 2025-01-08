@@ -37,6 +37,7 @@ export type CardProps = {
   readonly faceUp?: boolean
   readonly selected?: boolean
   readonly rounded?: boolean
+  readonly theme?: AsciiTheme
 }
 
 export type CustomCardProps = {
@@ -119,3 +120,14 @@ export type GameAction =
   | { type: 'ADD_PLAYER'; payload: string }
   | { type: 'REMOVE_PLAYER'; payload: string }
   | { type: 'SET_CURRENT_PLAYER'; payload: string }
+
+/**
+ * Available ASCII art themes for card faces
+ */
+export type AsciiTheme = 
+  | 'original'    // Original ASCII art
+  | 'geometric'   // Abstract geometric patterns
+  | 'animal'      // Animal kingdom theme
+  | 'robot'       // Robot/tech theme
+  | 'pixel'       // Pixel art style
+  | 'medieval'    // Medieval/fantasy theme
