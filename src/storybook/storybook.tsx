@@ -8,10 +8,12 @@ import { CustomCardView } from './views/CustomCardView.js'
 import { DeckView } from './views/DeckView.js'
 import { GridView } from './views/GridView.js'
 import { MiniCardView } from './views/MiniCardView.js'
+import { UnicodeCardView } from './views/UnicodeCardView.js'
 
 type ComponentView =
   | 'card'
   | 'mini-card'
+  | 'unicode-card'
   | 'custom-card'
   | 'card-stack'
   | 'deck'
@@ -58,10 +60,16 @@ export function Storybook() {
                 hotkey: 'm',
               },
               {
+                label: 'Unicode Card',
+                value: 'unicode-card',
+                indicator: <Text color="cyan">🎴</Text>,
+                hotkey: 'u',
+              },
+              {
                 label: 'Custom Card',
                 value: 'custom-card',
                 indicator: <Text color="cyan">♥</Text>,
-                hotkey: 'u',
+                hotkey: 't',
               },
               {
                 label: 'Card Stack',
@@ -136,6 +144,13 @@ export function Storybook() {
       )}
       {currentComponent === 'grid' && (
         <GridView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
+      )}
+      {currentComponent === 'unicode-card' && (
+        <UnicodeCardView
           goBack={() => {
             setCurrentComponent(undefined)
           }}
