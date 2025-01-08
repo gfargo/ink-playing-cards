@@ -69,8 +69,12 @@ const right = (text: string, width: number) => {
 function createTopLine(
   rank: TCardValue,
   suit: TSuitIcon,
-  width: number
+  width: number,
+  variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
+  if (variant === 'simple') {
+    return left(rank, width)
+  }
   const leftPart = `${rank}${suit}`
   return left(leftPart, width)
 }
@@ -78,8 +82,13 @@ function createTopLine(
 function createBottomLine(
   rank: TCardValue,
   suit: TSuitIcon,
-  width: number
+  width: number,
+  variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
+  if (variant === 'simple') {
+    return right(rank, width)
+  }
+
   const rightPart = `${suit}${rank}`
   return right(rightPart, width)
 }
@@ -87,7 +96,26 @@ function createBottomLine(
 // Pip layout configurations
 type PipLayout = Array<[number, number]> // [row, col]
 
-const createPipLayout = (
+const createAsciiPipLayout = (
+  rank: TCardValue,
+  { left, center, right }: PipConfig
+): PipLayout => {
+  const layouts: Partial<Record<TCardValue, PipLayout>> = {
+    '2': [],
+    '3': [],
+    '4': [],
+    '5': [],
+    '6': [],
+    '7': [],
+    '8': [],
+    '9': [],
+    '10': [],
+  }
+
+  return layouts[rank] ?? []
+}
+
+const createSimplePipLayout = (
   rank: TCardValue,
   { left, center, right }: PipConfig
 ): PipLayout => {
@@ -123,46 +151,46 @@ const createPipLayout = (
       [4, right],
     ],
     '7': [
-      [1, left],
-      [1, right],
-      [2, center],
-      [3, left],
-      [3, right],
-      [4, center],
-      [5, center],
-    ],
-    '8': [
-      [1, left],
-      [1, right],
-      [2, center],
-      [3, left],
-      [3, right],
-      [4, center],
-      [5, left],
-      [5, right],
-    ],
-    '9': [
-      [1, left],
-      [1, right],
-      [2, center],
-      [3, left],
-      [3, right],
-      [4, center],
-      [5, left],
-      [5, right],
-      [5, center],
-    ],
-    '10': [
-      [1, left],
-      [1, right],
+      [0, left],
+      [0, right],
       [2, left],
       [2, right],
       [3, center],
+      [4, left],
+      [4, right],
+    ],
+    '8': [
+      [0, left],
+      [0, right],
+      [1, center],
+      [2, left],
+      [2, right],
       [3, center],
       [4, left],
       [4, right],
-      [5, left],
-      [5, right],
+    ],
+    '9': [
+      [0, left],
+      [0, center],
+      [0, right],
+      [2, left],
+      [2, center],
+      [2, right],
+      [4, left],
+      [4, center],
+      [4, right],
+    ],
+    '10': [
+      [0, left],
+      [0, center],
+      [0, right],
+      [1, center],
+      [2, left],
+      [2, right],
+      [3, center],
+      [4, left],
+      [4, center],
+      [4, right],
     ],
   }
 
@@ -211,7 +239,7 @@ const createSpecialArt = (
 
   // Simple variant - more compact art
   const simpleArt: Partial<Record<TCardValue, string[]>> = {
-    A: [center(`${suit}`, w), center(`${suit}`, w), center(`${suit}`, w)],
+    A: [center(``, w), center(`${suit}`, w), center(``, w)],
     J: [center(`J${suit}`, w), center('|', w), center('/', w)],
     Q: [center(`Q${suit}`, w), center('|', w), center('\\', w)],
     K: [center(`K${suit}`, w), center('|', w), center('Y', w)],
@@ -239,7 +267,7 @@ ${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}
   const isSpecialCard = ['A', 'J', 'Q', 'K'].includes(rank)
 
   // Add top border line
-  lines.push(createTopLine(rank, suit, width))
+  lines.push(createTopLine(rank, suit, width, variant))
 
   // Add middle content
   if (isSpecialCard) {
@@ -254,7 +282,10 @@ ${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}
       lines.push(spaces(width - 2))
     }
   } else if (config.pip) {
-    const pipLayout = createPipLayout(rank, config.pip)
+    const pipLayout =
+      variant === 'simple'
+        ? createSimplePipLayout(rank, config.pip)
+        : createAsciiPipLayout(rank, config.pip)
     const middleLines = Array.from({ length: height - 4 }, () =>
       spaces(width - 2)
     )
@@ -280,7 +311,7 @@ ${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}
   }
 
   // Add bottom border line
-  lines.push(createBottomLine(rank, suit, width))
+  lines.push(createBottomLine(rank, suit, width, variant))
 
   return lines.join('\n')
 }
