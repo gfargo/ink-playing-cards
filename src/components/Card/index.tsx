@@ -1,8 +1,8 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React from 'react'
-import { useDeck } from '../../hooks/useDeck.js'
-import { type CardProps } from '../../types/index.js'
 import { CARD_DIMENSIONS, SUIT_SYMBOL_MAP } from '../../constants/card.js'
+import { useDeck } from '../../hooks/useDeck.js'
+import { AsciiTheme, type CardProps } from '../../types/index.js'
 import { createCardContent } from './utils.js'
 
 /**
@@ -17,9 +17,9 @@ export function Card({
   rounded = true,
   variant = 'simple',
   theme = 'original',
-}: CardProps & { 
+}: CardProps & {
   readonly variant?: 'ascii' | 'simple' | 'minimal'
-  readonly theme?: AsciiTheme 
+  readonly theme?: AsciiTheme
 }) {
   const { backArtwork } = useDeck()
   const config = CARD_DIMENSIONS[variant]

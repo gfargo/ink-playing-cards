@@ -4,11 +4,12 @@ import {
   GEOMETRIC_SYMBOLS,
   MEDIEVAL_FEATURES,
   PIXEL_FEATURES,
-  ROBOT_FEATURES,
   SIMPLE_CARD_ART,
   THEME_MAP,
 } from '../../constants/cardArt.js'
+import { ROBOT_FEATURES, ROBOT_THEME } from '../../constants/robotTheme.js'
 import type { AsciiTheme, TCardValue, TSuit, TSuitIcon } from '../../types/index.js'
+import { renderCardArt } from '../../utils/cardArtRenderer.js'
 import { center, left, right, spaces } from '../../utils/text.js'
 
 /**
@@ -264,6 +265,25 @@ export function createSimplePipLayout(
 }
 
 /**
+ * Creates robot theme card art using the new renderer
+ */
+function createRobotArt(
+  rank: TCardValue,
+  suit: TSuitIcon,
+  width: number
+): string[] {
+  if (rank in ROBOT_THEME) {
+    const artDefinition = ROBOT_THEME[rank]!
+    const features = ROBOT_FEATURES[SYMBOL_SUIT_MAP[suit]]
+    return renderCardArt(artDefinition, width, {
+      ...features,
+      suit
+    })
+  }
+  return []
+}
+
+/**
  * Creates special card art for face cards and aces
  * @param rank - The card rank (A, 2-10, J, Q, K)
  * @param suit - The card suit symbol
@@ -282,6 +302,11 @@ export function createSpecialArt(
   const w = width
 
   if (variant === 'ascii') {
+    // Use new renderer for robot theme
+    if (theme === 'robot') {
+      return createRobotArt(rank, suit, w)
+    }
+
     const themeArt = THEME_MAP[theme]!
     const replacements = getThemeReplacements(theme, SYMBOL_SUIT_MAP[suit])
 
@@ -341,11 +366,12 @@ export function createCardContent(
 
   // Add middle content
   if (isSpecialCard) {
-    while (lines.length < height / 2 - 4) {
+    const art = createSpecialArt(rank, suit, width, variant, theme)
+
+    while (lines.length < height / 2 - art.length / 2 - 2) {
       lines.push(spaces(width - 2))
     }
 
-    const art = createSpecialArt(rank, suit, width, variant, theme)
     lines.push(...art)
     
     // Pad to full height

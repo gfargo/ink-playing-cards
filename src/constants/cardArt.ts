@@ -1,4 +1,4 @@
-import type { TCardValue, TSuit } from '../types/index.js'
+import type { AsciiTheme, TCardValue, TSuit } from '../types/index.js'
 
 /**
  * ASCII art for special cards (face cards and ace) in ASCII variant.
@@ -65,7 +65,7 @@ export const ANIMAL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
 export const GEOMETRIC_CARD_ART: Partial<Record<TCardValue, string[]>> = {
   A: [
     '  ╱╲  ',
-    ' ╱{suit}╲ ',
+    ' ╱ {suit}╲ ',
     '╱────╲',
     '‾‾‾‾',
   ],
@@ -86,40 +86,6 @@ export const GEOMETRIC_CARD_ART: Partial<Record<TCardValue, string[]>> = {
     '│{filled}│',      // Center piece
     '├{outline}┤',     // Middle bar
     '└{filled}┘',      // Base
-  ],
-}
-
-/**
- * Robot/Tech theme ASCII art
- */
-export const ROBOT_CARD_ART: Partial<Record<TCardValue, string[]>> = {
-  A: [
-    '┌──╥──┐',       // Tech frame top
-    '╞{suit}╡',      // Suit in tech frame
-    '│{data}│',      // Data display
-    '╞{core}╡',      // Power core
-    '└──╨──┘',       // Tech frame bottom
-  ],
-  K: [
-    '╔═[{eyes}]═╗',  // Advanced sensor array
-    '╠{circuit}╣',    // Complex circuitry
-    '║{suit}║',       // Power core
-    '╠{data}╣',       // Data matrix
-    '╚{core}╝',       // Base unit
-  ],
-  Q: [
-    '╭─[{eyes}]─╮',  // Scanning array
-    '├{circuit}┤',    // Processing unit
-    '│{suit}│',       // Energy core
-    '├{data}┤',       // Data flow
-    '╰{core}╯',       // Base unit
-  ],
-  J: [
-    '┌─[{eyes}]─┐',  // Basic sensors
-    '├{circuit}┤',    // Simple circuits
-    '│{suit}│',       // Power unit
-    '├{data}┤',       // Data stream
-    '└{core}┘',       // Base unit
   ],
 }
 
@@ -228,41 +194,6 @@ export const ANIMAL_FEATURES: Record<TSuit, { eyes: string; mouth: string; fur: 
 }
 
 /**
- * Map of robot characteristics for each suit
- */
-export const ROBOT_FEATURES: Record<TSuit, {
-  eyes: string;
-  data: string;
-  circuit: string;
-  core: string;
-}> = {
-  hearts: {
-    eyes: '[0_0]',
-    data: '▀1010▀',
-    circuit: '╠═╣',      // Power circuits
-    core: '=|=',         // Energy core
-  },
-  diamonds: {
-    eyes: '[<>]',
-    data: '▀0101▀',
-    circuit: '╠<>╣',     // Crystal circuits
-    core: '<+>',         // Crystal core
-  },
-  clubs: {
-    eyes: '[+_+]',
-    data: '▀1100▀',
-    circuit: '╠[]╣',     // Energy circuits
-    core: '[+]',         // Mechanical core
-  },
-  spades: {
-    eyes: '[^_^]',
-    data: '▀0011▀',
-    circuit: '╠/\\╣',     // Stealth circuits
-    core: '/|\\',        // Quantum core
-  },
-}
-
-/**
  * Map of pixel art features for each suit
  */
 export const PIXEL_FEATURES: Record<TSuit, { crown: string; face: string; base: string }> = {
@@ -328,9 +259,9 @@ export const THEME_MAP: Record<AsciiTheme, Partial<Record<TCardValue, string[]>>
   'original': ORIGINAL_ASCII_CARD_ART,
   'geometric': GEOMETRIC_CARD_ART,
   'animal': ANIMAL_CARD_ART,
-  'robot': ROBOT_CARD_ART,
   'pixel': PIXEL_CARD_ART,
   'medieval': MEDIEVAL_CARD_ART,
+  'robot': {},
 }
 
 /**
