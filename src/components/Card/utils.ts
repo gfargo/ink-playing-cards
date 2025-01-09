@@ -8,44 +8,52 @@ import {
   THEME_MAP,
 } from '../../constants/cardArt.js'
 import { ROBOT_FEATURES, ROBOT_THEME } from '../../constants/robotTheme.js'
-import type { AsciiTheme, TCardValue, TSuit, TSuitIcon } from '../../types/index.js'
+import type {
+  AsciiTheme,
+  TCardValue,
+  TSuit,
+  TSuitIcon,
+} from '../../types/index.js'
 import { renderCardArt } from '../../utils/cardArtRenderer.js'
 import { center, left, right, spaces } from '../../utils/text.js'
 
 /**
  * Get theme-specific replacements for a given suit
  */
-function getThemeReplacements(theme: AsciiTheme, suit: TSuit): Record<string, string> {
+function getThemeReplacements(
+  theme: AsciiTheme,
+  suit: TSuit
+): Record<string, string> {
   console.log('theme:', theme, 'suit:', suit)
   const replacements: Record<AsciiTheme, Record<string, string>> = {
-    'geometric': {
+    geometric: {
       outline: GEOMETRIC_SYMBOLS[suit]?.outline ?? '',
       filled: GEOMETRIC_SYMBOLS[suit]?.filled ?? '',
     },
-    'animal': {
+    animal: {
       eyes: ANIMAL_FEATURES[suit]?.eyes ?? '',
       mouth: ANIMAL_FEATURES[suit]?.mouth ?? '',
       fur: ANIMAL_FEATURES[suit]?.fur ?? '',
       paw: ANIMAL_FEATURES[suit]?.paw ?? '',
     },
-    'robot': {
+    robot: {
       eyes: ROBOT_FEATURES[suit]?.eyes ?? '',
       data: ROBOT_FEATURES[suit]?.data ?? '',
       circuit: ROBOT_FEATURES[suit]?.circuit ?? '',
       core: ROBOT_FEATURES[suit]?.core ?? '',
     },
-    'pixel': {
+    pixel: {
       crown: PIXEL_FEATURES[suit]?.crown ?? '',
       face: PIXEL_FEATURES[suit]?.face ?? '',
       base: PIXEL_FEATURES[suit]?.base ?? '',
     },
-    'medieval': {
+    medieval: {
       class: MEDIEVAL_FEATURES[suit]?.class ?? '',
       crown: MEDIEVAL_FEATURES[suit]?.crown ?? '',
       deco: MEDIEVAL_FEATURES[suit]?.deco ?? '',
       base: MEDIEVAL_FEATURES[suit]?.base ?? '',
     },
-    'original': {},
+    original: {},
   }
 
   return replacements[theme] ?? {}
@@ -54,11 +62,15 @@ function getThemeReplacements(theme: AsciiTheme, suit: TSuit): Record<string, st
 /**
  * Apply theme-specific replacements to a line of art
  */
-function applyThemeReplacements(line: string, replacements: Record<string, string>): string {
+function applyThemeReplacements(
+  line: string,
+  replacements: Record<string, string>
+): string {
   let result = line
   for (const [key, value] of Object.entries(replacements)) {
-    result = result.replace(new RegExp(`{${key}}`, 'g'), value)
+    result = result.replaceAll(new RegExp(`{${key}}`, 'g'), value)
   }
+
   return result
 }
 
@@ -74,6 +86,7 @@ export function createTopLine(
   if (variant === 'simple') {
     return left(rank, width)
   }
+
   const leftPart = `${rank} ${suit}`
   return left(leftPart, width)
 }
@@ -90,6 +103,7 @@ export function createBottomLine(
   if (variant === 'simple') {
     return right(rank, width)
   }
+
   const rightPart = `${suit} ${rank}`
   return right(rightPart, width)
 }
@@ -277,9 +291,10 @@ function createRobotArt(
     const features = ROBOT_FEATURES[SYMBOL_SUIT_MAP[suit]]
     return renderCardArt(artDefinition, width, {
       ...features,
-      suit
+      suit,
     })
   }
+
   return []
 }
 
@@ -307,16 +322,16 @@ export function createSpecialArt(
       return createRobotArt(rank, suit, w)
     }
 
-    const themeArt = THEME_MAP[theme]!
+    const themeArt = THEME_MAP[theme]
     const replacements = getThemeReplacements(theme, SYMBOL_SUIT_MAP[suit])
 
-    const art = themeArt[rank]?.map(line => {
+    const art = themeArt[rank]?.map((line) => {
       // First replace the suit
-      let processedLine = line.replace(/{suit}/g, suit)
-      
+      let processedLine = line.replaceAll('{suit}', suit)
+
       // Then apply theme-specific replacements
       processedLine = applyThemeReplacements(processedLine, replacements)
-      
+
       return center(processedLine, w)
     })
 
@@ -324,12 +339,13 @@ export function createSpecialArt(
   }
 
   // Simple variant
-  const art = SIMPLE_CARD_ART[rank]?.map(line => {
-    const processedLine = line.replace(/{suit}/g, suit)
+  const art = SIMPLE_CARD_ART[rank]?.map((line) => {
+    const processedLine = line.replaceAll('{suit}', suit)
     // For Ace, center the art
     if (rank === 'A') {
       return center(processedLine, w)
     }
+
     // For face cards (J, Q, K), right align the art
     return right(processedLine, w)
   })
@@ -343,15 +359,20 @@ export function createCardContent(
   rank: TCardValue,
   suit: TSuitIcon,
   variant: 'ascii' | 'simple' | 'minimal',
-  config = {
+  config: {
+    width: number
+    height: number
+    pip?: { left: number; center: number; right: number }
+    padding: number
+  },
+  theme: AsciiTheme = 'original'
+): string {
+  const { width, height } = config || {
     width: 11,
     height: 9,
     pip: { left: 2, center: 4, right: 6 },
     padding: 0,
-  },
-  theme: AsciiTheme = 'original'
-): string {
-  const { width, height } = config
+  }
 
   // For minimal variant, just return a centered suit
   if (variant === 'minimal') {
@@ -373,7 +394,7 @@ export function createCardContent(
     }
 
     lines.push(...art)
-    
+
     // Pad to full height
     while (lines.length < height - 2 - 1) {
       lines.push(spaces(width - 2))

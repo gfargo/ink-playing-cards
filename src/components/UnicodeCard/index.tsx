@@ -1,27 +1,27 @@
-import { Box, Text, TextProps } from 'ink'
+import { Box, Text, type TextProps } from 'ink'
 import React from 'react'
 import type { TSuit, TCardValue } from '../../types/index.js'
 import { getCardUnicode, SPECIAL_CARDS } from './constants.js'
 
 export type UnicodeCardProps = {
   /** The suit of the card */
-  suit: TSuit
+  readonly suit: TSuit
   /** The value of the card */
-  value: TCardValue
+  readonly value: TCardValue
   /** Whether the card is face up or face down */
-  faceUp?: boolean
+  readonly faceUp?: boolean
   /** Whether the card is selected */
-  selected?: boolean
+  readonly selected?: boolean
   /** Whether to dim the card when face down */
-  dimmed?: boolean
+  readonly dimmed?: boolean
   /** Custom color for the card */
-  color?: TextProps['color']
+  readonly color?: TextProps['color']
   /** Size multiplier for the card padding */
-  size?: number
+  readonly size?: number
   /** Whether to show a border around the card */
-  bordered?: boolean
+  readonly bordered?: boolean
   /** Whether to use rounded borders when bordered is true */
-  rounded?: boolean
+  readonly rounded?: boolean
 }
 
 /**
@@ -43,20 +43,20 @@ export function UnicodeCard({
   const padding = Math.max(0, Math.floor(size - 1))
 
   // Get the Unicode character for the card
-  const cardChar = faceUp ? getCardUnicode(suit, value) : SPECIAL_CARDS.CARD_BACK
+  const cardChar = faceUp
+    ? getCardUnicode(suit, value)
+    : SPECIAL_CARDS.CARD_BACK
 
   // Determine color based on suit if no custom color provided
-  const defaultColor = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'white'
+  const defaultColor =
+    suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
   const baseColor = color ?? defaultColor
 
   // Apply dimming for face down cards if dimmed is true
-  const finalColor = (!faceUp && dimmed) ? 'gray' : baseColor
+  const finalColor = !faceUp && dimmed ? 'gray' : baseColor
 
   const content = (
-    <Text 
-      color={finalColor}
-      bold={selected && !bordered}
-    >
+    <Text color={finalColor} bold={selected && !bordered}>
       {cardChar}
     </Text>
   )

@@ -1,7 +1,11 @@
 import { Box, Text } from 'ink'
 import React from 'react'
 import Card from '../../components/Card/index.js'
-import { type AsciiTheme, type TCardValue, type TSuit } from '../../types/index.js'
+import {
+  type AsciiTheme,
+  type TCardValue,
+  type TSuit,
+} from '../../types/index.js'
 import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
 type CardVariant = 'simple' | 'ascii' | 'minimal'
@@ -17,7 +21,7 @@ export function CardView({ goBack }: { readonly goBack?: () => void }) {
   const [currentSelect, setCurrentSelect] = React.useState<
     'variant' | 'theme' | 'suit' | 'value' | 'face' | 'style'
   >('variant')
-  
+
   // Track if we're in ASCII mode and came through theme selection
   const [isAsciiThemeFlow, setIsAsciiThemeFlow] = React.useState(false)
 
@@ -381,7 +385,9 @@ export function CardView({ goBack }: { readonly goBack?: () => void }) {
       <Box gap={2}>
         <Text>Card Preview:</Text>
         <Text dimColor>
-          {variant}{variant === 'ascii' ? ` (${theme})` : ''} - {suit} - {value} - {faceUp ? 'face up' : 'face down'} -{' '}
+          {variant}
+          {variant === 'ascii' ? ` (${theme})` : ''} - {suit} - {value} -{' '}
+          {faceUp ? 'face up' : 'face down'} -{' '}
           {selected ? 'selected' : 'not selected'} -{' '}
           {rounded ? 'rounded' : 'square'}
         </Text>

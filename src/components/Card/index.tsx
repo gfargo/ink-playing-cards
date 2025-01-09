@@ -2,7 +2,7 @@ import { Box, Text, type BoxProps } from 'ink'
 import React from 'react'
 import { CARD_DIMENSIONS, SUIT_SYMBOL_MAP } from '../../constants/card.js'
 import { useDeck } from '../../hooks/useDeck.js'
-import { AsciiTheme, type CardProps } from '../../types/index.js'
+import { type AsciiTheme, type CardProps } from '../../types/index.js'
 import { createCardContent } from './utils.js'
 
 /**
@@ -26,7 +26,11 @@ export function Card({
     ...CARD_DIMENSIONS[variant],
     pip:
       'pip' in CARD_DIMENSIONS[variant]
-        ? (CARD_DIMENSIONS[variant].pip as { left: number; center: number; right: number })
+        ? (CARD_DIMENSIONS[variant].pip as {
+            left: number
+            center: number
+            right: number
+          })
         : { left: 0, center: 0, right: 0 },
   }
 

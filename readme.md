@@ -127,15 +127,16 @@ Single-character Unicode card representation using standard playing card symbols
   value="A"
   faceUp={true}
   selected={false}
-  dimmed={false}    // Dim face-down cards instead of showing card back
-  color="red"       // Custom color override
-  size={1}          // Size multiplier for padding
-  bordered={false}  // Add border around the card
-  rounded={true}    // Use rounded borders when bordered is true
+  dimmed={false} // Dim face-down cards instead of showing card back
+  color="red" // Custom color override
+  size={1} // Size multiplier for padding
+  bordered={false} // Add border around the card
+  rounded={true} // Use rounded borders when bordered is true
 />
 ```
 
 The UnicodeCard uses the standard Unicode playing card characters (U+1F0A0–1F0FF) which include:
+
 - All 52 standard playing cards (A, 2-10, J, Q, K for each suit)
 - Red, black, and white jokers
 - Card back symbol

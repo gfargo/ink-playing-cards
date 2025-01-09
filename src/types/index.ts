@@ -124,10 +124,10 @@ export type GameAction =
 /**
  * Available ASCII art themes for card faces
  */
-export type AsciiTheme = 
-  | 'original'    // Original ASCII art
-  | 'geometric'   // Abstract geometric patterns
-  | 'animal'      // Animal kingdom theme
-  | 'robot'       // Robot/tech theme
-  | 'pixel'       // Pixel art style
-  | 'medieval'    // Medieval/fantasy theme
+export type AsciiTheme =
+  | 'original' // Original ASCII art
+  | 'geometric' // Abstract geometric patterns
+  | 'animal' // Animal kingdom theme
+  | 'robot' // Robot/tech theme
+  | 'pixel' // Pixel art style
+  | 'medieval' // Medieval/fantasy theme

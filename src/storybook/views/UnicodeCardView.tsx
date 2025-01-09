@@ -2,13 +2,27 @@ import { Box, Text, useInput } from 'ink'
 import React, { useState } from 'react'
 import { UnicodeCard } from '../../components/UnicodeCard/index.js'
 import type { TCardValue, TSuit } from '../../types/index.js'
+
 type Props = {
-  goBack: () => void
+  readonly goBack: () => void
 }
 
 const SUITS: TSuit[] = ['hearts', 'diamonds', 'clubs', 'spades']
 const VALUES: TCardValue[] = [
-  'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'JOKER',
+  'A',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  'J',
+  'Q',
+  'K',
+  'JOKER',
 ]
 
 export function UnicodeCardView({ goBack }: Props) {
@@ -32,21 +46,54 @@ export function UnicodeCardView({ goBack }: Props) {
       setValueIndex((prev) => (prev > 0 ? prev - 1 : VALUES.length - 1))
     } else if (key.downArrow) {
       setValueIndex((prev) => (prev + 1) % VALUES.length)
-    } else if (input === 'f') {
-      setFaceUp((prev) => !prev)
-    } else if (input === 's') {
-      setSelected((prev) => !prev)
-    } else if (input === 'd') {
-      setDimmed((prev) => !prev)
-    } else if (input === 'b') {
-      setBordered((prev) => !prev)
-    } else if (input === 'r') {
-      setRounded((prev) => !prev)
-    } else if (input === '+') {
-      setSize((prev) => Math.min(prev + 1, 5))
-    } else if (input === '-') {
-      setSize((prev) => Math.max(prev - 1, 1))
-    }
+    } else
+      switch (input) {
+        case 'f': {
+          setFaceUp((prev) => !prev)
+
+          break
+        }
+
+        case 's': {
+          setSelected((prev) => !prev)
+
+          break
+        }
+
+        case 'd': {
+          setDimmed((prev) => !prev)
+
+          break
+        }
+
+        case 'b': {
+          setBordered((prev) => !prev)
+
+          break
+        }
+
+        case 'r': {
+          setRounded((prev) => !prev)
+
+          break
+        }
+
+        case '+': {
+          setSize((prev) => Math.min(prev + 1, 5))
+
+          break
+        }
+
+        case '-': {
+          setSize((prev) => Math.max(prev - 1, 1))
+
+          break
+        }
+
+        default: {
+          break
+        }
+      }
   })
 
   return (

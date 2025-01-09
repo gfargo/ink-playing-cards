@@ -1,4 +1,4 @@
-import { center, left, right, spaces } from './text.js';
+import { center, left, right, spaces } from './text.js'
 
 export type Alignment = 'left' | 'center' | 'right'
 export type Padding = { left?: number; right?: number }
@@ -54,7 +54,7 @@ export function centerInFrame(
 ): string {
   return formatLine(content, width, {
     align: 'center',
-    frame
+    frame,
   })
 }
 
@@ -82,31 +82,27 @@ export function createFramedSection(
   }
 ): string[] {
   const result: string[] = []
-  
+
   // Add top frame
   result.push(center(frame.top, width))
-  
+
   // Add content with middle frame
-  content.forEach(line => {
+  for (const line of content) {
     let [left, right] = frame.middle.split('{content}')
 
-    if (!left) {
-      left = ' '
-    }
-    if (!right) {
-      right = ' '
-    }
+    left ||= ' '
+    right ||= ' '
 
     const newLine = formatLine(line, width, {
       align: 'center',
-      frame: { left, right }
+      frame: { left, right },
     })
     result.push(center(newLine, width))
-  })
-  
+  }
+
   // Add bottom frame
   result.push(center(frame.bottom, width))
-  
+
   return result
 }
 
@@ -118,7 +114,7 @@ export function createBodySection(
   width: number,
   padding: number
 ): string[] {
-  return content.map(line =>
+  return content.map((line) =>
     padReplacement(line, width - padding * 2, 'center')
   )
 }

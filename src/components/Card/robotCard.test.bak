@@ -7,10 +7,10 @@ const features = ROBOT_FEATURES.clubs
 
 const art = renderCardArt(
   jackOfClubs,
-  15, // card width
+  15, // Card width
   {
     ...features,
-    suit: '♣'
+    suit: '♣',
   }
 )
 

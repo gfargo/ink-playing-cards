@@ -3,7 +3,8 @@
  * @param count - Number of spaces to create
  * @returns A string containing the specified number of spaces
  */
-export const spaces = (count: number, character = ' '): string => character.repeat(Math.max(0, count))
+export const spaces = (count: number, character = ' '): string =>
+  character.repeat(Math.max(0, count))
 
 /**
  * Centers text within a given width by adding spaces on both sides
@@ -11,9 +12,17 @@ export const spaces = (count: number, character = ' '): string => character.repe
  * @param width - The total width to center within
  * @returns The centered text with padding spaces
  */
-export const center = (text: string, width: number, paddingCharacter?: string): string => {
+export const center = (
+  text: string,
+  width: number,
+  paddingCharacter?: string
+): string => {
   const padding = Math.max(0, width - 2 - text.length) / 2
-  return spaces(Math.floor(padding), paddingCharacter) + text + spaces(Math.ceil(padding), paddingCharacter)
+  return (
+    spaces(Math.floor(padding), paddingCharacter) +
+    text +
+    spaces(Math.ceil(padding), paddingCharacter)
+  )
 }
 
 /**

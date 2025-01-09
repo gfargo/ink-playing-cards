@@ -9,17 +9,17 @@ import type { TSuit, TCardValue } from '../../types/index.js'
  * Clubs:    0x1F0D0
  */
 const SUIT_BASE = {
-  spades: 0x1F0A0,
-  hearts: 0x1F0B0,
-  diamonds: 0x1F0C0,
-  clubs: 0x1F0D0,
+  spades: 0x1_f0_a0,
+  hearts: 0x1_f0_b0,
+  diamonds: 0x1_f0_c0,
+  clubs: 0x1_f0_d0,
 } as const
 
 /**
  * Value offsets from the suit base for each card value
  */
 const VALUE_OFFSET: Record<TCardValue, number> = {
-  'A': 0x1,
+  A: 0x1,
   '2': 0x2,
   '3': 0x3,
   '4': 0x4,
@@ -28,21 +28,21 @@ const VALUE_OFFSET: Record<TCardValue, number> = {
   '7': 0x7,
   '8': 0x8,
   '9': 0x9,
-  '10': 0xA,
-  'J': 0xB,
-  'Q': 0xD,
-  'K': 0xE,
-  'JOKER': 0xF,
+  '10': 0xa,
+  J: 0xb,
+  Q: 0xd,
+  K: 0xe,
+  JOKER: 0xf,
 } as const
 
 /**
  * Special card Unicode points
  */
 export const SPECIAL_CARDS = {
-  CARD_BACK: String.fromCodePoint(0x1F0A0),
-  RED_JOKER: String.fromCodePoint(0x1F0BF),
-  BLACK_JOKER: String.fromCodePoint(0x1F0CF),
-  WHITE_JOKER: String.fromCodePoint(0x1F0DF),
+  CARD_BACK: String.fromCodePoint(0x1_f0_a0),
+  RED_JOKER: String.fromCodePoint(0x1_f0_bf),
+  BLACK_JOKER: String.fromCodePoint(0x1_f0_cf),
+  WHITE_JOKER: String.fromCodePoint(0x1_f0_df),
 } as const
 
 /**
@@ -51,9 +51,11 @@ export const SPECIAL_CARDS = {
 export function getCardUnicode(suit: TSuit, value: TCardValue): string {
   // Handle jokers
   if (value === 'JOKER') {
-    return suit === 'hearts' ? SPECIAL_CARDS.RED_JOKER :
-           suit === 'spades' ? SPECIAL_CARDS.BLACK_JOKER :
-           SPECIAL_CARDS.WHITE_JOKER
+    return suit === 'hearts'
+      ? SPECIAL_CARDS.RED_JOKER
+      : suit === 'spades'
+        ? SPECIAL_CARDS.BLACK_JOKER
+        : SPECIAL_CARDS.WHITE_JOKER
   }
 
   // Regular cards

@@ -15,8 +15,9 @@ function applyReplacements(
 ): string {
   let result = text
   for (const [key, value] of Object.entries(replacements)) {
-    result = result.replace(new RegExp(`{${key}}`, 'g'), value)
+    result = result.replaceAll(new RegExp(`{${key}}`, 'g'), value)
   }
+
   return result
 }
 
@@ -69,34 +70,30 @@ function renderSection(
       parsedBRCorner,
       parsedBLCorner,
       topSpacer: parsedTopFrame.slice(1, 2),
-      sideSpacer: middleFrame.slice(0,1),
-      sideSpacerLength: middleFrame.slice(0,1).length,
+      sideSpacer: middleFrame.slice(0, 1),
+      sideSpacerLength: middleFrame.slice(0, 1).length,
     })
 
-    return createFramedSection(
-      processedContent,
-      width - 2 - sectionPadding,
-      {
-        top: `${parsedTLCorner}${center(
-          parsedTopFrame.slice(1, -1),
-          middleFrame.length - 2,
-          parsedTopFrame.slice(1, 2)
-        )}${parsedTRCorner}`,
-        middle: middleFrame,
-        bottom: `${parsedBLCorner}${center(
-          parsedBottomFrame.slice(1, -1),
-          middleFrame.length - 2,
-          parsedBottomFrame.slice(1, 2)
-        )}${parsedBRCorner}`,
-      }
-    )
+    return createFramedSection(processedContent, width - 2 - sectionPadding, {
+      top: `${parsedTLCorner}${center(
+        parsedTopFrame.slice(1, -1),
+        middleFrame.length - 2,
+        parsedTopFrame.slice(1, 2)
+      )}${parsedTRCorner}`,
+      middle: middleFrame,
+      bottom: `${parsedBLCorner}${center(
+        parsedBottomFrame.slice(1, -1),
+        middleFrame.length - 2,
+        parsedBottomFrame.slice(1, 2)
+      )}${parsedBRCorner}`,
+    })
   }
 
   // For body sections
   const padding =
     typeof section.padding === 'number'
       ? section.padding
-      : section.padding?.left ?? 0
+      : (section.padding?.left ?? 0)
 
   console.log({ type: section.type, padding, processedContent, width })
 

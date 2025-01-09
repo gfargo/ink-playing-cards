@@ -27,30 +27,24 @@ export const ORIGINAL_ASCII_CARD_ART: Partial<Record<TCardValue, string[]>> = {
  * - Spades: Mystical Creatures
  */
 export const ANIMAL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
-  A: [
-    '  {suit}  ',
-    ' {eyes} ',
-    '{mouth}',
-    ' \\|/ ',
-    '  V  ',
-  ],
+  A: ['  {suit}  ', ' {eyes} ', '{mouth}', ' \\|/ ', '  V  '],
   K: [
-    ' ^{eyes}^ ',  // King - Majestic animal
-    ' ┌{fur}┐ ',   // Mane/Feathers/Fur
-    ' │{suit}│ ',  // Body with suit
-    ' └{paw}┘ ',   // Paws/Claws
+    ' ^{eyes}^ ', // King - Majestic animal
+    ' ┌{fur}┐ ', // Mane/Feathers/Fur
+    ' │{suit}│ ', // Body with suit
+    ' └{paw}┘ ', // Paws/Claws
   ],
   Q: [
-    ' /{eyes}\\ ',  // Queen - Graceful animal
-    '╭{fur}╮',     // Elegant features
-    '│{suit}│',    // Body with suit
-    '╰{paw}╯',     // Graceful stance
+    ' /{eyes}\\ ', // Queen - Graceful animal
+    '╭{fur}╮', // Elegant features
+    '│{suit}│', // Body with suit
+    '╰{paw}╯', // Graceful stance
   ],
   J: [
-    ' ({eyes}) ',  // Jack - Young animal
-    ' ┌{fur}┐ ',   // Playful features
-    ' │{suit}│ ',  // Body with suit
-    ' └{paw}┘ ',   // Small paws
+    ' ({eyes}) ', // Jack - Young animal
+    ' ┌{fur}┐ ', // Playful features
+    ' │{suit}│ ', // Body with suit
+    ' └{paw}┘ ', // Small paws
   ],
 }
 
@@ -63,29 +57,24 @@ export const ANIMAL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
  * - Spades: Triangles (▲, ▼)
  */
 export const GEOMETRIC_CARD_ART: Partial<Record<TCardValue, string[]>> = {
-  A: [
-    '  ╱╲  ',
-    ' ╱ {suit}╲ ',
-    '╱────╲',
-    '‾‾‾‾',
-  ],
+  A: ['  ╱╲  ', ' ╱ {suit}╲ ', '╱────╲', '‾‾‾‾'],
   K: [
-    '┌─{outline}─┐',   // Crown
-    '│{filled}│',      // Center piece
-    '├{outline}┤',     // Middle section
-    '└{filled}┘',      // Base
+    '┌─{outline}─┐', // Crown
+    '│{filled}│', // Center piece
+    '├{outline}┤', // Middle section
+    '└{filled}┘', // Base
   ],
   Q: [
-    '╭{outline}╮',     // Elegant top
-    '│{filled}│',      // Center with fill
-    '├{outline}┤',     // Decorated middle
-    '╰{filled}╯',      // Curved base
+    '╭{outline}╮', // Elegant top
+    '│{filled}│', // Center with fill
+    '├{outline}┤', // Decorated middle
+    '╰{filled}╯', // Curved base
   ],
   J: [
-    '┌{outline}┐',     // Simple top
-    '│{filled}│',      // Center piece
-    '├{outline}┤',     // Middle bar
-    '└{filled}┘',      // Base
+    '┌{outline}┐', // Simple top
+    '│{filled}│', // Center piece
+    '├{outline}┤', // Middle bar
+    '└{filled}┘', // Base
   ],
 }
 
@@ -93,29 +82,24 @@ export const GEOMETRIC_CARD_ART: Partial<Record<TCardValue, string[]>> = {
  * Pixel art style theme
  */
 export const PIXEL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
-  A: [
-    '▀▄▀▄▀',
-    '▄{suit}▄',
-    '▀▄▀▄▀',
-    '▄▀▄▀▄',
-  ],
+  A: ['▀▄▀▄▀', '▄{suit}▄', '▀▄▀▄▀', '▄▀▄▀▄'],
   K: [
-    '▄▀{crown}▀▄',  // Pixelated crown
-    '█{face}█',     // Face pixels
-    '▀{suit}▀',     // Body with suit
-    '█{base}█',     // Base pixels
+    '▄▀{crown}▀▄', // Pixelated crown
+    '█{face}█', // Face pixels
+    '▀{suit}▀', // Body with suit
+    '█{base}█', // Base pixels
   ],
   Q: [
-    '▀▄{crown}▄▀',  // Crown pixels
-    '█{face}█',     // Face details
-    '▄{suit}▄',     // Body with suit
-    '▀{base}▀',     // Base pixels
+    '▀▄{crown}▄▀', // Crown pixels
+    '█{face}█', // Face details
+    '▄{suit}▄', // Body with suit
+    '▀{base}▀', // Base pixels
   ],
   J: [
-    '▄▀{crown}▀▄',  // Simple crown
-    '█{face}█',     // Basic face
-    '▀{suit}▀',     // Body with suit
-    '█{base}█',     // Base pixels
+    '▄▀{crown}▀▄', // Simple crown
+    '█{face}█', // Basic face
+    '▀{suit}▀', // Body with suit
+    '█{base}█', // Base pixels
   ],
 }
 
@@ -124,39 +108,42 @@ export const PIXEL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
  */
 export const MEDIEVAL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
   A: [
-    '╔═╤═╗',        // Castle-like top
-    '║{deco}║',     // Decorative frame
-    '║{suit}║',     // Centered suit
-    '║{deco}║',     // Decorative frame
-    '╚═╧═╝',        // Castle-like bottom
+    '╔═╤═╗', // Castle-like top
+    '║{deco}║', // Decorative frame
+    '║{suit}║', // Centered suit
+    '║{deco}║', // Decorative frame
+    '╚═╧═╝', // Castle-like bottom
   ],
   K: [
-    '╔═╦═╗',        // King's crown
-    '║{crown}║',    // Crown design
-    '║{suit}║',     // Royal suit
-    '║{class}║',    // Class emblem
-    '╚{base}╝',     // Ornate base
+    '╔═╦═╗', // King's crown
+    '║{crown}║', // Crown design
+    '║{suit}║', // Royal suit
+    '║{class}║', // Class emblem
+    '╚{base}╝', // Ornate base
   ],
   Q: [
-    '╔╤═╤╗',        // Queen's crown peaks
-    '╠═╪═╣',        // Crown band
-    '║{suit}║',     // Royal suit
-    '║{class}║',    // Class emblem
-    '╚{base}╝',     // Ornate base
+    '╔╤═╤╗', // Queen's crown peaks
+    '╠═╪═╣', // Crown band
+    '║{suit}║', // Royal suit
+    '║{class}║', // Class emblem
+    '╚{base}╝', // Ornate base
   ],
   J: [
-    '╔╤═╤╗',        // Knight's helm
-    '║{crown}║',    // Helm design
-    '║{suit}║',     // Royal suit
-    '║{class}║',    // Class emblem
-    '╚{base}╝',     // Ornate base
+    '╔╤═╤╗', // Knight's helm
+    '║{crown}║', // Helm design
+    '║{suit}║', // Royal suit
+    '║{class}║', // Class emblem
+    '╚{base}╝', // Ornate base
   ],
 }
 
 /**
  * Map of geometric symbols for each suit
  */
-export const GEOMETRIC_SYMBOLS: Record<TSuit, { outline: string; filled: string }> = {
+export const GEOMETRIC_SYMBOLS: Record<
+  TSuit,
+  { outline: string; filled: string }
+> = {
   hearts: { outline: '◇', filled: '◆' },
   diamonds: { outline: '○', filled: '●' },
   clubs: { outline: '□', filled: '■' },
@@ -166,102 +153,114 @@ export const GEOMETRIC_SYMBOLS: Record<TSuit, { outline: string; filled: string 
 /**
  * Map of animal characteristics for each suit
  */
-export const ANIMAL_FEATURES: Record<TSuit, { eyes: string; mouth: string; fur: string; paw: string }> = {
+export const ANIMAL_FEATURES: Record<
+  TSuit,
+  { eyes: string; mouth: string; fur: string; paw: string }
+> = {
   hearts: {
-    eyes: 'owo',      // Lion features
+    eyes: 'owo', // Lion features
     mouth: '(=w=)',
-    fur: '=^-^=',     // Mane pattern
-    paw: '(uwu)',     // Paw prints
+    fur: '=^-^=', // Mane pattern
+    paw: '(uwu)', // Paw prints
   },
   diamonds: {
-    eyes: '>v<',      // Bird features
+    eyes: '>v<', // Bird features
     mouth: '(>v<)',
-    fur: '~^v^~',     // Wing pattern
-    paw: '{>v<}',     // Talon marks
+    fur: '~^v^~', // Wing pattern
+    paw: '{>v<}', // Talon marks
   },
   clubs: {
-    eyes: 'ÒwÓ',      // Wolf features
+    eyes: 'ÒwÓ', // Wolf features
     mouth: '(^w^)',
-    fur: '~òwó~',     // Fur pattern
-    paw: '[owo]',     // Paw prints
+    fur: '~òwó~', // Fur pattern
+    paw: '[owo]', // Paw prints
   },
   spades: {
-    eyes: '◇w◇',      // Dragon features
+    eyes: '◇w◇', // Dragon features
     mouth: '{◇w◇}',
-    fur: '=◇w◇=',     // Scale pattern
-    paw: '<◇w◇>',     // Claw marks
+    fur: '=◇w◇=', // Scale pattern
+    paw: '<◇w◇>', // Claw marks
   },
 }
 
 /**
  * Map of pixel art features for each suit
  */
-export const PIXEL_FEATURES: Record<TSuit, { crown: string; face: string; base: string }> = {
+export const PIXEL_FEATURES: Record<
+  TSuit,
+  { crown: string; face: string; base: string }
+> = {
   hearts: {
-    crown: '♥',    // Heart crown
-    face: '▀▄▀',   // Face pixels
-    base: '▄▀▄',   // Base pixels
+    crown: '♥', // Heart crown
+    face: '▀▄▀', // Face pixels
+    base: '▄▀▄', // Base pixels
   },
   diamonds: {
-    crown: '♦',    // Diamond crown
-    face: '▄▀▄',   // Face pixels
-    base: '▀▄▀',   // Base pixels
+    crown: '♦', // Diamond crown
+    face: '▄▀▄', // Face pixels
+    base: '▀▄▀', // Base pixels
   },
   clubs: {
-    crown: '♣',    // Club crown
-    face: '▀█▀',   // Face pixels
-    base: '█▀█',   // Base pixels
+    crown: '♣', // Club crown
+    face: '▀█▀', // Face pixels
+    base: '█▀█', // Base pixels
   },
   spades: {
-    crown: '♠',    // Spade crown
-    face: '█▄█',   // Face pixels
-    base: '▀█▀',   // Base pixels
+    crown: '♠', // Spade crown
+    face: '█▄█', // Face pixels
+    base: '▀█▀', // Base pixels
   },
 }
 
 /**
  * Map of medieval features for each suit using ASCII/box-drawing characters
  */
-export const MEDIEVAL_FEATURES: Record<TSuit, {
-  class: string;
-  crown: string;
-  deco: string;
-  base: string;
-}> = {
+export const MEDIEVAL_FEATURES: Record<
+  TSuit,
+  {
+    class: string
+    crown: string
+    deco: string
+    base: string
+  }
+> = {
   hearts: {
-    class: '>=<',        // Warrior - sword
-    crown: '\\^/',       // King's crown
-    deco: '>=<',         // Shield pattern
-    base: '/=\\',        // Base pattern
+    class: '>=<', // Warrior - sword
+    crown: '\\^/', // King's crown
+    deco: '>=<', // Shield pattern
+    base: '/=\\', // Base pattern
   },
   diamonds: {
-    class: '*^*',        // Mage - stars
-    crown: '/|\\',       // Wizard's hat
-    deco: '*~*',         // Magic pattern
-    base: '\\|/',        // Base pattern
+    class: '*^*', // Mage - stars
+    crown: '/|\\', // Wizard's hat
+    deco: '*~*', // Magic pattern
+    base: '\\|/', // Base pattern
   },
   clubs: {
-    class: '(+)',        // Druid - nature
-    crown: '{o}',        // Nature crown
-    deco: '(~)',         // Leaf pattern
-    base: '{-}',         // Base pattern
+    class: '(+)', // Druid - nature
+    crown: '{o}', // Nature crown
+    deco: '(~)', // Leaf pattern
+    base: '{-}', // Base pattern
   },
   spades: {
-    class: '/-\\',       // Rogue - dagger
-    crown: '[^]',        // Hood
-    deco: '/|\\',        // Shadow pattern
-    base: '\\-/',        // Base pattern
+    class: '/-\\', // Rogue - dagger
+    crown: '[^]', // Hood
+    deco: '/|\\', // Shadow pattern
+    base: '\\-/', // Base pattern
   },
 }
 
 // Theme mapping
-export const THEME_MAP: Record<AsciiTheme, Partial<Record<TCardValue, string[]>>> = {
-  'original': ORIGINAL_ASCII_CARD_ART,
-  'geometric': GEOMETRIC_CARD_ART,
-  'animal': ANIMAL_CARD_ART,
-  'pixel': PIXEL_CARD_ART,
-  'medieval': MEDIEVAL_CARD_ART,
-  'robot': {},
+export const THEME_MAP: Record<
+  AsciiTheme,
+  Partial<Record<TCardValue, string[]>>
+> = {
+  original: ORIGINAL_ASCII_CARD_ART,
+  geometric: GEOMETRIC_CARD_ART,
+  animal: ANIMAL_CARD_ART,
+  pixel: PIXEL_CARD_ART,
+  medieval: MEDIEVAL_CARD_ART,
+  robot: {},
 }
 
 /**
@@ -274,24 +273,24 @@ export const SIMPLE_CARD_ART: Partial<Record<TCardValue, string[]>> = {
   A: ['', '', '{suit}', '', ''],
   // Face cards are right-aligned
   J: [
-    'ww',      // Top of head
-    '{)',      // Face with suit
+    'ww', // Top of head
+    '{)', // Face with suit
     '{suit}   %', // Upper body
-    '%',       // Lower body
-    '__%%[',   // Base
+    '%', // Lower body
+    '__%%[', // Base
   ],
   Q: [
-    'ww',      // Crown
-    '{(',      // Face with suit
+    'ww', // Crown
+    '{(', // Face with suit
     '{suit}  %%', // Upper dress
-    '%%%',     // Middle dress
-    '_%%%O',   // Base dress
+    '%%%', // Middle dress
+    '_%%%O', // Base dress
   ],
   K: [
-    'WW',      // Crown
-    '{)',      // Face with suit
+    'WW', // Crown
+    '{)', // Face with suit
     '{suit}  %%', // Upper body
-    '%%%',     // Lower body
-    '_%%%>',   // Base
+    '%%%', // Lower body
+    '_%%%>', // Base
   ],
 }
