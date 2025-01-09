@@ -4,6 +4,7 @@ import React, {
   useReducer,
   type ReactNode,
 } from 'react'
+import { createStandardDeck } from '../components/Deck/utils.js'
 import { EffectManager } from '../systems/Effects.js'
 import { EventManager } from '../systems/Events.js'
 import { Deck, DiscardPile, Hand, PlayArea } from '../systems/Zones.js'
@@ -193,12 +194,15 @@ type DeckProviderProperties = {
 
 export function DeckProvider({
   children,
-  initialCards = [],
+  initialCards,
   customReducer,
 }: DeckProviderProperties) {
   const [state, dispatch] = useReducer(customReducer ?? deckReducer, {
     ...initialState,
-    zones: { ...initialState.zones, deck: new Deck(initialCards) },
+    zones: {
+      ...initialState.zones,
+      deck: new Deck(initialCards ?? createStandardDeck()),
+    },
   })
 
   const contextValue = useMemo(
