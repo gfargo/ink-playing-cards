@@ -1,8 +1,8 @@
+import { ROBOT_FEATURES, ROBOT_THEME } from '../../constants/robotTheme.js'
 import { renderCardArt } from '../../utils/cardArtRenderer.js'
-import { ROBOT_THEME, ROBOT_FEATURES } from '../../constants/robotTheme.js'
 
 // Test rendering of a robot Jack of Clubs
-const jackOfClubs = ROBOT_THEME.J!
+const jackOfClubs = ROBOT_THEME['J']!
 const features = ROBOT_FEATURES.clubs
 
 const art = renderCardArt(

@@ -22,7 +22,13 @@ export function Card({
   readonly theme?: AsciiTheme
 }) {
   const { backArtwork } = useDeck()
-  const config = CARD_DIMENSIONS[variant]
+  const config = {
+    ...CARD_DIMENSIONS[variant],
+    pip:
+      'pip' in CARD_DIMENSIONS[variant]
+        ? (CARD_DIMENSIONS[variant].pip as { left: number; center: number; right: number })
+        : { left: 0, center: 0, right: 0 },
+  }
 
   const cardStyle: BoxProps = {
     flexDirection: 'column',
