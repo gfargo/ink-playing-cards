@@ -42,6 +42,17 @@ export class Deck extends StandardZone {
   drawCard(): TCard | undefined {
     return this.cards.pop()
   }
+
+  drawCards(count: number): TCard[] {
+    const drawnCards: TCard[] = []
+    for (let i = 0; i < count; i++) {
+      const card = this.drawCard()
+      if (card) {
+        drawnCards.push(card)
+      }
+    }
+    return drawnCards
+  }
 }
 
 export class Hand extends StandardZone {
