@@ -5,7 +5,10 @@ export { CardGrid, type GridCard } from './components/CardGrid/index.js'
 export { CardStack } from './components/CardStack/index.js'
 export { CustomCard } from './components/CustomCard/index.js'
 export { Deck } from './components/Deck/index.js'
-export { createStandardDeck } from './components/Deck/utils.js'
+export {
+  createPairedDeck,
+  createStandardDeck
+} from './components/Deck/utils.js'
 export { MiniCard } from './components/MiniCard/index.js'
 export { GameContext } from './contexts/GameContext.js'
 export { useDeck } from './hooks/useDeck.js'
