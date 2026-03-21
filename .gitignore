@@ -57,3 +57,5 @@ jspm_packages/
 prompts/
 
 .DS_Store
+
+.kiro

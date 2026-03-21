@@ -38,7 +38,7 @@ function renderSection(
     applyReplacements(line, replacements)
   )
 
-  console.log({ section, processedContent })
+  // console.log({ section, processedContent })
 
   if (section.type === 'frame' && section.frame) {
     const sectionPadding = section?.padding
@@ -47,7 +47,7 @@ function renderSection(
         : (section.padding?.left ?? 0) + (section.padding?.right ?? 0)
       : 0
 
-    console.log({ sectionPadding })
+    // console.log({ sectionPadding })
 
     const parsedTopFrame = applyReplacements(section.frame.top, replacements)
     const parsedTRCorner = parsedTopFrame.slice(-1)
@@ -62,17 +62,17 @@ function renderSection(
 
     const middleFrame = section.frame.middle
 
-    console.log({
-      parsedTopFrame,
-      parsedTRCorner,
-      parsedTLCorner,
-      parsedBottomFrame,
-      parsedBRCorner,
-      parsedBLCorner,
-      topSpacer: parsedTopFrame.slice(1, 2),
-      sideSpacer: middleFrame.slice(0, 1),
-      sideSpacerLength: middleFrame.slice(0, 1).length,
-    })
+    // console.log({
+    //   parsedTopFrame,
+    //   parsedTRCorner,
+    //   parsedTLCorner,
+    //   parsedBottomFrame,
+    //   parsedBRCorner,
+    //   parsedBLCorner,
+    //   topSpacer: parsedTopFrame.slice(1, 2),
+    //   sideSpacer: middleFrame.slice(0, 1),
+    //   sideSpacerLength: middleFrame.slice(0, 1).length,
+    // })
 
     return createFramedSection(processedContent, width - 2 - sectionPadding, {
       top: `${parsedTLCorner}${center(
@@ -95,7 +95,7 @@ function renderSection(
       ? section.padding
       : (section.padding?.left ?? 0)
 
-  console.log({ type: section.type, padding, processedContent, width })
+  // console.log({ type: section.type, padding, processedContent, width })
 
   return createBodySection(processedContent, width, padding)
 }
@@ -114,7 +114,7 @@ export function renderCardArt(
     ...dynamicReplacements,
   }
 
-  console.log({ definition, width })
+  // console.log({ definition, width })
 
   // Render each section
   return definition.sections

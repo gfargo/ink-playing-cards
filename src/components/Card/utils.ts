@@ -24,7 +24,7 @@ function getThemeReplacements(
   theme: AsciiTheme,
   suit: TSuit
 ): Record<string, string> {
-  console.log('theme:', theme, 'suit:', suit)
+  // console.log('theme:', theme, 'suit:', suit)
   const replacements: Record<AsciiTheme, Record<string, string>> = {
     geometric: {
       outline: GEOMETRIC_SYMBOLS[suit]?.outline ?? '',
