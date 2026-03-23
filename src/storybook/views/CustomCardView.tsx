@@ -3,402 +3,228 @@ import React from 'react'
 import { CustomCard } from '../../components/CustomCard/index.js'
 import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
-type TSymbol = {
-  char: string
-  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
-  color: string
-}
-
-const sampleAsciiArt = `  /\\  /\\
- /  \\/  \\
-/        \\
-\\        /
- \\  /\\  /
-  \\/  \\/`
+export type TDemo = 'mtg' | 'uno' | 'sizes' | 'back' | 'freeform'
 
 export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
-  const [size, setSize] = React.useState<'small' | 'medium' | 'large'>('medium')
+  const [demo, setDemo] = React.useState<TDemo>('mtg')
   const [faceUp, setFaceUp] = React.useState(true)
-  // Const [title, setTitle] = React.useState('Sample Card')
-  // const [description, setDescription] = React.useState(
-  //   'This is a custom card with a description that might wrap.'
-  // )
-  const title = 'Sample Card'
-  const description =
-    'This is a custom card with a description that might wrap.'
-  const [borderColor, setBorderColor] = React.useState('white')
-  const [textColor, setTextColor] = React.useState('white')
-  const [symbols, setSymbols] = React.useState<TSymbol[]>([
-    { char: '★', position: 'top-left', color: 'yellow' },
-    { char: '♦', position: 'top-right', color: 'red' },
-    { char: '♣', position: 'bottom-left', color: 'white' },
-    { char: '♥', position: 'bottom-right', color: 'red' },
-  ])
-  const [currentSelect, setCurrentSelect] = React.useState<
-    | 'size'
-    | 'face'
-    | 'title'
-    | 'description'
-    | 'border-color'
-    | 'text-color'
-    | 'symbols'
-  >('size')
 
-  const renderSelector = () => {
-    switch (currentSelect) {
-      case 'size': {
+  const renderDemo = () => {
+    switch (demo) {
+      case 'mtg': {
         return (
-          <>
-            <Text dimColor>Select card size:</Text>
-            <EnhancedSelectInput
-              orientation="horizontal"
-              items={[
-                {
-                  label: 'Small',
-                  value: 'small',
-                  indicator: <Text color="cyan">▫</Text>,
-                  hotkey: 's',
-                },
-                {
-                  label: 'Medium',
-                  value: 'medium',
-                  indicator: <Text color="cyan">▪</Text>,
-                  hotkey: 'm',
-                },
-                {
-                  label: 'Large',
-                  value: 'large',
-                  indicator: <Text color="cyan">■</Text>,
-                  hotkey: 'l',
-                },
-                {
-                  label: 'Next (Face)',
-                  value: 'next',
-                  indicator: <Text color="yellow">→</Text>,
-                  hotkey: 'n',
-                },
-                {
-                  label: 'Back',
-                  value: 'back',
-                  indicator: <Text color="red">←</Text>,
-                  hotkey: 'b',
-                },
-              ]}
-              onSelect={(item) => {
-                if (item.value === 'back' && goBack) {
-                  goBack()
-                } else if (item.value === 'next') {
-                  setCurrentSelect('face')
-                } else {
-                  setSize(item.value as 'small' | 'medium' | 'large')
-                }
-              }}
+          <Box gap={2}>
+            <CustomCard
+              id="mtg-bolt"
+              size="large"
+              title="Lightning Bolt"
+              cost="{R}"
+              typeLine="Instant"
+              description="Deal 3 damage to any target."
+              footerRight="C"
+              borderColor="red"
+              textColor="white"
+              faceUp={faceUp}
+              back={{ art: '~ ~ ~ ~\n ~ ~ ~\n~ ~ ~ ~', color: 'magenta' }}
             />
-          </>
-        )
-      }
-
-      case 'face': {
-        return (
-          <>
-            <Text dimColor>Select face orientation:</Text>
-            <EnhancedSelectInput
-              orientation="horizontal"
-              items={[
-                {
-                  label: 'Face Up',
-                  value: 'up',
-                  indicator: <Text color="green">↑</Text>,
-                  hotkey: 'u',
-                },
-                {
-                  label: 'Face Down',
-                  value: 'down',
-                  indicator: <Text color="red">↓</Text>,
-                  hotkey: 'd',
-                },
-                {
-                  label: 'Next (Colors)',
-                  value: 'next',
-                  indicator: <Text color="yellow">→</Text>,
-                  hotkey: 'n',
-                },
-                {
-                  label: 'Back (Size)',
-                  value: 'back',
-                  indicator: <Text color="yellow">←</Text>,
-                  hotkey: 'b',
-                },
-              ]}
-              onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('size')
-                } else if (item.value === 'next') {
-                  setCurrentSelect('border-color')
-                } else {
-                  setFaceUp(item.value === 'up')
-                }
-              }}
+            <CustomCard
+              id="mtg-dragon"
+              size="large"
+              title="Shivan Dragon"
+              cost="{4}{R}{R}"
+              asciiArt={`    /\\_/\\\n   ( o.o )\n    > ^ <`}
+              typeLine="Creature — Dragon"
+              description="Flying. {R}: +1/+0 until end of turn."
+              footerLeft="5/5"
+              footerRight="R"
+              borderColor="red"
+              textColor="white"
+              faceUp={faceUp}
+              back={{ art: '~ ~ ~ ~\n ~ ~ ~\n~ ~ ~ ~', color: 'magenta' }}
             />
-          </>
+          </Box>
         )
       }
 
-      case 'border-color': {
+      case 'uno': {
         return (
-          <>
-            <Text dimColor>Select border color:</Text>
-            <EnhancedSelectInput
-              orientation="horizontal"
-              items={[
-                {
-                  label: 'White',
-                  value: 'white',
-                  indicator: <Text color="white">■</Text>,
-                  hotkey: 'w',
-                },
-                {
-                  label: 'Red',
-                  value: 'red',
-                  indicator: <Text color="red">■</Text>,
-                  hotkey: 'r',
-                },
-                {
-                  label: 'Green',
-                  value: 'green',
-                  indicator: <Text color="green">■</Text>,
-                  hotkey: 'g',
-                },
-                {
-                  label: 'Yellow',
-                  value: 'yellow',
-                  indicator: <Text color="yellow">■</Text>,
-                  hotkey: 'y',
-                },
-                {
-                  label: 'Blue',
-                  value: 'blue',
-                  indicator: <Text color="blue">■</Text>,
-                  hotkey: 'b',
-                },
-                {
-                  label: 'Next (Text Color)',
-                  value: 'next',
-                  indicator: <Text color="yellow">→</Text>,
-                  hotkey: 'n',
-                },
-                {
-                  label: 'Back (Face)',
-                  value: 'back',
-                  indicator: <Text color="yellow">←</Text>,
-                  hotkey: 'k',
-                },
-              ]}
-              onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('face')
-                } else if (item.value === 'next') {
-                  setCurrentSelect('text-color')
-                } else {
-                  setBorderColor(item.value)
-                }
-              }}
+          <Box gap={1}>
+            <CustomCard
+              id="uno-red7"
+              size="small"
+              title="7"
+              description="RED"
+              borderColor="red"
+              textColor="red"
+              faceUp={faceUp}
+              back={{ label: 'UNO', color: 'red' }}
             />
-          </>
-        )
-      }
-
-      case 'text-color': {
-        return (
-          <>
-            <Text dimColor>Select text color:</Text>
-            <EnhancedSelectInput
-              orientation="horizontal"
-              items={[
-                {
-                  label: 'White',
-                  value: 'white',
-                  indicator: <Text color="white">■</Text>,
-                  hotkey: 'w',
-                },
-                {
-                  label: 'Red',
-                  value: 'red',
-                  indicator: <Text color="red">■</Text>,
-                  hotkey: 'r',
-                },
-                {
-                  label: 'Green',
-                  value: 'green',
-                  indicator: <Text color="green">■</Text>,
-                  hotkey: 'g',
-                },
-                {
-                  label: 'Yellow',
-                  value: 'yellow',
-                  indicator: <Text color="yellow">■</Text>,
-                  hotkey: 'y',
-                },
-                {
-                  label: 'Blue',
-                  value: 'blue',
-                  indicator: <Text color="blue">■</Text>,
-                  hotkey: 'b',
-                },
-                {
-                  label: 'Next (Symbols)',
-                  value: 'next',
-                  indicator: <Text color="yellow">→</Text>,
-                  hotkey: 'n',
-                },
-                {
-                  label: 'Back (Border)',
-                  value: 'back',
-                  indicator: <Text color="yellow">←</Text>,
-                  hotkey: 'k',
-                },
-              ]}
-              onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('border-color')
-                } else if (item.value === 'next') {
-                  setCurrentSelect('symbols')
-                } else {
-                  setTextColor(item.value)
-                }
-              }}
+            <CustomCard
+              id="uno-blue3"
+              size="small"
+              title="3"
+              description="BLUE"
+              borderColor="blue"
+              textColor="blue"
+              faceUp={faceUp}
+              back={{ label: 'UNO', color: 'red' }}
             />
-          </>
-        )
-      }
-
-      case 'symbols': {
-        return (
-          <>
-            <Text dimColor>Toggle corner symbols:</Text>
-            <EnhancedSelectInput
-              orientation="horizontal"
-              items={[
-                {
-                  label: 'Top Left ★',
-                  value: 'top-left',
-                  indicator: symbols.some((s) => s.position === 'top-left') ? (
-                    <Text color="yellow">✓</Text>
-                  ) : undefined,
-                  hotkey: 't',
-                },
-                {
-                  label: 'Top Right ♦',
-                  value: 'top-right',
-                  indicator: symbols.some((s) => s.position === 'top-right') ? (
-                    <Text color="yellow">✓</Text>
-                  ) : undefined,
-                  hotkey: 'r',
-                },
-                {
-                  label: 'Bottom Left ♣',
-                  value: 'bottom-left',
-                  indicator: symbols.some(
-                    (s) => s.position === 'bottom-left'
-                  ) ? (
-                    <Text color="yellow">✓</Text>
-                  ) : undefined,
-                  hotkey: 'l',
-                },
-                {
-                  label: 'Bottom Right ♥',
-                  value: 'bottom-right',
-                  indicator: symbols.some(
-                    (s) => s.position === 'bottom-right'
-                  ) ? (
-                    <Text color="yellow">✓</Text>
-                  ) : undefined,
-                  hotkey: 'b',
-                },
-                {
-                  label: 'Back (Text)',
-                  value: 'back',
-                  indicator: <Text color="yellow">←</Text>,
-                  hotkey: 'k',
-                },
+            <CustomCard
+              id="uno-skip"
+              size="small"
+              title="Skip"
+              description="GREEN"
+              symbols={[
+                { char: '⊘', position: 'top-right', color: 'green' },
+                { char: '⊘', position: 'bottom-left', color: 'green' },
               ]}
-              onSelect={(item) => {
-                if (item.value === 'back') {
-                  setCurrentSelect('text-color')
-                } else {
-                  const position = item.value as TSymbol['position']
-                  setSymbols((prev) => {
-                    const exists = prev.some((s) => s.position === position)
-                    if (exists) {
-                      return prev.filter((s) => s.position !== position)
-                    }
-
-                    const symbolMap = {
-                      'top-left': { char: '★', color: 'yellow' },
-                      'top-right': { char: '♦', color: 'red' },
-                      'bottom-left': { char: '♣', color: 'white' },
-                      'bottom-right': { char: '♥', color: 'red' },
-                    }
-                    return [
-                      ...prev,
-                      {
-                        position,
-                        ...symbolMap[position],
-                      },
-                    ]
-                  })
-                }
-              }}
+              borderColor="green"
+              textColor="green"
+              faceUp={faceUp}
+              back={{ label: 'UNO', color: 'red' }}
             />
-          </>
+            <CustomCard
+              id="uno-wild"
+              size="small"
+              title="Wild"
+              description="Pick a color"
+              borderColor="yellow"
+              textColor="yellow"
+              faceUp={faceUp}
+              back={{ label: 'UNO', color: 'red' }}
+            />
+          </Box>
         )
       }
 
-      case 'title': {
+      case 'sizes': {
         return (
-          <>
-            <Text dimColor>Edit title:</Text>
-            <Text>Title editing not implemented yet</Text>
-          </>
+          <Box gap={1} alignItems="flex-end">
+            {(['micro', 'mini', 'small', 'medium', 'large'] as const).map(
+              (s) => (
+                <CustomCard
+                  key={s}
+                  id={`size-${s}`}
+                  size={s}
+                  title={s}
+                  faceUp={faceUp}
+                />
+              )
+            )}
+          </Box>
         )
       }
 
-      case 'description': {
+      case 'back': {
         return (
-          <>
-            <Text dimColor>Edit description:</Text>
-            <Text>Description editing not implemented yet</Text>
-          </>
+          <Box gap={2}>
+            <Box flexDirection="column" alignItems="center">
+              <Text dimColor>Default</Text>
+              <CustomCard id="back-default" size="small" faceUp={false} />
+            </Box>
+            <Box flexDirection="column" alignItems="center">
+              <Text dimColor>Symbol</Text>
+              <CustomCard
+                id="back-symbol"
+                size="small"
+                faceUp={false}
+                back={{ symbol: '🂠', color: 'blue' }}
+              />
+            </Box>
+            <Box flexDirection="column" alignItems="center">
+              <Text dimColor>Label</Text>
+              <CustomCard
+                id="back-label"
+                size="small"
+                faceUp={false}
+                back={{ label: 'MTG', color: 'magenta' }}
+              />
+            </Box>
+            <Box flexDirection="column" alignItems="center">
+              <Text dimColor>Art</Text>
+              <CustomCard
+                id="back-art"
+                size="small"
+                faceUp={false}
+                back={{
+                  art: '╔═══╗\n║ ♠ ║\n╚═══╝',
+                  color: 'cyan',
+                }}
+              />
+            </Box>
+          </Box>
         )
       }
+
+      case 'freeform': {
+        return (
+          <Box gap={2}>
+            <CustomCard
+              id="freeform-1"
+              size="medium"
+              content={
+                <Box
+                  flexDirection="column"
+                  alignItems="center"
+                  justifyContent="center"
+                  height="100%"
+                >
+                  <Text bold color="cyan">
+                    ★ CUSTOM ★
+                  </Text>
+                  <Text color="yellow">Any ReactNode</Text>
+                  <Text color="green">goes here</Text>
+                </Box>
+              }
+              borderColor="cyan"
+            />
+          </Box>
+        )
+      }
+
+      // No default
     }
-
-    return null
   }
 
   return (
     <Box flexDirection="column" gap={1}>
       <Box gap={2}>
-        <Text>CustomCard Preview:</Text>
+        <Text>CustomCard Demo:</Text>
         <Text dimColor>
-          {size} - {faceUp ? 'face up' : 'face down'} - border: {borderColor} -
-          text: {textColor}
+          {demo} — {faceUp ? 'face up' : 'face down'}
         </Text>
       </Box>
-      <Box marginY={1}>
-        <CustomCard
-          id="preview-custom-card"
-          size={size}
-          faceUp={faceUp}
-          title={title}
-          description={description}
-          borderColor={borderColor}
-          textColor={textColor}
-          symbols={symbols}
-          asciiArt={sampleAsciiArt}
-        />
-      </Box>
-      {renderSelector()}
+      <Box marginY={1}>{renderDemo()}</Box>
+      <EnhancedSelectInput
+        orientation="horizontal"
+        items={[
+          { label: 'MTG', value: 'mtg', hotkey: 'm' },
+          { label: 'Uno', value: 'uno', hotkey: 'u' },
+          { label: 'Sizes', value: 'sizes', hotkey: 's' },
+          { label: 'Backs', value: 'back', hotkey: 'k' },
+          { label: 'Freeform', value: 'freeform', hotkey: 'f' },
+          {
+            label: faceUp ? 'Flip Down' : 'Flip Up',
+            value: 'flip',
+            hotkey: 'p',
+          },
+          {
+            label: 'Back',
+            value: 'go-back',
+            indicator: <Text color="red">←</Text>,
+            hotkey: 'b',
+          },
+        ]}
+        onSelect={(item) => {
+          if (item.value === 'go-back' && goBack) {
+            goBack()
+          } else if (item.value === 'flip') {
+            setFaceUp((prev) => !prev)
+          } else {
+            setDemo(item.value as TDemo)
+          }
+        }}
+      />
     </Box>
   )
 }

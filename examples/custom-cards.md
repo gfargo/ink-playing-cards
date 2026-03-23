@@ -1,131 +1,164 @@
-# Custom Cards Example
+# Custom Cards
 
-This example demonstrates how to create and use custom cards with the Card Game Library for Ink. We'll create a simple game with unique card types and effects.
+The `CustomCard` component supports building cards for any non-standard card game: Uno, Magic: The Gathering, custom party games, or anything else you can imagine.
 
-## Implementation
+## Two Modes
 
-```jsx
-import React, { useState, useEffect } from 'react'
-import { Box, Text } from 'ink'
-import { DeckProvider, useDeck, Card } from 'card-game-library-ink'
+### Structured Layout
 
-// Custom card factory functions
-const createCreature = (name, power, toughness, effect = null) => ({
-  id: `creature-${name}`,
-  type: 'Creature',
-  name,
-  power,
-  toughness,
-  effect,
-})
+Provide named regions and the component lays them out automatically:
 
-const createSpell = (name, effect) => ({
-  id: `spell-${name}`,
-  type: 'Spell',
-  name,
-  effect,
-})
-
-const createArtifact = (name, effect) => ({
-  id: `artifact-${name}`,
-  type: 'Artifact',
-  name,
-  effect,
-})
-
-// Game effects
-const damageEffect = (amount) => (gameState) => {
-  gameState.opponentHealth -= amount
-}
-
-const healEffect = (amount) => (gameState) => {
-  gameState.playerHealth += amount
-}
-
-const drawCardEffect = (amount) => (gameState) => {
-  gameState.drawCards(amount)
-}
-
-const CustomCardGame = () => {
-  const { deck, hand, shuffle, draw, effectManager } = useDeck()
-  const [playerHealth, setPlayerHealth] = useState(20)
-  const [opponentHealth, setOpponentHealth] = useState(20)
-
-  useEffect(() => {
-    // Create a custom deck
-    const customDeck = [
-      createCreature('Goblin', 2, 1),
-      createCreature('Dragon', 5, 5, damageEffect(2)),
-      createSpell('Fireball', damageEffect(3)),
-      createSpell('Healing Light', healEffect(4)),
-      createArtifact('Crystal Ball', drawCardEffect(2)),
-      // Add more custom cards...
-    ]
-    shuffle(customDeck)
-    draw(5, 'player1')
-  }, [])
-
-  const playCard = (card) => {
-    const gameState = {
-      playerHealth,
-      opponentHealth,
-      drawCards: (amount) => draw(amount, 'player1'),
-    }
-
-    if (card.effect) {
-      effectManager.applyCardEffects(card, gameState)
-    }
-
-    setPlayerHealth(gameState.playerHealth)
-    setOpponentHealth(gameState.opponentHealth)
-
-    hand.removeCard(card)
-  }
-
-  const renderCard = (card) => (
-    <Box key={card.id} flexDirection="column" borderStyle="single" padding={1}>
-      <Text>{card.name}</Text>
-      <Text>{card.type}</Text>
-      {card.type === 'Creature' && (
-        <Text>
-          Power: {card.power} / Toughness: {card.toughness}
-        </Text>
-      )}
-    </Box>
-  )
-
-  return (
-    <Box flexDirection="column">
-      <Text>Player Health: {playerHealth}</Text>
-      <Text>Opponent Health: {opponentHealth}</Text>
-      <Text>Hand:</Text>
-      <Box flexWrap="wrap">
-        {hand.cards.map((card) => (
-          <Box key={card.id} marginRight={1} marginBottom={1}>
-            {renderCard(card)}
-            <Text onPress={() => playCard(card)}>Play</Text>
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  )
-}
-
-const App = () => (
-  <DeckProvider>
-    <CustomCardGame />
-  </DeckProvider>
-)
-
-export default App
+```
++------------------+
+| Title       Cost |  <- header
+|   [ascii art]    |  <- art region
+| Type Line        |  <- typeLine
+| Description text |  <- body (auto-wraps)
+| that wraps...    |
+| L/stat    R/stat |  <- footer
++------------------+
 ```
 
-This example showcases:
+### Freeform Mode
 
-1. Creating custom card types (Creature, Spell, Artifact)
-2. Defining card-specific effects
-3. Building a custom deck with various card types
-4. Rendering custom cards with type-specific information
-5. Applying card effects when played
+Pass `content` as a ReactNode for complete control over what renders inside the card border.
 
-The custom card system allows for great flexibility in creating unique game mechanics and card interactions. You can easily extend this system to include more complex card types, effects, and game rules.
+## Size Presets
+
+| Size   | Width | Height | Use Case                    |
+|--------|-------|--------|-----------------------------|
+| micro  | 5     | 3      | Tokens, counters            |
+| mini   | 8     | 5      | Compact hand display        |
+| small  | 12    | 7      | Uno-style, simple cards     |
+| medium | 18    | 11     | Default, general purpose    |
+| large  | 24    | 15     | MTG-style, detailed cards   |
+
+Override with explicit `width` and `height` props.
+
+## Examples
+
+### MTG-Style Card
+
+```tsx
+<CustomCard
+  id="lightning-bolt"
+  size="large"
+  title="Lightning Bolt"
+  cost="{R}"
+  typeLine="Instant"
+  description="Deal 3 damage to any target."
+  footerRight="C"
+  borderColor="red"
+  textColor="white"
+  back={{ art: '~ ~ ~ ~\n ~ ~ ~\n~ ~ ~ ~', color: 'magenta' }}
+/>
+```
+
+### Uno-Style Card
+
+```tsx
+<CustomCard
+  id="uno-red-7"
+  size="small"
+  title="7"
+  description="RED"
+  borderColor="red"
+  textColor="red"
+  back={{ label: 'UNO', color: 'red' }}
+/>
+```
+
+### Card with ASCII Art and Stats
+
+```tsx
+<CustomCard
+  id="dragon"
+  size="large"
+  title="Shivan Dragon"
+  cost="{4}{R}{R}"
+  asciiArt={`    /\\_/\\
+   ( o.o )
+    > ^ <`}
+  typeLine="Creature — Dragon"
+  description="Flying. {R}: +1/+0 until end of turn."
+  footerLeft="5/5"
+  footerRight="R"
+  borderColor="red"
+/>
+```
+
+### Corner Symbols
+
+```tsx
+<CustomCard
+  id="skip-card"
+  size="small"
+  title="Skip"
+  symbols={[
+    { char: '⊘', position: 'top-right', color: 'green' },
+    { char: '⊘', position: 'bottom-left', color: 'green' },
+  ]}
+  borderColor="green"
+  textColor="green"
+/>
+```
+
+### Custom Card Back
+
+```tsx
+<CustomCard
+  id="my-card"
+  size="small"
+  faceUp={false}
+  back={{
+    art: '╔═══╗\n║ ♠ ║\n╚═══╝',
+    color: 'cyan',
+  }}
+/>
+```
+
+You can also use `symbol` for a single character or `label` for a text label on the back.
+
+### Freeform Content
+
+```tsx
+<CustomCard
+  id="freeform"
+  size="medium"
+  borderColor="cyan"
+  content={
+    <Box flexDirection="column" alignItems="center" justifyContent="center">
+      <Text color="cyan" bold>★ CUSTOM ★</Text>
+      <Text color="yellow">Any ReactNode</Text>
+      <Text color="green">goes here</Text>
+    </Box>
+  }
+/>
+```
+
+## Props Reference
+
+| Prop          | Type                | Default    | Description                              |
+|---------------|---------------------|------------|------------------------------------------|
+| id            | string              | (required) | Unique card identifier                   |
+| size          | CustomCardSize      | 'medium'   | Size preset                              |
+| width         | number              | —          | Override width                           |
+| height        | number              | —          | Override height                          |
+| title         | string              | —          | Header left text                         |
+| cost          | string              | —          | Header right text (mana cost, etc.)      |
+| asciiArt      | string              | —          | Multi-line art string                    |
+| typeLine      | string              | —          | Type line between art and body           |
+| description   | string              | —          | Body text (auto-wraps)                   |
+| footerLeft    | string              | —          | Footer left (power/toughness, etc.)      |
+| footerRight   | string              | —          | Footer right (rarity, set, etc.)         |
+| symbols       | CustomCardSymbol[]  | []         | Corner symbols                           |
+| content       | ReactNode           | —          | Freeform mode (overrides all regions)    |
+| back          | CustomCardBack      | —          | Custom back design                       |
+| faceUp        | boolean             | true       | Show front or back                       |
+| selected      | boolean             | false      | Selected highlight (double border)       |
+| rounded       | boolean             | true       | Rounded vs single border                 |
+| borderColor   | string              | 'white'    | Border color                             |
+| textColor     | string              | 'white'    | Default text color                       |
+| artColor      | string              | textColor  | Art region color                         |
+| value         | string              | —          | Game logic value (not rendered)          |
+| type          | string              | —          | Game logic type (not rendered)           |
