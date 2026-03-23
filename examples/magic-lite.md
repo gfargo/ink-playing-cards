@@ -73,7 +73,7 @@ const MagicLite = () => {
       createLand('Mountain', 'red'),
       createCreature('Goblin', { red: 1 }, 1, 1),
       createCreature('Elf', { green: 1 }, 1, 1),
-      createSpell('Lightning Bolt', { red: 1 }, (gameState) => {
+      createSpell('Flame Lance', { red: 1 }, (gameState) => {
         gameState.opponent.life -= 3
       }),
       // Add more cards...

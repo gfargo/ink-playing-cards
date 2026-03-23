@@ -42,26 +42,97 @@ export type CardProps = BaseCardProps & {
 }
 
 /**
- * A freeform custom card for special game mechanics.
+ * Size presets for custom cards.
+ */
+export type CustomCardSize = 'micro' | 'mini' | 'small' | 'medium' | 'large'
+
+/**
+ * Corner symbol placement on a custom card.
+ */
+export type CustomCardSymbol = {
+  char: string
+  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  color?: string
+}
+
+/**
+ * Card back configuration for custom cards.
+ */
+export type CustomCardBack = {
+  /** ASCII art for the card back */
+  art?: string
+  /** Single character/symbol for the card back */
+  symbol?: string
+  /** Color of the back content */
+  color?: string
+  /** Background label (e.g. game name) */
+  label?: string
+}
+
+/**
+ * A custom card with structured layout regions.
+ *
+ * Layout (full size):
+ * ┌──────────────┐
+ * │ Title   Cost │  ← header
+ * │  [art area]  │  ← art (asciiArt string)
+ * │ Type         │  ← typeLine
+ * │ Description  │  ← body (description text)
+ * │ text here... │
+ * │ L/stat  R/st │  ← footer (footerLeft + footerRight)
+ * └──────────────┘
+ *
+ * Pass `content` (ReactNode) for full freeform control instead.
  */
 export type CustomCardProps = BaseCardProps & {
-  size?: 'small' | 'medium' | 'large'
+  /** Size preset — controls width/height. Overridden by explicit width/height. */
+  size?: CustomCardSize
+  /** Explicit width (overrides size preset) */
   width?: number
+  /** Explicit height (overrides size preset) */
   height?: number
-  asciiArt?: string
+
+  // --- Structured layout regions ---
+  /** Card title displayed at top-left of header */
   title?: string
+  /** Cost/mana value displayed at top-right of header */
+  cost?: string
+  /** ASCII art string for the art region */
+  asciiArt?: string
+  /** Type line displayed between art and body (e.g. "Creature — Dragon") */
+  typeLine?: string
+  /** Description/rules text for the body region (auto-wraps) */
   description?: string
-  symbols?: Array<{
-    char: string
-    position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
-    color?: string
-  }>
-  borderColor?: string
-  textColor?: string
-  onClick?: () => void
-  value?: TCardValue | string
-  type?: string
+  /** Left-aligned footer text (e.g. power/toughness "3/4") */
+  footerLeft?: string
+  /** Right-aligned footer text (e.g. rarity, set symbol) */
+  footerRight?: string
+  /** Corner symbols */
+  symbols?: CustomCardSymbol[]
+
+  // --- Freeform mode ---
+  /** Full custom ReactNode content — overrides all structured regions */
   content?: ReactNode
+
+  // --- Card back ---
+  /** Custom back design. When omitted, uses DeckContext back artwork. */
+  back?: CustomCardBack
+
+  // --- Styling ---
+  /** Border color (Ink color string) */
+  borderColor?: string
+  /** Text color (Ink color string) */
+  textColor?: string
+  /** Color for the card art region */
+  artColor?: string
+
+  // --- Metadata (for game logic, not rendered directly) ---
+  /** Card value for game logic (e.g. "7", "Skip", "Draw Two") */
+  value?: TCardValue | string
+  /** Card type for game logic (e.g. "Creature", "Action", "Wild") */
+  type?: string
+  /** Callback when card is activated/played */
+  onClick?: () => void
 }
 
 /**
