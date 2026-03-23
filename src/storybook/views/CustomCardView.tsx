@@ -3,21 +3,21 @@ import React from 'react'
 import { CustomCard } from '../../components/CustomCard/index.js'
 import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
-export type TDemo = 'mtg' | 'uno' | 'sizes' | 'back' | 'freeform'
+export type TDemo = 'tcg' | 'color-match' | 'sizes' | 'back' | 'freeform'
 
 export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
-  const [demo, setDemo] = React.useState<TDemo>('mtg')
+  const [demo, setDemo] = React.useState<TDemo>('tcg')
   const [faceUp, setFaceUp] = React.useState(true)
 
   const renderDemo = () => {
     switch (demo) {
-      case 'mtg': {
+      case 'tcg': {
         return (
           <Box gap={2}>
             <CustomCard
-              id="mtg-bolt"
+              id="tcg-bolt"
               size="large"
-              title="Lightning Bolt"
+              title="Flame Lance"
               cost="{R}"
               typeLine="Instant"
               description="Deal 3 damage to any target."
@@ -28,9 +28,9 @@ export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
               back={{ art: '~ ~ ~ ~\n ~ ~ ~\n~ ~ ~ ~', color: 'magenta' }}
             />
             <CustomCard
-              id="mtg-dragon"
+              id="tcg-dragon"
               size="large"
-              title="Shivan Dragon"
+              title="Ember Wyrm"
               cost="{4}{R}{R}"
               asciiArt={`    /\\_/\\\n   ( o.o )\n    > ^ <`}
               typeLine="Creature — Dragon"
@@ -46,31 +46,31 @@ export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
         )
       }
 
-      case 'uno': {
+      case 'color-match': {
         return (
           <Box gap={1}>
             <CustomCard
-              id="uno-red7"
+              id="cm-red7"
               size="small"
               title="7"
               description="RED"
               borderColor="red"
               textColor="red"
               faceUp={faceUp}
-              back={{ label: 'UNO', color: 'red' }}
+              back={{ label: 'COLORS', color: 'red' }}
             />
             <CustomCard
-              id="uno-blue3"
+              id="cm-blue3"
               size="small"
               title="3"
               description="BLUE"
               borderColor="blue"
               textColor="blue"
               faceUp={faceUp}
-              back={{ label: 'UNO', color: 'red' }}
+              back={{ label: 'COLORS', color: 'red' }}
             />
             <CustomCard
-              id="uno-skip"
+              id="cm-skip"
               size="small"
               title="Skip"
               description="GREEN"
@@ -81,17 +81,17 @@ export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
               borderColor="green"
               textColor="green"
               faceUp={faceUp}
-              back={{ label: 'UNO', color: 'red' }}
+              back={{ label: 'COLORS', color: 'red' }}
             />
             <CustomCard
-              id="uno-wild"
+              id="cm-wild"
               size="small"
               title="Wild"
               description="Pick a color"
               borderColor="yellow"
               textColor="yellow"
               faceUp={faceUp}
-              back={{ label: 'UNO', color: 'red' }}
+              back={{ label: 'COLORS', color: 'red' }}
             />
           </Box>
         )
@@ -137,7 +137,7 @@ export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
                 id="back-label"
                 size="small"
                 faceUp={false}
-                back={{ label: 'MTG', color: 'magenta' }}
+                back={{ label: 'TCG', color: 'magenta' }}
               />
             </Box>
             <Box flexDirection="column" alignItems="center">
@@ -198,8 +198,8 @@ export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
       <EnhancedSelectInput
         orientation="horizontal"
         items={[
-          { label: 'MTG', value: 'mtg', hotkey: 'm' },
-          { label: 'Uno', value: 'uno', hotkey: 'u' },
+          { label: 'TCG', value: 'tcg', hotkey: 't' },
+          { label: 'Colors', value: 'color-match', hotkey: 'c' },
           { label: 'Sizes', value: 'sizes', hotkey: 's' },
           { label: 'Backs', value: 'back', hotkey: 'k' },
           { label: 'Freeform', value: 'freeform', hotkey: 'f' },

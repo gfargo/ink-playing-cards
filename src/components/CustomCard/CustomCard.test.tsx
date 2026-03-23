@@ -64,7 +64,7 @@ test('render face down with custom back', (t) => {
       faceUp={false}
       back={{
         symbol: '🂠',
-        label: 'UNO',
+        label: 'CARDS',
         color: 'red',
       }}
     />
@@ -96,12 +96,12 @@ test('render freeform content mode', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('render MTG-style card', (t) => {
+test('render TCG-style card', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="test-mtg"
+      id="test-tcg"
       size="large"
-      title="Lightning Bolt"
+      title="Flame Lance"
       cost="{R}"
       typeLine="Instant"
       description="Deal 3 damage to any target."
@@ -113,15 +113,15 @@ test('render MTG-style card', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('render Uno-style card', (t) => {
+test('render color-match style card', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="test-uno"
+      id="test-color-match"
       size="small"
       title="7"
       borderColor="green"
       textColor="green"
-      back={{ color: 'red', label: 'UNO' }}
+      back={{ color: 'red', label: 'COLORS' }}
     />
   )
   t.snapshot(lastFrame())
@@ -129,12 +129,12 @@ test('render Uno-style card', (t) => {
 
 // ── Imitation card renders ──────────────────────────────────────────
 
-test('imitation: MTG creature with art and stats', (t) => {
+test('imitation: TCG creature with art and stats', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="imit-mtg-creature"
+      id="imit-tcg-creature"
       size="large"
-      title="Serra Angel"
+      title="Radiant Guardian"
       cost="{3}{W}{W}"
       asciiArt={`     _/\\_
     / oo \\
@@ -154,12 +154,12 @@ test('imitation: MTG creature with art and stats', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('imitation: MTG instant spell', (t) => {
+test('imitation: TCG instant spell', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="imit-mtg-instant"
+      id="imit-tcg-instant"
       size="large"
-      title="Counterspell"
+      title="Arcane Denial"
       cost="{U}{U}"
       asciiArt={`    ~~~~
    ( NO )
@@ -173,10 +173,10 @@ test('imitation: MTG instant spell', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('imitation: Uno reverse card', (t) => {
+test('imitation: color-match reverse card', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="imit-uno-reverse"
+      id="imit-color-reverse"
       size="small"
       title="Reverse"
       symbols={[
@@ -190,10 +190,10 @@ test('imitation: Uno reverse card', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('imitation: Uno Draw Two', (t) => {
+test('imitation: color-match Draw Two', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="imit-uno-draw2"
+      id="imit-color-draw2"
       size="small"
       title="+2"
       description="Draw Two"
@@ -208,10 +208,10 @@ test('imitation: Uno Draw Two', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('imitation: Uno Wild card', (t) => {
+test('imitation: color-match Wild card', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="imit-uno-wild"
+      id="imit-color-wild"
       size="small"
       title="Wild"
       description="Pick color"
@@ -228,14 +228,14 @@ test('imitation: Uno Wild card', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('imitation: Uno Wild card back', (t) => {
+test('imitation: color-match Wild card back', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="imit-uno-wild-back"
+      id="imit-color-wild-back"
       size="small"
       faceUp={false}
       back={{
-        art: '  U N O\n  * * *',
+        art: ' C A R D\n  * * *',
         color: 'red',
       }}
     />
@@ -243,12 +243,12 @@ test('imitation: Uno Wild card back', (t) => {
   t.snapshot(lastFrame())
 })
 
-test('imitation: MTG land card', (t) => {
+test('imitation: TCG land card', (t) => {
   const { lastFrame } = render(
     <CustomCard
-      id="imit-mtg-land"
+      id="imit-tcg-land"
       size="large"
-      title="Island"
+      title="Mystic Shore"
       asciiArt={`   .  *  .  *
   * .  ~~  . *
     ~~~~~~~

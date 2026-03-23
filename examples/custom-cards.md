@@ -1,6 +1,6 @@
 # Custom Cards
 
-The `CustomCard` component supports building cards for any non-standard card game: Uno, Magic: The Gathering, custom party games, or anything else you can imagine.
+The `CustomCard` component supports building cards for any non-standard card game — color-matching games, trading card games, custom party games, or anything else you can imagine.
 
 ## Two Modes
 
@@ -29,21 +29,21 @@ Pass `content` as a ReactNode for complete control over what renders inside the 
 |--------|-------|--------|-----------------------------|
 | micro  | 5     | 3      | Tokens, counters            |
 | mini   | 8     | 5      | Compact hand display        |
-| small  | 12    | 7      | Uno-style, simple cards     |
+| small  | 12    | 7      | Color-match, simple cards   |
 | medium | 18    | 11     | Default, general purpose    |
-| large  | 24    | 15     | MTG-style, detailed cards   |
+| large  | 24    | 15     | TCG-style, detailed cards   |
 
 Override with explicit `width` and `height` props.
 
 ## Examples
 
-### MTG-Style Card
+### Trading Card Game Style
 
 ```tsx
 <CustomCard
-  id="lightning-bolt"
+  id="flame-lance"
   size="large"
-  title="Lightning Bolt"
+  title="Flame Lance"
   cost="{R}"
   typeLine="Instant"
   description="Deal 3 damage to any target."
@@ -54,17 +54,17 @@ Override with explicit `width` and `height` props.
 />
 ```
 
-### Uno-Style Card
+### Color-Matching Card Game Style
 
 ```tsx
 <CustomCard
-  id="uno-red-7"
+  id="red-7"
   size="small"
   title="7"
   description="RED"
   borderColor="red"
   textColor="red"
-  back={{ label: 'UNO', color: 'red' }}
+  back={{ label: 'CARDS', color: 'red' }}
 />
 ```
 
@@ -74,7 +74,7 @@ Override with explicit `width` and `height` props.
 <CustomCard
   id="dragon"
   size="large"
-  title="Shivan Dragon"
+  title="Ember Wyrm"
   cost="{4}{R}{R}"
   asciiArt={`    /\\_/\\
    ( o.o )
