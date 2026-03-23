@@ -198,7 +198,7 @@ export type GameEventData = {
  */
 export type GameState = {
   currentPlayerId: string
-  players: PlayerHand[]
+  players: string[]
   turn: number
   phase: string
   zones: {
@@ -245,6 +245,7 @@ export type EventManagerInterface = {
   addEventListener(eventType: string, listener: EventListenerInterface): void
   removeEventListener(eventType: string, listener: EventListenerInterface): void
   dispatchEvent(event: GameEventData): void
+  removeAllListeners(): void
 }
 
 export type EventListenerInterface = {

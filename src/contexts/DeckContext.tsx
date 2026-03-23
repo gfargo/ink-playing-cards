@@ -21,15 +21,26 @@ import {
   type TCard,
 } from '../types/index.js'
 
-const genBack = (v: 'simple' | 'ascii' | 'minimal'): string => {
-  void v
-  return '?'
+const BACK_ART: Record<'simple' | 'ascii' | 'minimal', string> = {
+  simple: ['? ? ? ?', ' ? ? ? ', '? ? ? ?', ' ? ? ? ', '? ? ? ?'].join('\n'),
+  ascii: [
+    '╔═══════╗',
+    '║ ░░░░░ ║',
+    '║ ░░░░░ ║',
+    '║ ░░░░░ ║',
+    '║ ░░░░░ ║',
+    '║ ░░░░░ ║',
+    '║ ░░░░░ ║',
+    '║ ░░░░░ ║',
+    '╚═══════╝',
+  ].join('\n'),
+  minimal: '?',
 }
 
 export const defaultBackArtwork: BackArtwork = {
-  ascii: genBack('ascii'),
-  simple: genBack('simple'),
-  minimal: genBack('minimal'),
+  ascii: BACK_ART.ascii,
+  simple: BACK_ART.simple,
+  minimal: BACK_ART.minimal,
 }
 
 const createInitialState = (): DeckContextType => ({

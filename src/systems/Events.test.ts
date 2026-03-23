@@ -87,3 +87,16 @@ test('event data is passed through to listener', (t) => {
   t.is(listener.calls[0]!.count, 3)
   t.is(listener.calls[0]!.playerId, 'p1')
 })
+
+test('removeAllListeners clears all listeners', (t) => {
+  const em = new EventManager()
+  const l1 = makeListener()
+  const l2 = makeListener()
+  em.addEventListener('A', l1)
+  em.addEventListener('B', l2)
+  em.removeAllListeners()
+  em.dispatchEvent(makeEvent('A'))
+  em.dispatchEvent(makeEvent('B'))
+  t.is(l1.calls.length, 0)
+  t.is(l2.calls.length, 0)
+})
