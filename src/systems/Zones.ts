@@ -1,4 +1,4 @@
-import { type TCard } from '../types/index.js';
+import { type TCard } from '../types/index.js'
 
 /**
  * Pure utility functions for zone operations.
@@ -22,10 +22,7 @@ export function shuffleCards(cards: TCard[]): TCard[] {
  * Draw cards from the top of a zone (end of array).
  * Returns [drawnCards, remainingCards].
  */
-export function drawCards(
-  cards: TCard[],
-  count: number
-): [TCard[], TCard[]] {
+export function drawCards(cards: TCard[], count: number): [TCard[], TCard[]] {
   const drawCount = Math.min(count, cards.length)
   const remaining = cards.slice(0, cards.length - drawCount)
   const drawn = cards.slice(cards.length - drawCount)
@@ -102,7 +99,7 @@ export class Deck extends StandardZone {
   }
 
   drawCard(): TCard | undefined {
-    const card = this.cards[this.cards.length - 1]
+    const card = this.cards.at(-1)
     if (card) {
       this.cards = this.cards.slice(0, -1)
     }

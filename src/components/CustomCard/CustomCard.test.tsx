@@ -48,7 +48,12 @@ test('render custom card with different sizes', (t) => {
 
 test('render face down custom card', (t) => {
   const { lastFrame } = render(
-    <CustomCard id="test-custom-facedown" size="medium" title="Face Down Card" faceUp={false} />
+    <CustomCard
+      id="test-custom-facedown"
+      size="medium"
+      title="Face Down Card"
+      faceUp={false}
+    />
   )
   const customCardLastFrame = lastFrame()
   t.snapshot(customCardLastFrame)

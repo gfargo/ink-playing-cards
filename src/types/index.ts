@@ -73,8 +73,12 @@ export type TCard = CardProps | CustomCardProps
  * Type guard to check if a card is a standard playing card.
  */
 export function isStandardCard(card: TCard): card is CardProps {
-  return 'suit' in card && 'value' in card && typeof card.suit === 'string'
-    && ['hearts', 'diamonds', 'clubs', 'spades'].includes(card.suit)
+  return (
+    'suit' in card &&
+    'value' in card &&
+    typeof card.suit === 'string' &&
+    ['hearts', 'diamonds', 'clubs', 'spades'].includes(card.suit)
+  )
 }
 
 /**
@@ -109,13 +113,13 @@ export type GameEventType =
  * Typed event data for game events.
  */
 export type GameEventData = {
+  [key: string]: unknown // Allow custom data
   type: GameEventType
   playerId?: string
   card?: TCard
   cards?: TCard[]
   count?: number
   target?: unknown
-  [key: string]: unknown // Allow custom data
 }
 
 /**
@@ -180,7 +184,11 @@ export type EventListenerInterface = {
  * Interface for the effect manager (avoids circular imports with systems).
  */
 export type EffectManagerInterface = {
-  applyCardEffects(card: TCard, gameState: GameState, eventData: GameEventData): void
+  applyCardEffects(
+    card: TCard,
+    gameState: GameState,
+    eventData: GameEventData
+  ): void
 }
 
 export type GameContextType = {

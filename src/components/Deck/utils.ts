@@ -1,9 +1,9 @@
 import {
-    type CardProps,
-    type TCard,
-    type TCardValue,
-    type TSuit,
-    generateCardId,
+  type CardProps,
+  type TCard,
+  type TCardValue,
+  type TSuit,
+  generateCardId,
 } from '../../types/index.js'
 
 /**
@@ -45,15 +45,16 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
   const standardDeck = createStandardDeck()
 
   // Group cards by their value
+  // eslint-disable-next-line unicorn/no-array-reduce
   const groupedByValue = standardDeck.reduce<Map<TCardValue, CardProps[]>>(
     (acc, card) => {
       if ('value' in card && 'suit' in card) {
-        const value = card.value as TCardValue
+        const { value } = card
         const cards = acc.get(value) ?? []
         cards.push({
-          id: generateCardId(card.suit as TSuit, value),
+          id: generateCardId(card.suit, value),
           value,
-          suit: card.suit as TSuit,
+          suit: card.suit,
           faceUp: false,
           selected: false,
         })
@@ -84,5 +85,5 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
   }
 
   // Flatten pairs into sequential array
-  return pairs.flatMap((pair) => pair)
+  return pairs.flat()
 }

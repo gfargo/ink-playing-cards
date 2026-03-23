@@ -2,9 +2,9 @@ import { Box } from 'ink'
 import React, { useMemo } from 'react'
 import { useDeck } from '../../hooks/useDeck.js'
 import {
-    isStandardCard,
-    type TCardValue,
-    type TSuit,
+  isStandardCard,
+  type TCardValue,
+  type TSuit,
 } from '../../types/index.js'
 import Card from '../Card/index.js'
 
@@ -31,7 +31,7 @@ export function Deck({
 
   const renderTopCard = useMemo(() => {
     if (deck.length > 0) {
-      const topCard = deck[deck.length - 1]
+      const topCard = deck.at(-1)
       if (!topCard || !isStandardCard(topCard)) {
         return null
       }

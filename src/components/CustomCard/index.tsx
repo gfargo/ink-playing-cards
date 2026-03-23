@@ -1,8 +1,7 @@
 import chalk from 'chalk'
 import { Box, type BoxProps, Text } from 'ink'
 import React, { useContext } from 'react'
-import { DeckContext } from '../../contexts/DeckContext.js'
-import { defaultBackArtwork } from '../../contexts/DeckContext.js'
+import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { type CustomCardProps } from '../../types/index.js'
 
 export function CustomCard({

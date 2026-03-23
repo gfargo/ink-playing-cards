@@ -1,12 +1,10 @@
 import {
-    type CardEffect,
-    type EffectManagerInterface,
-    type GameEventData,
-    type GameState,
-    type TCard,
+  type CardEffect,
+  type EffectManagerInterface,
+  type GameEventData,
+  type GameState,
+  type TCard,
 } from '../types/index.js'
-
-export type { GameState, CardEffect }
 
 export class ConditionalEffect implements CardEffect {
   constructor(
@@ -117,3 +115,5 @@ export class EffectManager implements EffectManagerInterface {
     }
   }
 }
+
+export { type GameState, type CardEffect } from '../types/index.js'

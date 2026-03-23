@@ -1,22 +1,23 @@
 import test from 'ava'
 import type { TCard } from '../types/index.js'
 import {
-    shuffleCards,
-    drawCards,
-    addCard,
-    addCards,
-    removeCard,
-    findCard,
-    cutDeck,
-    Deck,
-    Hand,
-    DiscardPile,
-    PlayArea,
-    StandardZone,
+  shuffleCards,
+  drawCards,
+  addCard,
+  addCards,
+  removeCard,
+  findCard,
+  cutDeck,
+  Deck,
+  Hand,
+  DiscardPile,
+  PlayArea,
+  StandardZone,
 } from './Zones.js'
 
 function makeCard(id: string): TCard {
-  return { id, suit: 'hearts', value: 'A' } as TCard
+  const card: TCard = { id, suit: 'hearts', value: 'A' }
+  return card
 }
 
 function makeDeck(count: number): TCard[] {
@@ -134,7 +135,7 @@ test('cutDeck at 0 returns same order', (t) => {
   const result = cutDeck(cards, 0)
   t.deepEqual(
     result.map((c) => c.id),
-    cards.map((c) => c.id),
+    cards.map((c) => c.id)
   )
 })
 

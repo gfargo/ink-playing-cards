@@ -1,15 +1,20 @@
 import test from 'ava'
-import type { CardEffect, GameEventData, GameState, TCard } from '../types/index.js'
+import type {
+  CardEffect,
+  GameEventData,
+  GameState,
+  TCard,
+} from '../types/index.js'
 import {
-    ConditionalEffect,
-    TriggeredEffect,
-    ContinuousEffect,
-    DelayedEffect,
-    TargetedEffect,
-    DrawCardEffect,
-    DamageEffect,
-    attachEffectToCard,
-    EffectManager,
+  ConditionalEffect,
+  TriggeredEffect,
+  ContinuousEffect,
+  DelayedEffect,
+  TargetedEffect,
+  DrawCardEffect,
+  DamageEffect,
+  attachEffectToCard,
+  EffectManager,
 } from './Effects.js'
 
 function makeGameState(overrides: Partial<GameState> = {}): GameState {
@@ -23,7 +28,10 @@ function makeGameState(overrides: Partial<GameState> = {}): GameState {
   }
 }
 
-function makeEvent(type: string, extra: Record<string, unknown> = {}): GameEventData {
+function makeEvent(
+  type: string,
+  extra: Record<string, unknown> = {}
+): GameEventData {
   return { type, ...extra }
 }
 
@@ -50,10 +58,7 @@ test('ConditionalEffect skips when condition is false', (t) => {
 
 test('ConditionalEffect passes game state to condition', (t) => {
   const spy = new SpyEffect()
-  const effect = new ConditionalEffect(
-    (gs) => gs.turn > 2,
-    spy,
-  )
+  const effect = new ConditionalEffect((gs) => gs.turn > 2, spy)
   effect.apply(makeGameState({ turn: 1 }), makeEvent('X'))
   t.is(spy.calls.length, 0)
   effect.apply(makeGameState({ turn: 3 }), makeEvent('X'))
@@ -79,8 +84,12 @@ test('ContinuousEffect applies when condition is true', (t) => {
   let removed = false
   const effect = new ContinuousEffect(
     () => true,
-    () => { applied = true },
-    () => { removed = true },
+    () => {
+      applied = true
+    },
+    () => {
+      removed = true
+    }
   )
   effect.apply(makeGameState(), makeEvent('X'))
   t.true(applied)
@@ -92,8 +101,12 @@ test('ContinuousEffect removes when condition is false', (t) => {
   let removed = false
   const effect = new ContinuousEffect(
     () => false,
-    () => { applied = true },
-    () => { removed = true },
+    () => {
+      applied = true
+    },
+    () => {
+      removed = true
+    }
   )
   effect.apply(makeGameState(), makeEvent('X'))
   t.false(applied)
@@ -137,7 +150,7 @@ test('DamageEffect apply does not throw', (t) => {
 })
 
 test('attachEffectToCard adds effect to card without existing effects', (t) => {
-  const card: TCard = { id: 'c1', suit: 'hearts', value: 'A' } as TCard
+  const card: TCard = { id: 'c1', suit: 'hearts', value: 'A' }
   const spy = new SpyEffect()
   attachEffectToCard(card, spy)
   t.is(card.effects!.length, 1)
@@ -146,7 +159,12 @@ test('attachEffectToCard adds effect to card without existing effects', (t) => {
 
 test('attachEffectToCard appends to existing effects', (t) => {
   const existing = new SpyEffect()
-  const card: TCard = { id: 'c1', suit: 'hearts', value: 'A', effects: [existing] } as TCard
+  const card: TCard = {
+    id: 'c1',
+    suit: 'hearts',
+    value: 'A',
+    effects: [existing],
+  }
   const spy = new SpyEffect()
   attachEffectToCard(card, spy)
   t.is(card.effects!.length, 2)
@@ -155,7 +173,12 @@ test('attachEffectToCard appends to existing effects', (t) => {
 test('EffectManager applies all effects on a card', (t) => {
   const spy1 = new SpyEffect()
   const spy2 = new SpyEffect()
-  const card: TCard = { id: 'c1', suit: 'hearts', value: 'A', effects: [spy1, spy2] } as TCard
+  const card: TCard = {
+    id: 'c1',
+    suit: 'hearts',
+    value: 'A',
+    effects: [spy1, spy2],
+  }
   const manager = new EffectManager()
   manager.applyCardEffects(card, makeGameState(), makeEvent('X'))
   t.is(spy1.calls.length, 1)
@@ -163,7 +186,7 @@ test('EffectManager applies all effects on a card', (t) => {
 })
 
 test('EffectManager does nothing when card has no effects', (t) => {
-  const card: TCard = { id: 'c1', suit: 'hearts', value: 'A' } as TCard
+  const card: TCard = { id: 'c1', suit: 'hearts', value: 'A' }
   const manager = new EffectManager()
   manager.applyCardEffects(card, makeGameState(), makeEvent('X'))
   t.pass()

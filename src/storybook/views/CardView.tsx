@@ -2,9 +2,9 @@ import { Box, Text } from 'ink'
 import React from 'react'
 import Card from '../../components/Card/index.js'
 import {
-    type AsciiTheme,
-    type TCardValue,
-    type TSuit,
+  type AsciiTheme,
+  type TCardValue,
+  type TSuit,
 } from '../../types/index.js'
 import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 

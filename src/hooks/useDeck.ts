@@ -1,9 +1,9 @@
 import { useContext } from 'react'
 import { DeckContext } from '../contexts/DeckContext.js'
 import {
-    type BackArtwork,
-    type CustomCardProps,
-    type TCard,
+  type BackArtwork,
+  type CustomCardProps,
+  type TCard,
 } from '../types/index.js'
 
 export const useDeck = () => {

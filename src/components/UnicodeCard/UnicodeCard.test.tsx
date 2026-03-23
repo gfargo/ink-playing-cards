@@ -1,13 +1,11 @@
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
-import { UnicodeCard } from './index.js'
 import { getCardUnicode, SPECIAL_CARDS } from './constants.js'
+import { UnicodeCard } from './index.js'
 
 test('render ace of spades face up', (t) => {
-  const { lastFrame } = render(
-    <UnicodeCard suit="spades" value="A" />
-  )
+  const { lastFrame } = render(<UnicodeCard suit="spades" value="A" />)
   const frame = lastFrame()
   t.snapshot(frame)
   if (frame) {
@@ -16,9 +14,7 @@ test('render ace of spades face up', (t) => {
 })
 
 test('render king of hearts face up', (t) => {
-  const { lastFrame } = render(
-    <UnicodeCard suit="hearts" value="K" />
-  )
+  const { lastFrame } = render(<UnicodeCard suit="hearts" value="K" />)
   t.snapshot(lastFrame())
 })
 
@@ -35,21 +31,21 @@ test('render face down shows card back', (t) => {
 
 test('render with bordered prop', (t) => {
   const { lastFrame } = render(
-    <UnicodeCard suit="diamonds" value="Q" bordered />
+    <UnicodeCard bordered suit="diamonds" value="Q" />
   )
   t.snapshot(lastFrame())
 })
 
 test('render with bordered and selected', (t) => {
   const { lastFrame } = render(
-    <UnicodeCard suit="clubs" value="10" bordered selected />
+    <UnicodeCard bordered selected suit="clubs" value="10" />
   )
   t.snapshot(lastFrame())
 })
 
 test('render with dimmed face down', (t) => {
   const { lastFrame } = render(
-    <UnicodeCard suit="spades" value="7" faceUp={false} dimmed />
+    <UnicodeCard dimmed suit="spades" value="7" faceUp={false} />
   )
   t.snapshot(lastFrame())
 })
@@ -63,7 +59,7 @@ test('render with custom color', (t) => {
 
 test('render with size prop', (t) => {
   const { lastFrame } = render(
-    <UnicodeCard suit="diamonds" value="5" bordered size={3} />
+    <UnicodeCard bordered suit="diamonds" value="5" size={3} />
   )
   t.snapshot(lastFrame())
 })
