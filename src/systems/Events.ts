@@ -1,10 +1,9 @@
 import {
-    type EventListenerInterface,
-    type EventManagerInterface,
-    type GameEventData,
+  type EventListenerInterface,
+  type EventManagerInterface,
+  type GameEventData,
 } from '../types/index.js'
 
-export type { EventListenerInterface as EventListener }
 export type GameEvent = GameEventData
 
 export class EventManager implements EventManagerInterface {
@@ -39,3 +38,5 @@ export class EventManager implements EventManagerInterface {
     }
   }
 }
+
+export { type EventListenerInterface as EventListener } from '../types/index.js'

@@ -1,8 +1,7 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React, { useContext } from 'react'
 import { CARD_DIMENSIONS, SUIT_SYMBOL_MAP } from '../../constants/card.js'
-import { DeckContext } from '../../contexts/DeckContext.js'
-import { defaultBackArtwork } from '../../contexts/DeckContext.js'
+import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { type AsciiTheme, type CardProps } from '../../types/index.js'
 import { createCardContent } from './utils.js'
 

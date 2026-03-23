@@ -16,8 +16,8 @@
     "build": "tsc",
     "dev": "npx tsx ./src/storybook/storybook.tsx",
     "release": "release-it",
-    "lint": "prettier --check . && xo",
-    "lint:fix": "prettier --write . && xo --fix",
+    "lint": "xo",
+    "lint:fix": "xo --fix",
     "pretest": "yarn build",
     "test": "ava",
     "test:fix": "yarn build && yarn lint:fix && ava --update-snapshots"
@@ -27,7 +27,6 @@
   ],
   "dependencies": {
     "ink": "^6.0.0",
-    "meow": "^11.0.0",
     "react": "^19.0.0"
   },
   "devDependencies": {
@@ -40,6 +39,7 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "ink-testing-library": "^4.0.0",
+    "meow": "^11.0.0",
     "prettier": "^2.8.7",
     "release-it": "^17.10.0",
     "ts-node": "^10.9.1",

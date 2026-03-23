@@ -1,8 +1,8 @@
 import React, {
-    createContext,
-    type ReactNode,
-    useMemo,
-    useReducer,
+  createContext,
+  type ReactNode,
+  useMemo,
+  useReducer,
 } from 'react'
 import { type GameAction, type GameContextType } from '../types/index.js'
 
