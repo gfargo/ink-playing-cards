@@ -32,19 +32,16 @@ export const defaultBackArtwork: BackArtwork = {
   minimal: genBack('minimal'),
 }
 
-const sharedEventManager = new EventManager()
-const sharedEffectManager = new EffectManager()
-
-const initialState: DeckContextType = {
+const createInitialState = (): DeckContextType => ({
   zones: { deck: [], hands: {}, discardPile: [], playArea: [] },
   players: [],
   backArtwork: defaultBackArtwork,
-  eventManager: sharedEventManager,
-  effectManager: sharedEffectManager,
+  eventManager: new EventManager(),
+  effectManager: new EffectManager(),
   dispatch: () => null,
-}
+})
 
-export const DeckContext = createContext<DeckContextType>(initialState)
+export const DeckContext = createContext<DeckContextType>(createInitialState())
 
 const deckReducer = (
   state: DeckContextType,
@@ -235,13 +232,20 @@ export function DeckProvider({
   initialCards,
   customReducer,
 }: DeckProviderProperties) {
-  const [state, dispatch] = useReducer(customReducer ?? deckReducer, {
-    ...initialState,
-    zones: {
-      ...initialState.zones,
-      deck: initialCards ?? createStandardDeck(),
-    },
-  })
+  const [state, dispatch] = useReducer(
+    customReducer ?? deckReducer,
+    initialCards,
+    (cards) => {
+      const base = createInitialState()
+      return {
+        ...base,
+        zones: {
+          ...base.zones,
+          deck: cards ?? createStandardDeck(),
+        },
+      }
+    }
+  )
   const contextValue = useMemo(
     () => ({ ...state, dispatch }),
     [state, dispatch]

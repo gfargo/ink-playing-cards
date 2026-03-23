@@ -67,7 +67,10 @@ export function GameProvider({
     currentPlayerId: initialPlayers[0] ?? '',
   })
 
-  const contextValue = useMemo(() => ({ ...state, dispatch }), [state])
+  const contextValue = useMemo(
+    () => ({ ...state, dispatch }),
+    [state, dispatch]
+  )
 
   return (
     <GameContext.Provider value={contextValue}>{children}</GameContext.Provider>

@@ -1,4 +1,4 @@
-import { Box } from 'ink'
+import { Box, type BoxProps } from 'ink'
 import React, { useMemo } from 'react'
 import { useDeck } from '../../hooks/useDeck.js'
 import {
@@ -10,7 +10,7 @@ import Card from '../Card/index.js'
 
 type DeckProperties = {
   readonly showTopCard?: boolean
-  readonly style?: React.CSSProperties
+  readonly style?: BoxProps
   readonly variant?: 'simple' | 'ascii' | 'minimal'
   readonly placeholderCard?: { suit: TSuit; value: TCardValue }
 }
@@ -23,7 +23,7 @@ export function Deck({
 }: DeckProperties) {
   const { deck } = useDeck()
 
-  const deckStyle = {
+  const deckStyle: BoxProps = {
     padding: 1,
     borderStyle: 'single',
     ...style,
@@ -51,7 +51,6 @@ export function Deck({
   }, [deck, showTopCard, variant])
 
   return (
-    // @ts-ignore
     <Box flexDirection="column" alignItems="center" {...deckStyle}>
       {renderTopCard}
       <Box marginTop={1}>

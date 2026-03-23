@@ -415,3 +415,49 @@ test('render ascii variant', (t) => {
   const asciiVariantLastFrame = lastFrame()
   t.snapshot(asciiVariantLastFrame)
 })
+
+test('render stack with custom cards', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[
+        {
+          id: 'custom-1',
+          title: 'Flame Lance',
+          size: 'small' as const,
+          borderColor: 'red',
+          textColor: 'red',
+        },
+        {
+          id: 'custom-2',
+          title: 'Arcane Denial',
+          size: 'small' as const,
+          borderColor: 'blue',
+          textColor: 'blue',
+        },
+      ]}
+      name="Custom Stack"
+    />
+  )
+  t.snapshot(lastFrame())
+})
+
+test('render stack with mixed standard and custom cards', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[
+        { id: 'std-1', suit: 'hearts', value: 'A' },
+        {
+          id: 'custom-1',
+          title: 'Wild',
+          size: 'small' as const,
+          borderColor: 'yellow',
+        },
+        { id: 'std-2', suit: 'spades', value: 'K' },
+      ]}
+      name="Mixed Stack"
+    />
+  )
+  t.snapshot(lastFrame())
+})
