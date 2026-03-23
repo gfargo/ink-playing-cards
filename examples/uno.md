@@ -1,37 +1,261 @@
-# Implementing Uno with ink-playing-cards
+# Uno
 
-This guide demonstrates how to create a single-player Uno game (player vs. AI opponents) using the `ink-playing-cards` library and the `ink` library for terminal-based rendering. This implementation will showcase the use of the `CustomCard` component.
+A single-player Uno game (player vs 3 AI opponents) using `CustomCard` for Uno-specific cards.
 
-## Game Overview
+## Rules
 
-Uno is a card game where players take turns matching a card in their hand with the current card shown on top of the deck, either by color or number. Special action cards add variety to the game. The goal is to be the first player to get rid of all their cards.
-
-## Key Concepts
-
-Before we dive into the implementation, let's review some key concepts:
-
-1. **CustomCard**: We'll use the `CustomCard` component to create Uno-specific cards.
-2. **DeckProvider**: A context provider from `ink-playing-cards` that manages the deck state.
-3. **useDeck Hook**: A custom hook that gives us access to deck operations like `shuffle` and `draw`.
-4. **Game State Management**: We'll use React's `useState` to manage the game state, including player hands, current card, and game direction.
-5. **AI Logic**: We'll implement simple AI logic for computer opponents.
-6. **User Input Handling**: We'll use Ink's `useInput` hook to handle player actions.
-7. **Conditional Rendering**: We'll use conditional rendering to display different UI elements based on the game state.
+1. Each player starts with 7 cards.
+2. Match the top discard card by color or value.
+3. Special cards: Skip, Reverse, Draw Two, Wild, Wild Draw Four.
+4. First player to empty their hand wins.
 
 ## Implementation
 
-### 1. Setup and Imports
-
-```typescript
+```tsx
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, CustomCard } from 'ink-playing-cards'
+import {
+  DeckProvider,
+  CustomCard,
+  type CustomCardProps,
+} from 'ink-playing-cards'
 
-const UnoGame: React.FC = () => {
-  // Component logic will go here
+const UNO_COLORS = ['red', 'blue', 'green', 'yellow'] as const
+const UNO_NUMBERS = ['0','1','2','3','4','5','6','7','8','9']
+const UNO_ACTIONS = ['Skip', 'Reverse', 'Draw Two']
+const UNO_WILDS = ['Wild', 'Wild Draw Four']
+
+type UnoCard = CustomCardProps & {
+  color: string
+  unoValue: string
+  isWild: boolean
 }
 
-const App: React.FC = () => (
+let cardCounter = 0
+const makeUnoCard = (color: string, unoValue: string): UnoCard => {
+  const isWild = UNO_WILDS.includes(unoValue)
+  return {
+    id: `uno-${++cardCounter}`,
+    title: unoValue,
+    description: isWild ? 'Choose a color' : '',
+    size: 'small' as const,
+    borderColor: isWild ? 'white' : color,
+    textColor: color || 'white',
+    color: isWild ? '' : color,
+    unoValue,
+    isWild,
+  }
+}
+
+const buildUnoDeck = (): UnoCard[] => {
+  const cards: UnoCard[] = []
+  for (const color of UNO_COLORS) {
+    for (const num of UNO_NUMBERS) {
+      cards.push(makeUnoCard(color, num))
+      if (num !== '0') cards.push(makeUnoCard(color, num))
+    }
+    for (const action of UNO_ACTIONS) {
+      cards.push(makeUnoCard(color, action))
+      cards.push(makeUnoCard(color, action))
+    }
+  }
+  for (const wild of UNO_WILDS) {
+    for (let i = 0; i < 4; i++) cards.push(makeUnoCard('', wild))
+  }
+  return cards
+}
+
+const shuffleArray = <T,>(arr: T[]): T[] => {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+const UnoGame = () => {
+  const [hands, setHands] = useState<UnoCard[][]>([[], [], [], []])
+  const [drawPile, setDrawPile] = useState<UnoCard[]>([])
+  const [currentCard, setCurrentCard] = useState<UnoCard | null>(null)
+  const [currentPlayer, setCurrentPlayer] = useState(0)
+  const [direction, setDirection] = useState(1)
+  const [phase, setPhase] = useState<'playing' | 'over'>('playing')
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const deck = shuffleArray(buildUnoDeck())
+    const newHands = [
+      deck.slice(0, 7),
+      deck.slice(7, 14),
+      deck.slice(14, 21),
+      deck.slice(21, 28),
+    ]
+    setHands(newHands)
+    setCurrentCard(deck[28])
+    setDrawPile(deck.slice(29))
+    setMessage('Your turn. Press 1-9 to play a card, [d] to draw.')
+  }, [])
+
+  const isValidPlay = (card: UnoCard): boolean => {
+    if (!currentCard) return false
+    return (
+      card.isWild ||
+      card.color === currentCard.color ||
+      card.unoValue === currentCard.unoValue
+    )
+  }
+
+  const nextPlayer = (skip = false): number => {
+    const step = skip ? direction * 2 : direction
+    return ((currentPlayer + step) % 4 + 4) % 4
+  }
+
+  const playCard = (playerIdx: number, cardIdx: number) => {
+    const card = hands[playerIdx][cardIdx]
+    if (!card || !isValidPlay(card)) {
+      setMessage('Invalid play.')
+      return
+    }
+
+    const newHands = hands.map((h, i) =>
+      i === playerIdx ? h.filter((_, j) => j !== cardIdx) : h
+    )
+    setHands(newHands)
+
+    let playedCard = card
+    if (card.isWild) {
+      // Pick most common color in hand (or random for AI)
+      const chosenColor = playerIdx === 0
+        ? UNO_COLORS[Math.floor(Math.random() * 4)]
+        : UNO_COLORS[Math.floor(Math.random() * 4)]
+      playedCard = { ...card, color: chosenColor, borderColor: chosenColor }
+    }
+
+    setCurrentCard(playedCard)
+
+    if (newHands[playerIdx].length === 0) {
+      setPhase('over')
+      setMessage(`Player ${playerIdx + 1} wins!`)
+      return
+    }
+
+    let nextDir = direction
+    if (card.unoValue === 'Reverse') nextDir = direction * -1
+    setDirection(nextDir)
+
+    let next = ((playerIdx + (card.unoValue === 'Skip' ? nextDir * 2 : nextDir)) % 4 + 4) % 4
+
+    if (card.unoValue === 'Draw Two') {
+      const target = ((playerIdx + nextDir) % 4 + 4) % 4
+      const drawn = drawPile.slice(0, 2)
+      setDrawPile(drawPile.slice(2))
+      const nh = [...newHands]
+      nh[target] = [...nh[target], ...drawn]
+      setHands(nh)
+      next = ((target + nextDir) % 4 + 4) % 4
+    }
+
+    if (card.unoValue === 'Wild Draw Four') {
+      const target = ((playerIdx + nextDir) % 4 + 4) % 4
+      const drawn = drawPile.slice(0, 4)
+      setDrawPile(drawPile.slice(4))
+      const nh = [...newHands]
+      nh[target] = [...nh[target], ...drawn]
+      setHands(nh)
+      next = ((target + nextDir) % 4 + 4) % 4
+    }
+
+    setCurrentPlayer(next)
+    if (next !== 0) {
+      setTimeout(() => aiTurn(next, newHands, playedCard, nextDir), 500)
+    } else {
+      setMessage('Your turn. Press 1-9 to play, [d] to draw.')
+    }
+  }
+
+  const aiTurn = (
+    playerIdx: number,
+    currentHands: UnoCard[][],
+    topCard: UnoCard,
+    dir: number,
+  ) => {
+    const hand = currentHands[playerIdx]
+    const playable = hand.findIndex(
+      (c) => c.isWild || c.color === topCard.color || c.unoValue === topCard.unoValue
+    )
+
+    if (playable >= 0) {
+      playCard(playerIdx, playable)
+    } else {
+      // Draw a card
+      if (drawPile.length > 0) {
+        const drawn = drawPile[0]
+        setDrawPile((dp) => dp.slice(1))
+        const nh = currentHands.map((h, i) =>
+          i === playerIdx ? [...h, drawn] : h
+        )
+        setHands(nh)
+      }
+
+      const next = ((playerIdx + dir) % 4 + 4) % 4
+      setCurrentPlayer(next)
+      if (next !== 0) {
+        setTimeout(() => aiTurn(next, currentHands, topCard, dir), 500)
+      } else {
+        setMessage('Your turn. Press 1-9 to play, [d] to draw.')
+      }
+    }
+  }
+
+  const drawCard = () => {
+    if (drawPile.length === 0) {
+      setMessage('No cards to draw.')
+      return
+    }
+    const card = drawPile[0]
+    setDrawPile(drawPile.slice(1))
+    const nh = hands.map((h, i) => (i === 0 ? [...h, card] : h))
+    setHands(nh)
+    setMessage('Drew a card. Press 1-9 to play, [d] to draw again.')
+  }
+
+  useInput((input) => {
+    if (phase === 'over' || currentPlayer !== 0) return
+    const idx = Number.parseInt(input, 10)
+    if (idx >= 1 && idx <= 9) playCard(0, idx - 1)
+    if (input === 'd') drawCard()
+  })
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Text>Uno</Text>
+      {currentCard && (
+        <Box>
+          <Text>Current: </Text>
+          <CustomCard {...currentCard} />
+        </Box>
+      )}
+      <Text>Your hand ({hands[0].length}):</Text>
+      <Box gap={1} flexWrap="wrap">
+        {hands[0].map((card, i) => (
+          <Box key={card.id} flexDirection="column">
+            <Text dimColor>{i + 1}</Text>
+            <CustomCard {...card} />
+          </Box>
+        ))}
+      </Box>
+      {hands.slice(1).map((hand, i) => (
+        <Text key={i}>Player {i + 2}: {hand.length} cards</Text>
+      ))}
+      <Text>Draw pile: {drawPile.length}</Text>
+      <Text>{message}</Text>
+      {phase === 'over' && <Text color="green">Game Over!</Text>}
+    </Box>
+  )
+}
+
+const App = () => (
   <DeckProvider>
     <UnoGame />
   </DeckProvider>
@@ -40,263 +264,12 @@ const App: React.FC = () => (
 export default App
 ```
 
-### 2. Defining Uno Cards
-
-First, let's define our Uno cards using the `CustomCard` component:
-
-```typescript
-const UNO_COLORS = ['red', 'blue', 'green', 'yellow']
-const UNO_NUMBERS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-const UNO_ACTIONS = ['Skip', 'Reverse', 'Draw Two']
-const UNO_WILD = ['Wild', 'Wild Draw Four']
-
-interface UnoCard {
-  color: string
-  value: string
-  isWild: boolean
-}
-
-const createUnoCard = (color: string, value: string): UnoCard => ({
-  color,
-  value,
-  isWild: UNO_WILD.includes(value),
-})
-
-const renderUnoCard = (card: UnoCard) => (
-  <CustomCard
-    size="small"
-    backgroundColor={card.isWild ? 'black' : card.color}
-    textColor={card.isWild || card.color === 'yellow' ? 'white' : 'black'}
-    title={card.value}
-    description={card.isWild ? 'Choose Color' : ''}
-  />
-)
-```
-
-### 3. Game State
-
-```typescript
-const UnoGame: React.FC = () => {
-  const { shuffle, draw } = useDeck()
-  const [players, setPlayers] = useState<UnoCard[][]>([[], [], [], []])
-  const [currentCard, setCurrentCard] = useState<UnoCard | null>(null)
-  const [currentPlayer, setCurrentPlayer] = useState(0)
-  const [direction, setDirection] = useState(1)
-  const [message, setMessage] = useState('')
-
-  // Rest of the component logic
-}
-```
-
-### 4. Game Initialization
-
-```typescript
-useEffect(() => {
-  startNewGame()
-}, [])
-
-const startNewGame = () => {
-  const deck: UnoCard[] = []
-  UNO_COLORS.forEach((color) => {
-    UNO_NUMBERS.forEach((number) => {
-      deck.push(createUnoCard(color, number))
-      if (number !== '0') {
-        deck.push(createUnoCard(color, number))
-      }
-    })
-    UNO_ACTIONS.forEach((action) => {
-      deck.push(createUnoCard(color, action))
-      deck.push(createUnoCard(color, action))
-    })
-  })
-  UNO_WILD.forEach((wild) => {
-    for (let i = 0; i < 4; i++) {
-      deck.push(createUnoCard('', wild))
-    }
-  })
-
-  shuffle(deck)
-  const newPlayers = [[], [], [], []]
-  for (let i = 0; i < 4; i++) {
-    newPlayers[i] = draw(7, deck)
-  }
-  setPlayers(newPlayers)
-  setCurrentCard(draw(1, deck)[0])
-  setCurrentPlayer(0)
-  setDirection(1)
-  setMessage('Your turn. Choose a card to play.')
-}
-```
-
-### 5. Core Game Logic
-
-```typescript
-const isValidPlay = (card: UnoCard): boolean => {
-  if (!currentCard) return false
-  return (
-    card.isWild ||
-    card.color === currentCard.color ||
-    card.value === currentCard.value
-  )
-}
-
-const playCard = (cardIndex: number) => {
-  const card = players[currentPlayer][cardIndex]
-  if (!isValidPlay(card)) {
-    setMessage('Invalid play. Choose another card.')
-    return
-  }
-
-  const newPlayers = [...players]
-  newPlayers[currentPlayer].splice(cardIndex, 1)
-  setPlayers(newPlayers)
-  setCurrentCard(card)
-
-  if (newPlayers[currentPlayer].length === 0) {
-    setMessage(`Player ${currentPlayer + 1} wins!`)
-    return
-  }
-
-  handleSpecialCard(card)
-  nextTurn()
-}
-
-const handleSpecialCard = (card: UnoCard) => {
-  switch (card.value) {
-    case 'Skip':
-      nextTurn()
-      break
-    case 'Reverse':
-      setDirection(direction * -1)
-      break
-    case 'Draw Two':
-      const nextPlayer = (currentPlayer + direction + 4) % 4
-      drawCards(nextPlayer, 2)
-      nextTurn()
-      break
-    case 'Wild Draw Four':
-      const wildNextPlayer = (currentPlayer + direction + 4) % 4
-      drawCards(wildNextPlayer, 4)
-      // In a real game, the current player would choose the color here
-      setCurrentCard({
-        ...card,
-        color: UNO_COLORS[Math.floor(Math.random() * 4)],
-      })
-      nextTurn()
-      break
-    case 'Wild':
-      // In a real game, the current player would choose the color here
-      setCurrentCard({
-        ...card,
-        color: UNO_COLORS[Math.floor(Math.random() * 4)],
-      })
-      break
-  }
-}
-
-const drawCards = (playerIndex: number, count: number) => {
-  const newPlayers = [...players]
-  const drawnCards = draw(count)
-  newPlayers[playerIndex] = [...newPlayers[playerIndex], ...drawnCards]
-  setPlayers(newPlayers)
-}
-
-const nextTurn = () => {
-  setCurrentPlayer((currentPlayer + direction + 4) % 4)
-  if ((currentPlayer + direction + 4) % 4 !== 0) {
-    setTimeout(playAI, 1000)
-  } else {
-    setMessage('Your turn. Choose a card to play.')
-  }
-}
-
-const playAI = () => {
-  const aiHand = players[currentPlayer]
-  const playableCards = aiHand.filter(isValidPlay)
-  if (playableCards.length > 0) {
-    const chosenCard =
-      playableCards[Math.floor(Math.random() * playableCards.length)]
-    playCard(aiHand.indexOf(chosenCard))
-  } else {
-    drawCards(currentPlayer, 1)
-    nextTurn()
-  }
-}
-```
-
-### 6. User Input Handling
-
-```typescript
-useInput((input, key) => {
-  if (currentPlayer === 0 && !isNaN(parseInt(input))) {
-    const cardIndex = parseInt(input) - 1
-    if (cardIndex >= 0 && cardIndex < players[0].length) {
-      playCard(cardIndex)
-    }
-  } else if (input === 'd') {
-    drawCards(0, 1)
-    nextTurn()
-  }
-})
-```
-
-### 7. Rendering
-
-```typescript
-return (
-  <Box flexDirection="column">
-    <Text>Uno Game</Text>
-    <Text>Current Card:</Text>
-    {currentCard && renderUnoCard(currentCard)}
-    <Text>Your Hand:</Text>
-    <Box>
-      {players[0].map((card, index) => (
-        <Box key={index} marginRight={1}>
-          {renderUnoCard(card)}
-          <Text>{index + 1}</Text>
-        </Box>
-      ))}
-    </Box>
-    <Text>Opponent Hands:</Text>
-    {players.slice(1).map((hand, playerIndex) => (
-      <Text key={playerIndex}>
-        Player {playerIndex + 2}: {hand.length} cards
-      </Text>
-    ))}
-    <Text>{message}</Text>
-    <Text>
-      Press 'd' to draw a card, or the number of the card you want to play.
-    </Text>
-  </Box>
-)
-```
-
 ## Key Concepts
 
-1. **Custom Cards**: This implementation showcases the use of `CustomCard` to create Uno-specific cards.
-2. **Multiple Players**: The game manages multiple players, including AI opponents.
-3. **Special Card Effects**: Uno includes special cards that affect game flow, requiring more complex game logic.
-4. **Color Matching**: The game involves matching cards by color or value, adding complexity to the move validation.
-
-## Error Handling and Edge Cases
-
-1. **Invalid Plays**: Ensure that only valid card plays are allowed.
-2. **Empty Deck**: Handle the case where the deck runs out of cards (reshuffle the discard pile).
-3. **Special Card Stacking**: Consider implementing rules for stacking Draw Two or Wild Draw Four cards.
-4. **Uno Call**: Implement the rule where players must call "Uno" when they have one card left.
-
-## Performance Considerations
-
-1. **Memoization**: Use React's `useMemo` or `useCallback` hooks to optimize rendering performance, especially for the AI logic.
-2. **Efficient State Updates**: When updating player hands or the current card, use efficient state update methods to avoid unnecessary re-renders.
-3. **AI Delay**: Implement the AI delay using `setTimeout` to avoid blocking the main thread.
-
-## Potential Enhancements
-
-1. Implement multiplayer support.
-2. Add more sophisticated AI strategies.
-3. Implement a scoring system for multiple rounds.
-4. Add animations for card plays and draws.
-5. Implement voice synthesis for "Uno" calls.
-
-This implementation provides a solid foundation for an Uno game using the `ink-playing-cards` library and showcases the use of the `CustomCard` component. It demonstrates how to manage complex game states, handle special card effects, and implement simple AI opponents in a terminal-based environment.
+- `CustomCard` component renders Uno cards with `title`, `borderColor`, `textColor`, `size`
+- Custom `UnoCard` type extends `CustomCardProps` with `color`, `unoValue`, `isWild`
+- Each card has a unique `id` (required for all `TCard` types)
+- Deck is built and shuffled locally — Uno uses a custom deck, not a standard 52-card deck
+- `DeckProvider` wraps the app for context even though cards are managed in local state
+- AI opponents play automatically with `setTimeout` for turn delays
+- Special cards (Skip, Reverse, Draw Two, Wild) modify game flow

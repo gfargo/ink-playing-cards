@@ -1,264 +1,138 @@
-# War Card Game Implementation Guide
+# War
 
-This guide demonstrates how to implement the card game "War" using the `ink-playing-cards` library and Ink for terminal-based rendering.
+A two-player War card game using `ink-playing-cards` and Ink.
 
-## Game Overview
+## Overview
 
-War is a simple card game typically played by two players. The objective is to win all the cards.
-
-## Game Rules
-
-1. The deck is divided evenly between two players.
-2. Each player reveals the top card of their deck simultaneously.
-3. The player with the higher card wins both cards and adds them to the bottom of their deck.
-4. If there's a tie, each player places three cards face down and then one card face up. The player with the higher face-up card wins all the cards. If there's another tie, repeat this process.
-5. The game ends when one player has all the cards.
+Each player reveals their top card. Higher card wins both. Ties trigger a "war" — three face-down cards plus one face-up decider.
 
 ## Implementation
 
-Let's break down the implementation into several steps:
-
-### 1. Setup and Imports
-
-First, we'll set up our project and import the necessary dependencies:
-
-```jsx
+```tsx
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
-```
+import {
+  DeckProvider,
+  useDeck,
+  Card,
+  type TCard,
+  isStandardCard,
+} from 'ink-playing-cards'
 
-### 2. Main Game Component
-
-Now, let's create our main game component:
-
-```jsx
-const WarGame = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [player1Deck, setPlayer1Deck] = useState([])
-  const [player2Deck, setPlayer2Deck] = useState([])
-  const [player1Card, setPlayer1Card] = useState(null)
-  const [player2Card, setPlayer2Card] = useState(null)
-  const [gameOver, setGameOver] = useState(false)
-  const [message, setMessage] = useState('')
-
-  // Game logic will go here
-
-  return (
-    // Render UI here
-  )
+// Card value for comparison (2=2, ..., A=14)
+const cardRank = (card: TCard): number => {
+  if (!isStandardCard(card)) return 0
+  const ranks: Record<string, number> = {
+    '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
+    '9': 9, '10': 10, J: 11, Q: 12, K: 13, A: 14,
+  }
+  return ranks[card.value] ?? 0
 }
-```
-
-### 3. Game Initialization
-
-We'll use `useEffect` to initialize the game when the component mounts:
-
-```jsx
-useEffect(() => {
-  shuffle()
-  const halfDeck = Math.floor(deck.cards.length / 2)
-  setPlayer1Deck(deck.cards.slice(0, halfDeck))
-  setPlayer2Deck(deck.cards.slice(halfDeck))
-  setMessage('Press space to play a round')
-}, [])
-```
-
-### 4. Game Logic
-
-Now, let's implement the core game logic:
-
-```jsx
-const playRound = () => {
-  if (player1Deck.length === 0 || player2Deck.length === 0) {
-    setGameOver(true)
-    setMessage(
-      `Game Over! ${player1Deck.length > 0 ? 'Player 1' : 'Player 2'} wins!`
-    )
-    return
-  }
-
-  const card1 = player1Deck.shift()
-  const card2 = player2Deck.shift()
-  setPlayer1Card(card1)
-  setPlayer2Card(card2)
-
-  if (card1.value > card2.value) {
-    setPlayer1Deck([...player1Deck, card1, card2])
-    setMessage('Player 1 wins the round!')
-  } else if (card2.value > card1.value) {
-    setPlayer2Deck([...player2Deck, card1, card2])
-    setMessage('Player 2 wins the round!')
-  } else {
-    handleWar(card1, card2)
-  }
-}
-
-const handleWar = (card1, card2) => {
-  setMessage('War!')
-  const warCards1 = player1Deck.splice(0, 3)
-  const warCards2 = player2Deck.splice(0, 3)
-
-  if (warCards1.length < 3 || warCards2.length < 3) {
-    // One player doesn't have enough cards for war
-    const winner =
-      warCards1.length >= warCards2.length ? 'Player 1' : 'Player 2'
-    setGameOver(true)
-    setMessage(`Game Over! ${winner} wins due to insufficient cards for war!`)
-    return
-  }
-
-  const warCard1 = warCards1[2]
-  const warCard2 = warCards2[2]
-
-  if (warCard1.value > warCard2.value) {
-    setPlayer1Deck([...player1Deck, card1, card2, ...warCards1, ...warCards2])
-    setMessage('Player 1 wins the war!')
-  } else if (warCard2.value > warCard1.value) {
-    setPlayer2Deck([...player2Deck, card1, card2, ...warCards1, ...warCards2])
-    setMessage('Player 2 wins the war!')
-  } else {
-    // Another tie, recursively handle another war
-    handleWar(warCard1, warCard2)
-  }
-}
-```
-
-### 5. User Input Handling
-
-We'll use Ink's `useInput` hook to handle user input:
-
-```jsx
-useInput((input, key) => {
-  if (input === ' ' && !gameOver) {
-    playRound()
-  }
-})
-```
-
-### 6. Rendering the Game State
-
-Finally, let's render the game state:
-
-```jsx
-return (
-  <Box flexDirection="column">
-    <Text>Player 1 Cards: {player1Deck.length}</Text>
-    <Text>Player 2 Cards: {player2Deck.length}</Text>
-    <Box marginY={1}>
-      <Box marginRight={2}>
-        <Text>Player 1:</Text>
-        {player1Card && <Card {...player1Card} />}
-      </Box>
-      <Box>
-        <Text>Player 2:</Text>
-        {player2Card && <Card {...player2Card} />}
-      </Box>
-    </Box>
-    <Text>{message}</Text>
-  </Box>
-)
-```
-
-### 7. Wrapping it All Together
-
-Here's the complete implementation:
-
-```jsx
-import React, { useState, useEffect } from 'react'
-import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
 
 const WarGame = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [player1Deck, setPlayer1Deck] = useState([])
-  const [player2Deck, setPlayer2Deck] = useState([])
-  const [player1Card, setPlayer1Card] = useState(null)
-  const [player2Card, setPlayer2Card] = useState(null)
+  const { deck, shuffle, deal, hands } = useDeck()
+  const [p1Card, setP1Card] = useState<TCard | null>(null)
+  const [p2Card, setP2Card] = useState<TCard | null>(null)
+  const [p1Pile, setP1Pile] = useState<TCard[]>([])
+  const [p2Pile, setP2Pile] = useState<TCard[]>([])
+  const [message, setMessage] = useState('Press space to play')
   const [gameOver, setGameOver] = useState(false)
-  const [message, setMessage] = useState('')
+  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     shuffle()
-    const halfDeck = Math.floor(deck.cards.length / 2)
-    setPlayer1Deck(deck.cards.slice(0, halfDeck))
-    setPlayer2Deck(deck.cards.slice(halfDeck))
-    setMessage('Press space to play a round')
+    deal(26, ['p1', 'p2'])
+    setInitialized(true)
   }, [])
 
+  // Once dealt, copy hands into local piles for game logic
+  useEffect(() => {
+    if (!initialized) return
+    const h1 = hands['p1'] ?? []
+    const h2 = hands['p2'] ?? []
+    if (h1.length > 0 && p1Pile.length === 0) {
+      setP1Pile([...h1])
+      setP2Pile([...h2])
+    }
+  }, [hands, initialized])
+
   const playRound = () => {
-    if (player1Deck.length === 0 || player2Deck.length === 0) {
+    if (p1Pile.length === 0 || p2Pile.length === 0) {
       setGameOver(true)
-      setMessage(
-        `Game Over! ${player1Deck.length > 0 ? 'Player 1' : 'Player 2'} wins!`
-      )
+      setMessage(p1Pile.length > 0 ? 'Player 1 wins!' : 'Player 2 wins!')
       return
     }
 
-    const card1 = player1Deck.shift()
-    const card2 = player2Deck.shift()
-    setPlayer1Card(card1)
-    setPlayer2Card(card2)
+    const c1 = p1Pile[0]
+    const c2 = p2Pile[0]
+    const rest1 = p1Pile.slice(1)
+    const rest2 = p2Pile.slice(1)
+    setP1Card(c1)
+    setP2Card(c2)
 
-    if (card1.value > card2.value) {
-      setPlayer1Deck([...player1Deck, card1, card2])
+    const r1 = cardRank(c1)
+    const r2 = cardRank(c2)
+
+    if (r1 > r2) {
+      setP1Pile([...rest1, c1, c2])
+      setP2Pile(rest2)
       setMessage('Player 1 wins the round!')
-    } else if (card2.value > card1.value) {
-      setPlayer2Deck([...player2Deck, card1, card2])
+    } else if (r2 > r1) {
+      setP1Pile(rest1)
+      setP2Pile([...rest2, c1, c2])
       setMessage('Player 2 wins the round!')
     } else {
-      handleWar(card1, card2)
+      // War: take up to 3 face-down + 1 face-up
+      const warCount = Math.min(4, rest1.length, rest2.length)
+      if (warCount === 0) {
+        setGameOver(true)
+        setMessage('War with no cards left — draw!')
+        return
+      }
+
+      const war1 = rest1.slice(0, warCount)
+      const war2 = rest2.slice(0, warCount)
+      const after1 = rest1.slice(warCount)
+      const after2 = rest2.slice(warCount)
+      const wr1 = cardRank(war1[war1.length - 1])
+      const wr2 = cardRank(war2[war2.length - 1])
+
+      if (wr1 >= wr2) {
+        setP1Pile([...after1, c1, c2, ...war1, ...war2])
+        setP2Pile(after2)
+        setMessage('War! Player 1 wins!')
+      } else {
+        setP1Pile(after1)
+        setP2Pile([...after2, c1, c2, ...war1, ...war2])
+        setMessage('War! Player 2 wins!')
+      }
     }
   }
 
-  const handleWar = (card1, card2) => {
-    setMessage('War!')
-    const warCards1 = player1Deck.splice(0, 3)
-    const warCards2 = player2Deck.splice(0, 3)
-
-    if (warCards1.length < 3 || warCards2.length < 3) {
-      const winner =
-        warCards1.length >= warCards2.length ? 'Player 1' : 'Player 2'
-      setGameOver(true)
-      setMessage(`Game Over! ${winner} wins due to insufficient cards for war!`)
-      return
-    }
-
-    const warCard1 = warCards1[2]
-    const warCard2 = warCards2[2]
-
-    if (warCard1.value > warCard2.value) {
-      setPlayer1Deck([...player1Deck, card1, card2, ...warCards1, ...warCards2])
-      setMessage('Player 1 wins the war!')
-    } else if (warCard2.value > warCard1.value) {
-      setPlayer2Deck([...player2Deck, card1, card2, ...warCards1, ...warCards2])
-      setMessage('Player 2 wins the war!')
-    } else {
-      handleWar(warCard1, warCard2)
-    }
-  }
-
-  useInput((input, key) => {
-    if (input === ' ' && !gameOver) {
-      playRound()
-    }
+  useInput((input) => {
+    if (input === ' ' && !gameOver) playRound()
   })
 
   return (
-    <Box flexDirection="column">
-      <Text>Player 1 Cards: {player1Deck.length}</Text>
-      <Text>Player 2 Cards: {player2Deck.length}</Text>
-      <Box marginY={1}>
-        <Box marginRight={2}>
+    <Box flexDirection="column" gap={1}>
+      <Text bold>War</Text>
+      <Text>P1: {p1Pile.length} cards | P2: {p2Pile.length} cards</Text>
+      <Box gap={2}>
+        <Box flexDirection="column">
           <Text>Player 1:</Text>
-          {player1Card && <Card {...player1Card} />}
+          {p1Card && isStandardCard(p1Card) ? (
+            <Card id={p1Card.id} suit={p1Card.suit} value={p1Card.value} faceUp variant="simple" />
+          ) : null}
         </Box>
-        <Box>
+        <Box flexDirection="column">
           <Text>Player 2:</Text>
-          {player2Card && <Card {...player2Card} />}
+          {p2Card && isStandardCard(p2Card) ? (
+            <Card id={p2Card.id} suit={p2Card.suit} value={p2Card.value} faceUp variant="simple" />
+          ) : null}
         </Box>
       </Box>
       <Text>{message}</Text>
+      {!gameOver && <Text>[space] Play round</Text>}
     </Box>
   )
 }
@@ -274,19 +148,7 @@ export default App
 
 ## Key Concepts
 
-1. **DeckProvider**: Wraps the entire application, providing deck management functionality.
-2. **useDeck Hook**: Gives access to deck operations like `shuffle` and `draw`.
-3. **Card Component**: Renders individual cards from the `ink-playing-cards` library.
-4. **State Management**: Uses React's `useState` to manage game state.
-5. **Side Effects**: Uses `useEffect` for game initialization.
-6. **User Input**: Uses Ink's `useInput` hook to handle user interactions.
-
-## Potential Enhancements
-
-1. Add animations for card movements.
-2. Implement a simple AI for single-player mode.
-3. Add sound effects for card plays and war scenarios.
-4. Implement a scoring system for multiple rounds.
-5. Add color and styling to make the game more visually appealing in the terminal.
-
-This implementation provides a solid foundation for the game of War and showcases how to use the `ink-playing-cards` library effectively. It can be further expanded and customized based on specific requirements or to add more advanced features.
+- `deal(26, ['p1', 'p2'])` splits the deck evenly between two players
+- Game logic uses local state (`p1Pile`, `p2Pile`) for card manipulation since War requires direct array operations
+- `cardRank()` converts card values to numeric ranks for comparison
+- `isStandardCard()` type guard ensures safe access to `suit` and `value`

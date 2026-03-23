@@ -1,446 +1,232 @@
-# Golf Card Game Implementation Guide
+# Golf Card Game
 
-This guide demonstrates how to implement the Golf card game using the `ink-playing-cards` library and Ink for terminal-based rendering. This version will be a two-player game where the user plays against an AI opponent.
+A two-player Golf card game (player vs AI) using `ink-playing-cards` and Ink.
 
-## Game Overview
+## Rules
 
-Golf is a card game for two or more players, aiming to earn the lowest number of points by making the best sets of cards.
-
-## Game Rules
-
-1. Each player is dealt 6 cards face down in a 3x2 grid.
-2. The remaining cards form a draw pile, and one card is turned face up to start the discard pile.
-3. Players can look at and swap the two cards in the bottom row of their grid at the start of the game.
-4. On each turn, a player can:
-   a) Draw the top card from the draw pile
-   b) Take the top card from the discard pile
-5. After drawing, the player can either:
-   a) Replace one of their face-down cards with the drawn card
-   b) Discard the drawn card
-6. If a player has three cards of the same rank in a column, those cards are removed from play.
-7. The round ends when one player has all their cards face up.
-8. Scoring:
-   - Number cards are worth their face value
-   - Face cards (J, Q, K) are worth 10 points
-   - Aces are worth 1 point
-   - Jokers are worth -2 points
-   - A pair of equal cards in the same column cancels out (worth 0 points)
+1. Each player gets 6 cards face down in a 2×3 grid.
+2. One card starts the discard pile; the rest form the draw pile.
+3. Players peek at their bottom two cards at the start.
+4. On each turn, draw from the draw pile or discard pile, then either replace a grid card or discard.
+5. Matching pairs in a column cancel out (0 points).
+6. Round ends when one player has all cards face up.
+7. Scoring: A=1, 2-10=face value, J/Q/K=10.
 
 ## Implementation
 
-Let's break down the implementation into several steps:
-
-### 1. Setup and Imports
-
-First, we'll set up our project and import the necessary dependencies:
-
-```jsx
+```tsx
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, Card, CardGrid } from 'ink-playing-cards'
-```
+import {
+  DeckProvider,
+  Card,
+  createStandardDeck,
+  type TCard,
+  isStandardCard,
+} from 'ink-playing-cards'
 
-### 2. Main Game Component
+type GridCard = { card: TCard; faceUp: boolean }
 
-Now, let's create our main game component:
-
-```jsx
-const GolfGame = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [playerGrid, setPlayerGrid] = useState([])
-  const [aiGrid, setAiGrid] = useState([])
-  const [drawPile, setDrawPile] = useState([])
-  const [discardPile, setDiscardPile] = useState([])
-  const [currentPlayer, setCurrentPlayer] = useState('player')
-  const [selectedCard, setSelectedCard] = useState(null)
-  const [gamePhase, setGamePhase] = useState('initial') // initial, main, endRound
-  const [message, setMessage] = useState('')
-
-  // Game logic will go here
-
-  return (
-    // Render UI here
-  )
-}
-```
-
-### 3. Game Initialization
-
-We'll use `useEffect` to initialize the game when the component mounts:
-
-```jsx
-useEffect(() => {
-  initializeGame()
-}, [])
-
-const initializeGame = () => {
-  shuffle()
-  const initialDraw = draw(13) // 6 for player, 6 for AI, 1 for discard pile
-  setPlayerGrid(
-    initialDraw.slice(0, 6).map((card) => ({ ...card, faceUp: false }))
-  )
-  setAiGrid(
-    initialDraw.slice(6, 12).map((card) => ({ ...card, faceUp: false }))
-  )
-  setDiscardPile([initialDraw[12]])
-  setDrawPile(deck.cards.filter((card) => !initialDraw.includes(card)))
-  setGamePhase('initial')
-  setMessage('Look at your bottom two cards. Click to flip them.')
-}
-```
-
-### 4. Game Logic
-
-Now, let's implement the core game logic:
-
-```jsx
-const flipInitialCards = (index) => {
-  if (gamePhase !== 'initial' || index < 4) return
-  const newGrid = [...playerGrid]
-  newGrid[index].faceUp = !newGrid[index].faceUp
-  setPlayerGrid(newGrid)
-  if (newGrid[4].faceUp && newGrid[5].faceUp) {
-    setGamePhase('main')
-    setMessage('Your turn. Draw a card from the deck or discard pile.')
-  }
+const scoreCard = (card: TCard): number => {
+  if (!isStandardCard(card)) return 0
+  if (card.value === 'A') return 1
+  if (['J', 'Q', 'K'].includes(card.value)) return 10
+  return Number.parseInt(card.value, 10)
 }
 
-const drawCard = (source) => {
-  if (currentPlayer !== 'player' || gamePhase !== 'main') return
-  if (source === 'deck') {
-    const [drawnCard] = draw(1)
-    setSelectedCard(drawnCard)
-  } else {
-    const [drawnCard, ...remainingDiscard] = discardPile
-    setSelectedCard(drawnCard)
-    setDiscardPile(remainingDiscard)
-  }
-  setMessage('Select a card to replace or discard the drawn card.')
-}
-
-const replaceCard = (index) => {
-  if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
-    return
-  const newGrid = [...playerGrid]
-  const replacedCard = newGrid[index]
-  newGrid[index] = { ...selectedCard, faceUp: true }
-  setPlayerGrid(newGrid)
-  setDiscardPile([replacedCard, ...discardPile])
-  setSelectedCard(null)
-  checkForTriples(newGrid)
-  if (newGrid.every((card) => card.faceUp)) {
-    endRound()
-  } else {
-    setCurrentPlayer('ai')
-    setMessage("AI's turn.")
-    setTimeout(aiTurn, 1000)
-  }
-}
-
-const discardDrawnCard = () => {
-  if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
-    return
-  setDiscardPile([selectedCard, ...discardPile])
-  setSelectedCard(null)
-  setCurrentPlayer('ai')
-  setMessage("AI's turn.")
-  setTimeout(aiTurn, 1000)
-}
-
-const checkForTriples = (grid) => {
-  for (let col = 0; col < 3; col++) {
-    if (grid[col].rank === grid[col + 3].rank) {
-      grid[col] = null
-      grid[col + 3] = null
-    }
-  }
-}
-
-const aiTurn = () => {
-  // Implement AI logic here
-  // For simplicity, let's make the AI always draw from the deck and replace a random face-down card
-  const [drawnCard] = draw(1)
-  const newGrid = [...aiGrid]
-  const faceDownIndices = newGrid.reduce((acc, card, index) => {
-    if (!card.faceUp) acc.push(index)
-    return acc
-  }, [])
-  const replaceIndex =
-    faceDownIndices[Math.floor(Math.random() * faceDownIndices.length)]
-  const replacedCard = newGrid[replaceIndex]
-  newGrid[replaceIndex] = { ...drawnCard, faceUp: true }
-  setAiGrid(newGrid)
-  setDiscardPile([replacedCard, ...discardPile])
-  checkForTriples(newGrid)
-  if (newGrid.every((card) => card.faceUp)) {
-    endRound()
-  } else {
-    setCurrentPlayer('player')
-    setMessage('Your turn. Draw a card from the deck or discard pile.')
-  }
-}
-
-const endRound = () => {
-  setGamePhase('endRound')
-  const playerScore = calculateScore(playerGrid)
-  const aiScore = calculateScore(aiGrid)
-  setMessage(`Round over! Your score: ${playerScore}, AI score: ${aiScore}`)
-}
-
-const calculateScore = (grid) => {
-  return grid.reduce((score, card) => {
-    if (!card) return score
-    if (card.rank === 'A') return score + 1
-    if (['J', 'Q', 'K'].includes(card.rank)) return score + 10
-    if (card.rank === 'Joker') return score - 2
-    return score + parseInt(card.rank)
-  }, 0)
-}
-```
-
-### 5. User Input Handling
-
-We'll use Ink's `useInput` hook to handle user input:
-
-```jsx
-useInput((input, key) => {
-  if (gamePhase === 'initial') {
-    if (input === '1') flipInitialCards(4)
-    if (input === '2') flipInitialCards(5)
-  } else if (gamePhase === 'main' && currentPlayer === 'player') {
-    if (input === 'd') drawCard('deck')
-    if (input === 'p') drawCard('discard')
-    if (selectedCard) {
-      if (input >= '1' && input <= '6') replaceCard(parseInt(input) - 1)
-      if (input === 'x') discardDrawnCard()
-    }
-  }
-})
-```
-
-### 6. Rendering the Game State
-
-Finally, let's render the game state:
-
-```jsx
-return (
-  <Box flexDirection="column">
-    <Text>Golf Card Game</Text>
-    <Text>AI's Grid:</Text>
-    <CardGrid cards={aiGrid} columns={3} />
-    <Text>Your Grid:</Text>
-    <CardGrid cards={playerGrid} columns={3} />
-    <Box marginY={1}>
-      <Text>Draw Pile: </Text>
-      <Card {...drawPile[0]} faceUp={false} />
-      <Text>Discard Pile: </Text>
-      <Card {...discardPile[0]} />
-    </Box>
-    {selectedCard && (
-      <Box marginY={1}>
-        <Text>Selected Card: </Text>
-        <Card {...selectedCard} />
-      </Box>
-    )}
-    <Text>{message}</Text>
-    {gamePhase === 'initial' && (
-      <Text>Press 1 or 2 to flip your bottom cards</Text>
-    )}
-    {gamePhase === 'main' && currentPlayer === 'player' && (
-      <Text>
-        {selectedCard
-          ? 'Press 1-6 to replace a card, or X to discard'
-          : 'Press D to draw from deck, P to draw from discard pile'}
-      </Text>
-    )}
-  </Box>
-)
-```
-
-### 7. Wrapping it All Together
-
-Here's the complete implementation:
-
-```jsx
-import React, { useState, useEffect } from 'react'
-import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, Card, CardGrid } from 'ink-playing-cards'
+const scoreGrid = (grid: (GridCard | null)[]): number =>
+  grid.reduce((sum, cell) => sum + (cell ? scoreCard(cell.card) : 0), 0)
 
 const GolfGame = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [playerGrid, setPlayerGrid] = useState([])
-  const [aiGrid, setAiGrid] = useState([])
-  const [drawPile, setDrawPile] = useState([])
-  const [discardPile, setDiscardPile] = useState([])
-  const [currentPlayer, setCurrentPlayer] = useState('player')
-  const [selectedCard, setSelectedCard] = useState(null)
-  const [gamePhase, setGamePhase] = useState('initial')
+  const [playerGrid, setPlayerGrid] = useState<(GridCard | null)[]>([])
+  const [aiGrid, setAiGrid] = useState<(GridCard | null)[]>([])
+  const [drawPile, setDrawPile] = useState<TCard[]>([])
+  const [discardPile, setDiscardPile] = useState<TCard[]>([])
+  const [drawn, setDrawn] = useState<TCard | null>(null)
+  const [turn, setTurn] = useState<'player' | 'ai'>('player')
+  const [phase, setPhase] = useState<'peek' | 'play' | 'over'>('peek')
+  const [peekCount, setPeekCount] = useState(0)
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    initializeGame()
+    const cards = createStandardDeck()
+    const pGrid = cards.slice(0, 6).map((c) => ({ card: c, faceUp: false }))
+    const aGrid = cards.slice(6, 12).map((c) => ({ card: c, faceUp: false }))
+    setPlayerGrid(pGrid)
+    setAiGrid(aGrid)
+    setDiscardPile([cards[12]])
+    setDrawPile(cards.slice(13))
+    setPhase('peek')
+    setPeekCount(0)
+    setMessage('Peek at 2 of your cards (press 1-6).')
   }, [])
 
-  const initializeGame = () => {
-    shuffle()
-    const initialDraw = draw(13)
-    setPlayerGrid(
-      initialDraw.slice(0, 6).map((card) => ({ ...card, faceUp: false }))
-    )
-    setAiGrid(
-      initialDraw.slice(6, 12).map((card) => ({ ...card, faceUp: false }))
-    )
-    setDiscardPile([initialDraw[12]])
-    setDrawPile(deck.cards.filter((card) => !initialDraw.includes(card)))
-    setGamePhase('initial')
-    setMessage('Look at your bottom two cards. Click to flip them.')
-  }
-
-  const flipInitialCards = (index) => {
-    if (gamePhase !== 'initial' || index < 4) return
-    const newGrid = [...playerGrid]
-    newGrid[index].faceUp = !newGrid[index].faceUp
-    setPlayerGrid(newGrid)
-    if (newGrid[4].faceUp && newGrid[5].faceUp) {
-      setGamePhase('main')
-      setMessage('Your turn. Draw a card from the deck or discard pile.')
+  const peek = (idx: number) => {
+    if (phase !== 'peek' || idx < 0 || idx > 5) return
+    if (playerGrid[idx]?.faceUp) return
+    const next = [...playerGrid]
+    next[idx] = { ...next[idx]!, faceUp: true }
+    setPlayerGrid(next)
+    const count = peekCount + 1
+    setPeekCount(count)
+    if (count >= 2) {
+      setPhase('play')
+      setMessage('[d] draw from pile, [p] take from discard.')
     }
   }
 
-  const drawCard = (source) => {
-    if (currentPlayer !== 'player' || gamePhase !== 'main') return
-    if (source === 'deck') {
-      const [drawnCard] = draw(1)
-      setSelectedCard(drawnCard)
-    } else {
-      const [drawnCard, ...remainingDiscard] = discardPile
-      setSelectedCard(drawnCard)
-      setDiscardPile(remainingDiscard)
-    }
-    setMessage('Select a card to replace or discard the drawn card.')
+  const drawFromPile = () => {
+    if (drawn || drawPile.length === 0) return
+    setDrawn(drawPile[0])
+    setDrawPile(drawPile.slice(1))
+    setMessage('Press 1-6 to replace a card, or [x] to discard.')
   }
 
-  const replaceCard = (index) => {
-    if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
-      return
-    const newGrid = [...playerGrid]
-    const replacedCard = newGrid[index]
-    newGrid[index] = { ...selectedCard, faceUp: true }
-    setPlayerGrid(newGrid)
-    setDiscardPile([replacedCard, ...discardPile])
-    setSelectedCard(null)
-    checkForTriples(newGrid)
-    if (newGrid.every((card) => card.faceUp)) {
+  const takeFromDiscard = () => {
+    if (drawn || discardPile.length === 0) return
+    setDrawn(discardPile[discardPile.length - 1])
+    setDiscardPile(discardPile.slice(0, -1))
+    setMessage('Press 1-6 to replace a card, or [x] to discard.')
+  }
+
+  const replaceCard = (idx: number) => {
+    if (!drawn || idx < 0 || idx > 5) return
+    const old = playerGrid[idx]
+    const next = [...playerGrid]
+    next[idx] = { card: drawn, faceUp: true }
+    setPlayerGrid(next)
+    if (old) setDiscardPile([...discardPile, old.card])
+    setDrawn(null)
+    checkColumnPairs(next, setPlayerGrid)
+    if (next.filter(Boolean).every((c) => c!.faceUp)) {
       endRound()
     } else {
-      setCurrentPlayer('ai')
-      setMessage("AI's turn.")
-      setTimeout(aiTurn, 1000)
+      doAiTurn()
     }
   }
 
-  const discardDrawnCard = () => {
-    if (!selectedCard || currentPlayer !== 'player' || gamePhase !== 'main')
-      return
-    setDiscardPile([selectedCard, ...discardPile])
-    setSelectedCard(null)
-    setCurrentPlayer('ai')
-    setMessage("AI's turn.")
-    setTimeout(aiTurn, 1000)
+  const discardDrawn = () => {
+    if (!drawn) return
+    setDiscardPile([...discardPile, drawn])
+    setDrawn(null)
+    doAiTurn()
   }
 
-  const checkForTriples = (grid) => {
+  const checkColumnPairs = (
+    grid: (GridCard | null)[],
+    setter: React.Dispatch<React.SetStateAction<(GridCard | null)[]>>
+  ) => {
+    const next = [...grid]
+    // Grid is 2 rows × 3 cols: indices 0-2 (top), 3-5 (bottom)
     for (let col = 0; col < 3; col++) {
-      if (grid[col].rank === grid[col + 3].rank) {
-        grid[col] = null
-        grid[col + 3] = null
+      const top = next[col]
+      const bot = next[col + 3]
+      if (
+        top?.faceUp && bot?.faceUp &&
+        isStandardCard(top.card) && isStandardCard(bot.card) &&
+        top.card.value === bot.card.value
+      ) {
+        next[col] = null
+        next[col + 3] = null
       }
     }
+    setter(next)
   }
 
-  const aiTurn = () => {
-    const [drawnCard] = draw(1)
-    const newGrid = [...aiGrid]
-    const faceDownIndices = newGrid.reduce((acc, card, index) => {
-      if (!card.faceUp) acc.push(index)
-      return acc
-    }, [])
-    const replaceIndex =
-      faceDownIndices[Math.floor(Math.random() * faceDownIndices.length)]
-    const replacedCard = newGrid[replaceIndex]
-    newGrid[replaceIndex] = { ...drawnCard, faceUp: true }
-    setAiGrid(newGrid)
-    setDiscardPile([replacedCard, ...discardPile])
-    checkForTriples(newGrid)
-    if (newGrid.every((card) => card.faceUp)) {
-      endRound()
-    } else {
-      setCurrentPlayer('player')
-      setMessage('Your turn. Draw a card from the deck or discard pile.')
-    }
+  const doAiTurn = () => {
+    setTurn('ai')
+    setTimeout(() => {
+      // Simple AI: draw from pile, replace a random face-down card
+      if (drawPile.length === 0) {
+        endRound()
+        return
+      }
+
+      const card = drawPile[0]
+      setDrawPile((prev) => prev.slice(1))
+      const faceDownIndices = aiGrid
+        .map((c, i) => (c && !c.faceUp ? i : -1))
+        .filter((i) => i >= 0)
+
+      if (faceDownIndices.length > 0) {
+        const idx = faceDownIndices[Math.floor(Math.random() * faceDownIndices.length)]
+        const old = aiGrid[idx]
+        const next = [...aiGrid]
+        next[idx] = { card, faceUp: true }
+        setAiGrid(next)
+        if (old) setDiscardPile((prev) => [...prev, old.card])
+        checkColumnPairs(next, setAiGrid)
+        if (next.filter(Boolean).every((c) => c!.faceUp)) {
+          endRound()
+          return
+        }
+      } else {
+        setDiscardPile((prev) => [...prev, card])
+      }
+
+      setTurn('player')
+      setMessage('[d] draw from pile, [p] take from discard.')
+    }, 800)
   }
 
   const endRound = () => {
-    setGamePhase('endRound')
-    const playerScore = calculateScore(playerGrid)
-    const aiScore = calculateScore(aiGrid)
-    setMessage(`Round over! Your score: ${playerScore}, AI score: ${aiScore}`)
+    // Flip all remaining cards
+    setPlayerGrid((g) => g.map((c) => (c ? { ...c, faceUp: true } : null)))
+    setAiGrid((g) => g.map((c) => (c ? { ...c, faceUp: true } : null)))
+    setPhase('over')
+    const ps = scoreGrid(playerGrid)
+    const as_ = scoreGrid(aiGrid)
+    setMessage(`Round over! You: ${ps} | AI: ${as_}. ${ps < as_ ? 'You win!' : ps > as_ ? 'AI wins!' : 'Tie!'}`)
   }
 
-  const calculateScore = (grid) => {
-    return grid.reduce((score, card) => {
-      if (!card) return score
-      if (card.rank === 'A') return score + 1
-      if (['J', 'Q', 'K'].includes(card.rank)) return score + 10
-      if (card.rank === 'Joker') return score - 2
-      return score + parseInt(card.rank)
-    }, 0)
-  }
+  useInput((input) => {
+    if (phase === 'over') return
+    if (phase === 'peek') {
+      const idx = Number.parseInt(input, 10)
+      if (idx >= 1 && idx <= 6) peek(idx - 1)
+      return
+    }
 
-  useInput((input, key) => {
-    if (gamePhase === 'initial') {
-      if (input === '1') flipInitialCards(4)
-      if (input === '2') flipInitialCards(5)
-    } else if (gamePhase === 'main' && currentPlayer === 'player') {
-      if (input === 'd') drawCard('deck')
-      if (input === 'p') drawCard('discard')
-      if (selectedCard) {
-        if (input >= '1' && input <= '6') replaceCard(parseInt(input) - 1)
-        if (input === 'x') discardDrawnCard()
-      }
+    if (turn !== 'player') return
+    if (!drawn) {
+      if (input === 'd') drawFromPile()
+      if (input === 'p') takeFromDiscard()
+    } else {
+      const idx = Number.parseInt(input, 10)
+      if (idx >= 1 && idx <= 6) replaceCard(idx - 1)
+      if (input === 'x') discardDrawn()
     }
   })
 
-  return (
+  const renderGrid = (grid: (GridCard | null)[], label: string) => (
     <Box flexDirection="column">
-      <Text>Golf Card Game</Text>
-      <Text>AI's Grid:</Text>
-      <CardGrid cards={aiGrid} columns={3} />
-      <Text>Your Grid:</Text>
-      <CardGrid cards={playerGrid} columns={3} />
-      <Box marginY={1}>
-        <Text>Draw Pile: </Text>
-        <Card {...drawPile[0]} faceUp={false} />
-        <Text>Discard Pile: </Text>
-        <Card {...discardPile[0]} />
-      </Box>
-      {selectedCard && (
-        <Box marginY={1}>
-          <Text>Selected Card: </Text>
-          <Card {...selectedCard} />
+      <Text>{label}</Text>
+      {[0, 1].map((row) => (
+        <Box key={row} gap={1}>
+          {[0, 1, 2].map((col) => {
+            const cell = grid[row * 3 + col]
+            if (!cell) return <Text key={col} dimColor>  ×  </Text>
+            if (!cell.faceUp) return <Text key={col}> [?] </Text>
+            return isStandardCard(cell.card) ? (
+              <Text key={col}> {cell.card.value}{cell.card.suit[0]} </Text>
+            ) : (
+              <Text key={col}> ??? </Text>
+            )
+          })}
         </Box>
-      )}
+      ))}
+    </Box>
+  )
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Text>Golf Card Game</Text>
+      {renderGrid(aiGrid, 'AI:')}
+      {renderGrid(playerGrid, 'You:')}
+      {drawn && isStandardCard(drawn) && <Text>Drawn: {drawn.value} of {drawn.suit}</Text>}
+      <Text>Discard top: {discardPile.length > 0 && isStandardCard(discardPile[discardPile.length - 1]) ? `${(discardPile[discardPile.length - 1] as any).value}` : '(empty)'}</Text>
+      <Text>Draw pile: {drawPile.length}</Text>
       <Text>{message}</Text>
-      {gamePhase === 'initial' && (
-        <Text>Press 1 or 2 to flip your bottom cards</Text>
-      )}
-      {gamePhase === 'main' && currentPlayer === 'player' && (
-        <Text>
-          {selectedCard
-            ? 'Press 1-6 to replace a card, or X to discard'
-            : 'Press D to draw from deck, P to draw from discard pile'}
-        </Text>
-      )}
     </Box>
   )
 }
@@ -456,25 +242,8 @@ export default App
 
 ## Key Concepts
 
-1. **DeckProvider**: Wraps the entire application, providing deck management functionality.
-2. **useDeck Hook**: Gives access to deck operations like `shuffle` and `draw`.
-3. **Card Component**: Renders individual cards from the `ink-playing-cards` library.
-4. **CardGrid Component**: Renders a grid of cards, used for player and AI hands.
-5. **State Management**: Uses React's `useState` to manage game state, including player and AI grids, draw and discard piles, game phase, and current player.
-6. **Side Effects**: Uses `useEffect` for game initialization.
-7. **User Input**: Uses Ink's `useInput` hook to handle user interactions for card selection and actions.
-8. **AI Logic**: Implements a simple AI opponent that makes random moves.
-9. **Scoring System**: Implements the Golf scoring rules, including special cases for face cards and Jokers.
-
-## Potential Enhancements
-
-1. Implement a more sophisticated AI strategy.
-2. Add support for multiple rounds and keeping a cumulative score.
-3. Implement a multiplayer mode for 2-4 players.
-4. Add animations for card movements and flips.
-5. Implement a save/load feature for game state persistence.
-6. Add sound effects for card actions and end-of-round results.
-7. Enhance the UI with colors and custom card designs.
-8. Add difficulty levels for the AI opponent.
-
-This implementation provides a solid foundation for the Golf card game and showcases how to use the `ink-playing-cards` library effectively in a more complex game scenario. It demonstrates the use of various components and hooks from the library, as well as how to implement game-specific logic and AI behavior.
+- `createStandardDeck()` for generating cards with unique `id`s
+- `isStandardCard(card)` type guard before accessing `suit` / `value`
+- Local state management for the 2×3 grids, draw pile, and discard pile
+- Column pair cancellation: matching values in the same column are removed
+- Simple AI opponent that draws and replaces face-down cards randomly

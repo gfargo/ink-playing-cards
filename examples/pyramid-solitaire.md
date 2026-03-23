@@ -1,34 +1,198 @@
-# Implementing Pyramid Solitaire with ink-playing-cards
+# Pyramid Solitaire
 
-This guide demonstrates how to create a Pyramid Solitaire game using the `ink-playing-cards` library and the `ink` library for terminal-based rendering.
+Remove all cards from a pyramid by pairing cards that sum to 13. Kings (value 13) are removed alone.
 
-## Game Overview
+## Rules
 
-Pyramid Solitaire is a single-player card game where the objective is to remove all the cards from a pyramid by pairing them to 13. Kings (value 13) are removed singularly.
-
-## Key Concepts
-
-1. **DeckProvider**: Manages the deck state.
-2. **useDeck Hook**: Provides deck operations like `shuffle` and `draw`.
-3. **Card Component**: Renders individual cards.
-4. **Pyramid Structure**: Manages the pyramid of cards.
-5. **Waste Pile**: Manages the waste pile for drawn cards.
-6. **Pairing Logic**: Handles the pairing of cards that sum to 13.
+1. Deal 28 cards in a 7-row pyramid (row _i_ has _i+1_ cards).
+2. Remaining 24 cards form the stock.
+3. Only uncovered cards (no cards overlapping from below) can be selected.
+4. Pair two uncovered cards whose values sum to 13, or remove a lone King.
+5. Draw from stock to waste when stuck; waste top card can be paired.
+6. Win by clearing the entire pyramid.
 
 ## Implementation
 
-### 1. Setup and Imports
-
-```typescript
+```tsx
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
+import {
+  DeckProvider,
+  MiniCard,
+  createStandardDeck,
+  type TCard,
+  isStandardCard,
+} from 'ink-playing-cards'
 
-const PyramidSolitaire: React.FC = () => {
-  // Component logic will go here
+const cardNumericValue = (card: TCard): number => {
+  if (!isStandardCard(card)) return 0
+  const map: Record<string, number> = {
+    A: 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7,
+    '8': 8, '9': 9, '10': 10, J: 11, Q: 12, K: 13,
+  }
+  return map[card.value] ?? 0
 }
 
-const App: React.FC = () => (
+const PyramidSolitaire = () => {
+  const [pyramid, setPyramid] = useState<(TCard | null)[][]>([])
+  const [stock, setStock] = useState<TCard[]>([])
+  const [waste, setWaste] = useState<TCard[]>([])
+  const [selected, setSelected] = useState<{ row: number; col: number } | null>(null)
+  const [score, setScore] = useState(0)
+  const [phase, setPhase] = useState<'playing' | 'won' | 'lost'>('playing')
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const cards = createStandardDeck()
+    const pyr: (TCard | null)[][] = []
+    let idx = 0
+    for (let row = 0; row < 7; row++) {
+      const r: TCard[] = []
+      for (let col = 0; col <= row; col++) {
+        r.push(cards[idx++])
+      }
+      pyr.push(r)
+    }
+    setPyramid(pyr)
+    setStock(cards.slice(28))
+    setMessage('[r,c] select card | [d] draw from stock | [w] pair with waste')
+  }, [])
+
+  const isUncovered = (row: number, col: number): boolean => {
+    if (row === pyramid.length - 1) return true
+    const nextRow = pyramid[row + 1]
+    if (!nextRow) return true
+    return nextRow[col] === null && nextRow[col + 1] === null
+  }
+
+  const selectCard = (row: number, col: number) => {
+    const card = pyramid[row]?.[col]
+    if (!card || !isUncovered(row, col)) {
+      setMessage('Card is covered or empty.')
+      return
+    }
+
+    const val = cardNumericValue(card)
+    if (val === 13) {
+      // King — remove alone
+      removeCards([{ row, col }])
+      return
+    }
+
+    if (selected) {
+      const selCard = pyramid[selected.row]?.[selected.col]
+      if (selCard && cardNumericValue(selCard) + val === 13) {
+        removeCards([selected, { row, col }])
+      } else {
+        setSelected({ row, col })
+        setMessage('Selected. Pick another card that sums to 13.')
+      }
+    } else {
+      setSelected({ row, col })
+      setMessage(`Selected ${isStandardCard(card) ? card.value : '?'}. Pick a pair or King.`)
+    }
+  }
+
+  const pairWithWaste = () => {
+    if (waste.length === 0 || !selected) {
+      setMessage('Select a pyramid card first, and have a waste card.')
+      return
+    }
+    const wasteCard = waste[waste.length - 1]
+    const pyrCard = pyramid[selected.row]?.[selected.col]
+    if (!pyrCard) return
+    if (cardNumericValue(pyrCard) + cardNumericValue(wasteCard) === 13) {
+      const next = pyramid.map((r) => [...r])
+      next[selected.row][selected.col] = null
+      setPyramid(next)
+      setWaste(waste.slice(0, -1))
+      setSelected(null)
+      setScore((s) => s + 2)
+      setMessage('Paired with waste!')
+      checkWin(next)
+    } else {
+      setMessage('Does not sum to 13.')
+    }
+  }
+
+  const removeCards = (positions: { row: number; col: number }[]) => {
+    const next = pyramid.map((r) => [...r])
+    for (const { row, col } of positions) {
+      next[row][col] = null
+    }
+    setPyramid(next)
+    setSelected(null)
+    setScore((s) => s + positions.length)
+    setMessage('Removed!')
+    checkWin(next)
+  }
+
+  const drawFromStock = () => {
+    if (stock.length === 0) {
+      setMessage('Stock is empty.')
+      return
+    }
+    setWaste([...waste, stock[0]])
+    setStock(stock.slice(1))
+    setMessage('Drew from stock.')
+  }
+
+  const checkWin = (pyr: (TCard | null)[][]) => {
+    if (pyr.every((row) => row.every((c) => c === null))) {
+      setPhase('won')
+      setMessage(`You win! Score: ${score}`)
+    }
+  }
+
+  useInput((input) => {
+    if (phase !== 'playing') return
+    if (input === 'd') drawFromStock()
+    if (input === 'w') pairWithWaste()
+    // Row,col selection: e.g. '1' selects row cursor, then col
+    // Simplified: number keys 1-7 for bottom row quick select
+    const idx = Number.parseInt(input, 10)
+    if (idx >= 1 && idx <= 7) {
+      selectCard(6, idx - 1)
+    }
+  })
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Text>Pyramid Solitaire — Score: {score}</Text>
+      {pyramid.map((row, ri) => (
+        <Box key={ri} justifyContent="center" gap={1}>
+          {row.map((card, ci) => (
+            <Box key={ci}>
+              {card && isStandardCard(card) ? (
+                <MiniCard
+                  id={card.id}
+                  suit={card.suit}
+                  value={card.value}
+                  faceUp
+                  selected={selected?.row === ri && selected?.col === ci}
+                />
+              ) : (
+                <Text dimColor> · </Text>
+              )}
+            </Box>
+          ))}
+        </Box>
+      ))}
+      <Box gap={2}>
+        <Text>Stock: {stock.length}</Text>
+        <Text>
+          Waste: {waste.length > 0 && isStandardCard(waste[waste.length - 1])
+            ? (waste[waste.length - 1] as any).value
+            : '-'}
+        </Text>
+      </Box>
+      <Text>{message}</Text>
+      {phase === 'won' && <Text color="green">Congratulations!</Text>}
+    </Box>
+  )
+}
+
+const App = () => (
   <DeckProvider>
     <PyramidSolitaire />
   </DeckProvider>
@@ -37,206 +201,11 @@ const App: React.FC = () => (
 export default App
 ```
 
-### 2. Game State
-
-```typescript
-const PyramidSolitaire: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [pyramid, setPyramid] = useState<(Card | null)[][]>([])
-  const [wastePile, setWastePile] = useState<Card[]>([])
-  const [stockPile, setStockPile] = useState<Card[]>([])
-  const [score, setScore] = useState(0)
-  const [selectedCard, setSelectedCard] = useState<{
-    row: number
-    col: number
-  } | null>(null)
-  const [message, setMessage] = useState('')
-
-  // Rest of the component logic
-}
-```
-
-### 3. Game Initialization
-
-```typescript
-useEffect(() => {
-  startNewGame()
-}, [])
-
-const startNewGame = () => {
-  shuffle()
-  const newPyramid: (Card | null)[][] = []
-  for (let i = 0; i < 7; i++) {
-    newPyramid.push(draw(i + 1))
-  }
-  setPyramid(newPyramid)
-  setStockPile(draw(24))
-  setWastePile([])
-  setScore(0)
-  setSelectedCard(null)
-  setMessage('New game started. Select cards that sum to 13.')
-}
-```
-
-### 4. Game Logic
-
-```typescript
-const selectCard = (row: number, col: number) => {
-  const card = pyramid[row][col]
-  if (!card || !isCardSelectable(row, col)) return
-
-  if (selectedCard) {
-    if (selectedCard.row === row && selectedCard.col === col) {
-      setSelectedCard(null)
-    } else {
-      const selectedPyramidCard = pyramid[selectedCard.row][selectedCard.col]
-      if (
-        selectedPyramidCard &&
-        cardValue(card) + cardValue(selectedPyramidCard) === 13
-      ) {
-        removeCards(selectedCard.row, selectedCard.col, row, col)
-      } else {
-        setSelectedCard({ row, col })
-      }
-    }
-  } else {
-    if (cardValue(card) === 13) {
-      removeCards(row, col)
-    } else {
-      setSelectedCard({ row, col })
-    }
-  }
-}
-
-const isCardSelectable = (row: number, col: number): boolean => {
-  if (row === pyramid.length - 1) return true
-  return !pyramid[row + 1][col] && !pyramid[row + 1][col + 1]
-}
-
-const cardValue = (card: Card): number => {
-  if (['J', 'Q', 'K'].includes(card.rank))
-    return 10 + ['J', 'Q', 'K'].indexOf(card.rank) + 1
-  if (card.rank === 'A') return 1
-  return parseInt(card.rank)
-}
-
-const removeCards = (
-  row1: number,
-  col1: number,
-  row2?: number,
-  col2?: number
-) => {
-  const newPyramid = [...pyramid]
-  newPyramid[row1][col1] = null
-  if (row2 !== undefined && col2 !== undefined) {
-    newPyramid[row2][col2] = null
-  }
-  setPyramid(newPyramid)
-  setScore(score + 1)
-  setSelectedCard(null)
-  checkForWin()
-}
-
-const drawFromStock = () => {
-  if (stockPile.length > 0) {
-    const [drawnCard, ...remainingStock] = stockPile
-    setWastePile([drawnCard, ...wastePile])
-    setStockPile(remainingStock)
-  } else {
-    setStockPile(wastePile.reverse())
-    setWastePile([])
-  }
-}
-
-const checkForWin = () => {
-  if (pyramid.every((row) => row.every((card) => card === null))) {
-    setMessage(`Congratulations! You've won with a score of ${score}!`)
-  }
-}
-```
-
-### 5. User Input Handling
-
-```typescript
-useInput((input, key) => {
-  if (key.leftArrow || key.rightArrow || key.upArrow || key.downArrow) {
-    // Move selection
-    // Implement logic to move selection based on arrow keys
-  } else if (input === ' ') {
-    // Select card
-    if (selectedCard) {
-      selectCard(selectedCard.row, selectedCard.col)
-    }
-  } else if (input === 'd') {
-    // Draw from stock
-    drawFromStock()
-  }
-})
-```
-
-### 6. Rendering
-
-```typescript
-return (
-  <Box flexDirection="column">
-    <Text>Pyramid Solitaire</Text>
-    <Text>Score: {score}</Text>
-    <Text>{message}</Text>
-    {pyramid.map((row, rowIndex) => (
-      <Box key={rowIndex}>
-        {row.map((card, colIndex) => (
-          <Box key={colIndex} marginRight={1}>
-            {card ? (
-              <Card
-                {...card}
-                faceUp
-                selected={
-                  selectedCard?.row === rowIndex &&
-                  selectedCard?.col === colIndex
-                }
-              />
-            ) : (
-              <Box width={6} height={4} />
-            )}
-          </Box>
-        ))}
-      </Box>
-    ))}
-    <Box marginY={1}>
-      <Text>Stock: </Text>
-      {stockPile.length > 0 && <Card {...stockPile[0]} faceUp={false} />}
-      <Text marginLeft={2}>Waste: </Text>
-      {wastePile.length > 0 && <Card {...wastePile[0]} faceUp />}
-    </Box>
-    <Text>Press space to select/deselect, 'd' to draw from stock</Text>
-  </Box>
-)
-```
-
 ## Key Concepts
 
-1. **Pyramid Structure**: The game uses a pyramid of cards, with each row having one more card than the row above it.
-2. **Card Pairing**: Players need to pair cards that sum to 13, with face cards having values of 11-13.
-3. **Stock and Waste Piles**: Players can draw from a stock pile when they run out of moves in the pyramid.
-4. **Scoring**: The game keeps track of the number of pairs removed.
-
-## Error Handling and Edge Cases
-
-1. **Empty Stock Pile**: Handle the case when the stock pile is empty by reshuffling the waste pile.
-2. **No More Moves**: Detect when there are no more possible moves and end the game.
-3. **Invalid Selections**: Prevent selection of cards that are not at the bottom of the pyramid or covered by other cards.
-
-## Performance Considerations
-
-1. **Pyramid Updates**: Optimize the way the pyramid is updated to minimize re-renders.
-2. **Move Validation**: Implement efficient move validation to quickly determine if a move is legal.
-
-## Potential Enhancements
-
-1. Implement an undo feature.
-2. Add a hint system to suggest possible moves.
-3. Implement different scoring systems (e.g., based on time or number of moves).
-4. Add animations for card removal and movement.
-5. Implement different difficulty levels by changing the size of the pyramid.
-
-This implementation provides a foundation for a Pyramid Solitaire game using the `ink-playing-cards` library. It demonstrates how to manage a complex card layout, implement game-specific logic, and create an interactive single-player experience in a terminal-based environment.
+- `createStandardDeck()` generates 52 cards with unique `id`s
+- `MiniCard` for compact pyramid layout in the terminal
+- `isStandardCard(card)` type guard before accessing `suit` / `value`
+- Pyramid stored as a 2D array of `TCard | null` — null means removed
+- `isUncovered()` checks that both children in the row below are null
+- Pairing logic: two cards summing to 13, or a lone King (value 13)

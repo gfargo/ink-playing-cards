@@ -1,37 +1,233 @@
-# Implementing Klondike Solitaire with ink-playing-cards
+# Klondike Solitaire
 
-This guide demonstrates how to create a single-player Klondike Solitaire game using the `ink-playing-cards` library and the `ink` library for terminal-based rendering.
+The classic solitaire game — build four foundation piles (Ace to King) by suit.
 
-## Game Overview
+## Rules
 
-Klondike Solitaire is a classic single-player card game. The objective is to build up four foundation piles from Ace to King for each suit, using cards from the tableau and the stock pile.
-
-## Key Concepts
-
-Before we dive into the implementation, let's review some key concepts:
-
-1. **DeckProvider**: A context provider from `ink-playing-cards` that manages the deck state.
-2. **useDeck Hook**: A custom hook that gives us access to deck operations like `shuffle` and `draw`.
-3. **Card Component**: Used to render individual cards in various game areas.
-4. **Game State Management**: We'll use React's `useState` to manage the game state, including tableau, foundation, stock, and waste piles.
-5. **Side Effects**: We'll use `useEffect` for game initialization.
-6. **User Input Handling**: We'll use Ink's `useInput` hook to handle player actions.
-7. **Conditional Rendering**: We'll use conditional rendering to display different UI elements based on the game state.
+1. Deal 7 tableau columns: column _i_ gets _i+1_ cards, top card face up.
+2. Remaining 24 cards form the stock.
+3. Move cards between tableau columns in descending rank, alternating colors.
+4. Only Kings can fill empty tableau columns.
+5. Build foundations up by suit from Ace to King.
+6. Draw from stock to waste; play waste top card to tableau or foundation.
+7. Win when all 4 foundations are complete (13 cards each).
 
 ## Implementation
 
-### 1. Setup and Imports
-
-```typescript
+```tsx
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
+import {
+  DeckProvider,
+  MiniCard,
+  createStandardDeck,
+  type TCard,
+  isStandardCard,
+} from 'ink-playing-cards'
 
-const KlondikeSolitaire: React.FC = () => {
-  // Component logic will go here
+type PileCard = TCard & { faceUp: boolean }
+
+const RANK_ORDER = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']
+const rankIndex = (card: TCard): number =>
+  isStandardCard(card) ? RANK_ORDER.indexOf(card.value) : -1
+
+const isRed = (card: TCard): boolean =>
+  isStandardCard(card) && ['hearts', 'diamonds'].includes(card.suit)
+
+const KlondikeSolitaire = () => {
+  const [tableau, setTableau] = useState<PileCard[][]>([])
+  const [foundations, setFoundations] = useState<TCard[][]>([[], [], [], []])
+  const [stock, setStock] = useState<TCard[]>([])
+  const [waste, setWaste] = useState<TCard[]>([])
+  const [cursor, setCursor] = useState(0)
+  const [selected, setSelected] = useState<number | null>(null)
+  const [phase, setPhase] = useState<'playing' | 'won'>('playing')
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const cards = createStandardDeck()
+    const tab: PileCard[][] = []
+    let idx = 0
+    for (let i = 0; i < 7; i++) {
+      const col: PileCard[] = []
+      for (let j = 0; j <= i; j++) {
+        col.push({ ...cards[idx], faceUp: j === i } as PileCard)
+        idx++
+      }
+      tab.push(col)
+    }
+    setTableau(tab)
+    setStock(cards.slice(idx))
+    setMessage('[←/→] move | [space] select | [d] draw | [f] to foundation')
+  }, [])
+
+  const topOf = (pile: TCard[]) => pile[pile.length - 1]
+
+  const canPlaceOnTableau = (card: TCard, col: PileCard[]): boolean => {
+    if (col.length === 0) return isStandardCard(card) && card.value === 'K'
+    const top = topOf(col)
+    return (
+      isStandardCard(card) && isStandardCard(top) &&
+      isRed(card) !== isRed(top) &&
+      rankIndex(card) === rankIndex(top) - 1
+    )
+  }
+
+  const canPlaceOnFoundation = (card: TCard, pile: TCard[]): boolean => {
+    if (!isStandardCard(card)) return false
+    if (pile.length === 0) return card.value === 'A'
+    const top = topOf(pile)
+    return (
+      isStandardCard(top) &&
+      card.suit === top.suit &&
+      rankIndex(card) === rankIndex(top) + 1
+    )
+  }
+
+  const drawFromStock = () => {
+    if (stock.length === 0) {
+      setStock([...waste].reverse())
+      setWaste([])
+      setMessage('Recycled waste to stock.')
+    } else {
+      const card = stock[stock.length - 1]
+      setStock(stock.slice(0, -1))
+      setWaste([...waste, card])
+      setMessage('Drew a card.')
+    }
+  }
+
+  const tryMoveToFoundation = (colIdx: number) => {
+    const col = tableau[colIdx]
+    if (!col || col.length === 0) return
+    const card = col[col.length - 1]
+    if (!card.faceUp) return
+
+    const fIdx = foundations.findIndex((f) => canPlaceOnFoundation(card, f))
+    if (fIdx < 0) {
+      setMessage('Cannot move to foundation.')
+      return
+    }
+
+    const nextTab = tableau.map((c, i) => (i === colIdx ? c.slice(0, -1) : c))
+    // Flip new top card
+    if (nextTab[colIdx].length > 0) {
+      const top = nextTab[colIdx][nextTab[colIdx].length - 1]
+      if (!top.faceUp) nextTab[colIdx] = [...nextTab[colIdx].slice(0, -1), { ...top, faceUp: true }]
+    }
+    setTableau(nextTab)
+    setFoundations(foundations.map((f, i) => (i === fIdx ? [...f, card] : f)))
+    setMessage('Moved to foundation.')
+    if (foundations.every((f, i) => (i === fIdx ? f.length + 1 : f.length) === 13)) {
+      setPhase('won')
+      setMessage('You win!')
+    }
+  }
+
+  const moveColumn = (fromIdx: number, toIdx: number) => {
+    const from = tableau[fromIdx]
+    const to = tableau[toIdx]
+    if (!from || from.length === 0) return
+
+    // Find the deepest face-up card that can move
+    const faceUpStart = from.findIndex((c) => c.faceUp)
+    if (faceUpStart < 0) return
+    const movingCards = from.slice(faceUpStart)
+    if (!canPlaceOnTableau(movingCards[0], to)) {
+      setMessage('Invalid move.')
+      return
+    }
+
+    const nextTab = [...tableau]
+    nextTab[fromIdx] = from.slice(0, faceUpStart)
+    nextTab[toIdx] = [...to, ...movingCards]
+    // Flip new top
+    if (nextTab[fromIdx].length > 0) {
+      const top = nextTab[fromIdx][nextTab[fromIdx].length - 1]
+      if (!top.faceUp) {
+        nextTab[fromIdx] = [
+          ...nextTab[fromIdx].slice(0, -1),
+          { ...top, faceUp: true },
+        ]
+      }
+    }
+    setTableau(nextTab)
+    setSelected(null)
+    setMessage('Moved.')
+  }
+
+  const playWaste = (toIdx: number) => {
+    if (waste.length === 0) return
+    const card = waste[waste.length - 1]
+    if (!canPlaceOnTableau(card as PileCard, tableau[toIdx])) {
+      setMessage('Invalid move.')
+      return
+    }
+    setWaste(waste.slice(0, -1))
+    const nextTab = [...tableau]
+    nextTab[toIdx] = [...nextTab[toIdx], { ...card, faceUp: true } as PileCard]
+    setTableau(nextTab)
+    setSelected(null)
+    setMessage('Played from waste.')
+  }
+
+  useInput((input, key) => {
+    if (phase === 'won') return
+    if (key.leftArrow) setCursor(Math.max(0, cursor - 1))
+    if (key.rightArrow) setCursor(Math.min(7, cursor + 1)) // 0-6 tableau, 7 = waste
+    if (input === 'd') drawFromStock()
+    if (input === 'f' && cursor < 7) tryMoveToFoundation(cursor)
+    if (input === ' ') {
+      if (selected === null) {
+        setSelected(cursor)
+      } else {
+        if (cursor < 7 && selected < 7) moveColumn(selected, cursor)
+        else if (selected === 7 && cursor < 7) playWaste(cursor)
+        setSelected(null)
+      }
+    }
+  })
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Text>Klondike Solitaire</Text>
+      <Box gap={1}>
+        <Text>Stock:{stock.length} </Text>
+        <Text>Waste:{waste.length > 0 && isStandardCard(topOf(waste)) ? ` ${(topOf(waste) as any).value}` : ' -'}</Text>
+        <Text> | Foundations:</Text>
+        {foundations.map((f, i) => (
+          <Text key={i}>{f.length > 0 && isStandardCard(topOf(f)) ? ` ${(topOf(f) as any).value}${(topOf(f) as any).suit[0]}` : ' [ ]'}</Text>
+        ))}
+      </Box>
+      <Box gap={1}>
+        {tableau.map((col, i) => (
+          <Box key={i} flexDirection="column">
+            <Text>{cursor === i ? (selected === i ? '★' : '▼') : ' '}</Text>
+            {col.length === 0 ? (
+              <Text dimColor>---</Text>
+            ) : (
+              col.map((card, j) =>
+                card.faceUp && isStandardCard(card) ? (
+                  <MiniCard key={card.id} id={card.id} suit={card.suit} value={card.value} faceUp />
+                ) : (
+                  <Text key={j} dimColor>[?]</Text>
+                )
+              )
+            )}
+          </Box>
+        ))}
+        <Box flexDirection="column">
+          <Text>{cursor === 7 ? '▼' : ' '}</Text>
+          <Text>W</Text>
+        </Box>
+      </Box>
+      <Text>{message}</Text>
+      {phase === 'won' && <Text color="green">Congratulations!</Text>}
+    </Box>
+  )
 }
 
-const App: React.FC = () => (
+const App = () => (
   <DeckProvider>
     <KlondikeSolitaire />
   </DeckProvider>
@@ -40,224 +236,11 @@ const App: React.FC = () => (
 export default App
 ```
 
-### 2. Game State
-
-```typescript
-const KlondikeSolitaire: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [tableau, setTableau] = useState<Card[][]>([])
-  const [foundation, setFoundation] = useState<Card[][]>([[], [], [], []])
-  const [stock, setStock] = useState<Card[]>([])
-  const [waste, setWaste] = useState<Card[]>([])
-  const [selectedCard, setSelectedCard] = useState<{
-    pile: string
-    index: number
-  } | null>(null)
-  const [message, setMessage] = useState('')
-
-  // Rest of the component logic
-}
-```
-
-### 3. Game Initialization
-
-```typescript
-useEffect(() => {
-  startNewGame()
-}, [])
-
-const startNewGame = () => {
-  shuffle()
-  const newTableau: Card[][] = []
-  for (let i = 0; i < 7; i++) {
-    newTableau.push(draw(i + 1))
-    newTableau[i][newTableau[i].length - 1].faceUp = true
-  }
-  setTableau(newTableau)
-  setStock(draw(24))
-  setWaste([])
-  setFoundation([[], [], [], []])
-  setMessage(
-    'Use arrow keys to navigate, space to select/deselect, Enter to move'
-  )
-}
-```
-
-### 4. Core Game Logic
-
-```typescript
-const isValidMove = (
-  card: Card,
-  destination: 'tableau' | 'foundation',
-  index: number
-): boolean => {
-  if (destination === 'tableau') {
-    const targetPile = tableau[index]
-    if (targetPile.length === 0) {
-      return card.rank === 'K'
-    }
-    const targetCard = targetPile[targetPile.length - 1]
-    return (
-      (card.color === 'red'
-        ? targetCard.color === 'black'
-        : targetCard.color === 'red') && card.value === targetCard.value - 1
-    )
-  } else {
-    const targetPile = foundation[index]
-    if (targetPile.length === 0) {
-      return card.rank === 'A'
-    }
-    const targetCard = targetPile[targetPile.length - 1]
-    return card.suit === targetCard.suit && card.value === targetCard.value + 1
-  }
-}
-
-const moveCard = (
-  from: { pile: string; index: number },
-  to: { pile: string; index: number }
-) => {
-  let sourceCards: Card[]
-  if (from.pile === 'tableau') {
-    sourceCards = tableau[from.index].slice(from.index)
-    setTableau(
-      tableau.map((pile, i) =>
-        i === from.index ? pile.slice(0, from.index) : pile
-      )
-    )
-  } else if (from.pile === 'waste') {
-    sourceCards = [waste[waste.length - 1]]
-    setWaste(waste.slice(0, -1))
-  } else {
-    return // Invalid source
-  }
-
-  if (to.pile === 'tableau') {
-    setTableau(
-      tableau.map((pile, i) =>
-        i === to.index ? [...pile, ...sourceCards] : pile
-      )
-    )
-  } else if (to.pile === 'foundation') {
-    setFoundation(
-      foundation.map((pile, i) =>
-        i === to.index ? [...pile, ...sourceCards] : pile
-      )
-    )
-  }
-
-  // Flip the top card of the source tableau pile if it's face down
-  if (from.pile === 'tableau' && tableau[from.index].length > 0) {
-    const newTableau = [...tableau]
-    newTableau[from.index][newTableau[from.index].length - 1].faceUp = true
-    setTableau(newTableau)
-  }
-}
-
-const drawFromStock = () => {
-  if (stock.length === 0) {
-    setStock(waste.reverse())
-    setWaste([])
-  } else {
-    const drawnCards = stock.slice(-3).reverse()
-    setStock(stock.slice(0, -3))
-    setWaste([...waste, ...drawnCards])
-  }
-}
-```
-
-### 5. User Input Handling
-
-```typescript
-useInput((input, key) => {
-  if (key.leftArrow) {
-    // Move selection left
-  } else if (key.rightArrow) {
-    // Move selection right
-  } else if (key.upArrow) {
-    // Move selection up
-  } else if (key.downArrow) {
-    // Move selection down
-  } else if (input === ' ') {
-    // Select/deselect card
-  } else if (key.return) {
-    // Attempt to move selected card
-  } else if (input === 'd') {
-    drawFromStock()
-  }
-})
-```
-
-### 6. Rendering
-
-```typescript
-return (
-  <Box flexDirection="column">
-    <Text>Klondike Solitaire</Text>
-    <Box>
-      <Text>Stock: </Text>
-      {stock.length > 0 && <Card {...stock[stock.length - 1]} faceUp={false} />}
-      <Text>Waste: </Text>
-      {waste.length > 0 && <Card {...waste[waste.length - 1]} />}
-    </Box>
-    <Box>
-      <Text>Foundation: </Text>
-      {foundation.map((pile, index) => (
-        <Box key={index} marginRight={1}>
-          {pile.length > 0 ? (
-            <Card {...pile[pile.length - 1]} />
-          ) : (
-            <Box width={6} height={4} borderStyle="single" />
-          )}
-        </Box>
-      ))}
-    </Box>
-    <Text>Tableau:</Text>
-    {tableau.map((pile, pileIndex) => (
-      <Box key={pileIndex}>
-        {pile.map((card, cardIndex) => (
-          <Card
-            key={cardIndex}
-            {...card}
-            faceUp={card.faceUp}
-            selected={
-              selectedCard?.pile === 'tableau' &&
-              selectedCard.index === pileIndex
-            }
-          />
-        ))}
-      </Box>
-    ))}
-    <Text>{message}</Text>
-  </Box>
-)
-```
-
 ## Key Concepts
 
-1. **Multiple Card Piles**: Klondike Solitaire requires managing multiple card piles (tableau, foundation, stock, waste) simultaneously.
-2. **Face-up and Face-down Cards**: The game involves both face-up and face-down cards, requiring careful state management.
-3. **Complex Move Validation**: Validating moves in Klondike Solitaire is more complex than in simpler card games, involving checking card colors, suits, and ranks.
-4. **Stock and Waste Pile Mechanics**: The game involves a unique mechanic of drawing cards from the stock to the waste pile, and recycling the waste pile when the stock is empty.
-
-## Error Handling and Edge Cases
-
-1. **Empty Stock and Waste**: Handle the case where both the stock and waste piles are empty.
-2. **Invalid Moves**: Ensure that only valid moves are allowed, including moves between tableau piles and to foundation piles.
-3. **Winning Condition**: Implement a check for when all cards are moved to the foundation piles, signaling a win.
-4. **Stuck Game State**: Consider implementing a check for when no more moves are possible.
-
-## Performance Considerations
-
-1. **Memoization**: Use React's `useMemo` or `useCallback` hooks to optimize rendering performance, especially for complex calculations like valid move checks.
-2. **Efficient State Updates**: When moving cards between piles, use efficient state update methods to avoid unnecessary re-renders.
-3. **Lazy Initialization**: Use lazy initialization for the initial game setup to improve the initial render time.
-
-## Potential Enhancements
-
-1. Implement an undo feature.
-2. Add a scoring system.
-3. Implement different difficulty levels (e.g., draw one card instead of three from the stock).
-4. Add animations for card movements.
-5. Implement a hint system to suggest possible moves.
-
-This implementation provides a solid foundation for a Klondike Solitaire game using the `ink-playing-cards` library. It demonstrates how to manage complex game states, handle user input, and implement game-specific logic in a terminal-based environment.
+- `createStandardDeck()` for card generation with unique `id`s
+- `MiniCard` component for compact solitaire layout
+- `isStandardCard(card)` type guard before accessing `suit` / `value`
+- Local state for tableau, foundations, stock, waste — solitaire needs custom pile logic
+- Face-up/face-down tracking via extended `PileCard` type
+- Cursor-based navigation for terminal interaction
