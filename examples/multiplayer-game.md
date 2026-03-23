@@ -1,72 +1,108 @@
-# Multiplayer Game Example
+# Multiplayer Game
 
-This example demonstrates how to implement a simple multiplayer card game using the Card Game Library for Ink. We'll create a basic game where players take turns drawing cards and the first player to collect all four suits wins.
+A simple multiplayer card game where players take turns drawing cards. First player to collect all four suits wins.
 
 ## Implementation
 
-```jsx
+```tsx
 import React, { useState, useEffect } from 'react'
-import { Box, Text } from 'ink'
-import { DeckProvider, useDeck, Card } from 'card-game-library-ink'
+import { Box, Text, useInput } from 'ink'
+import {
+  DeckProvider,
+  useDeck,
+  Card,
+  CardStack,
+  type TCard,
+  isStandardCard,
+} from 'ink-playing-cards'
+
+const PLAYER_IDS = ['alice', 'bob', 'charlie']
+const PLAYER_NAMES: Record<string, string> = {
+  alice: 'Alice',
+  bob: 'Bob',
+  charlie: 'Charlie',
+}
 
 const MultiplayerGame = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [players, setPlayers] = useState([
-    { id: 'player1', name: 'Alice', hand: [] },
-    { id: 'player2', name: 'Bob', hand: [] },
-    { id: 'player3', name: 'Charlie', hand: [] },
-  ])
-  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
-  const [winner, setWinner] = useState(null)
+  const { deck, hands, shuffle, draw, addPlayer } = useDeck()
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [winner, setWinner] = useState<string | null>(null)
+  const [initialized, setInitialized] = useState(false)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
+    for (const id of PLAYER_IDS) {
+      addPlayer(id)
+    }
     shuffle()
+    setInitialized(true)
+    setMessage('Press [space] to draw a card.')
   }, [])
 
-  const drawCard = () => {
-    const currentPlayer = players[currentPlayerIndex]
-    const drawnCard = draw(1, currentPlayer.id)[0]
+  const currentId = PLAYER_IDS[currentIdx]
+  const currentName = PLAYER_NAMES[currentId]
 
-    const updatedPlayers = players.map((player) =>
-      player.id === currentPlayer.id
-        ? { ...player, hand: [...player.hand, drawnCard] }
-        : player
+  const checkWin = (playerId: string): boolean => {
+    const hand = hands[playerId] ?? []
+    const suits = new Set(
+      hand.filter(isStandardCard).map((c) => c.suit)
     )
-
-    setPlayers(updatedPlayers)
-
-    // Check for winner
-    const suits = new Set(currentPlayer.hand.map((card) => card.suit))
-    if (suits.size === 4) {
-      setWinner(currentPlayer)
-    } else {
-      // Move to next player
-      setCurrentPlayerIndex((currentPlayerIndex + 1) % players.length)
-    }
+    return suits.size === 4
   }
 
-  const renderPlayerHand = (player) => (
-    <Box key={player.id} flexDirection="column" marginY={1}>
-      <Text>{player.name}'s hand:</Text>
-      <Box>
-        {player.hand.map((card) => (
-          <Card key={card.id} {...card} />
-        ))}
-      </Box>
-    </Box>
-  )
+  const drawAndCheck = () => {
+    if (winner || deck.length === 0) return
+    draw(1, currentId)
+  }
+
+  // Check for winner after hands update
+  useEffect(() => {
+    if (!initialized || winner) return
+    const hand = hands[currentId] ?? []
+    if (hand.length === 0) return
+
+    if (checkWin(currentId)) {
+      setWinner(currentId)
+      setMessage(`${currentName} wins!`)
+    } else {
+      setCurrentIdx((currentIdx + 1) % PLAYER_IDS.length)
+      const nextName = PLAYER_NAMES[PLAYER_IDS[(currentIdx + 1) % PLAYER_IDS.length]]
+      setMessage(`${nextName}'s turn. Press [space] to draw.`)
+    }
+  }, [hands])
+
+  useInput((input) => {
+    if (input === ' ' && !winner) {
+      drawAndCheck()
+    }
+  })
 
   return (
-    <Box flexDirection="column">
-      {players.map(renderPlayerHand)}
-      {winner ? (
-        <Text>{winner.name} wins!</Text>
-      ) : (
-        <>
-          <Text>Current turn: {players[currentPlayerIndex].name}</Text>
-          <Text>Press 'Space' to draw a card</Text>
-        </>
-      )}
+    <Box flexDirection="column" gap={1}>
+      <Text>Suit Collector — First to all 4 suits wins!</Text>
+      {PLAYER_IDS.map((id) => {
+        const hand = hands[id] ?? []
+        return (
+          <Box key={id} flexDirection="column">
+            <Text>
+              {PLAYER_NAMES[id]} ({hand.length} cards)
+              {id === currentId && !winner ? ' ← current' : ''}
+              {id === winner ? ' 🏆' : ''}
+            </Text>
+            {hand.length > 0 && (
+              <CardStack
+                cards={hand}
+                name={PLAYER_NAMES[id]}
+                isFaceUp
+                variant="mini"
+                maxDisplay={8}
+              />
+            )}
+          </Box>
+        )
+      })}
+      <Text>Deck: {deck.length} cards remaining</Text>
+      <Text>{message}</Text>
     </Box>
   )
 }
@@ -80,14 +116,12 @@ const App = () => (
 export default App
 ```
 
-This example showcases:
+## Key Concepts
 
-1. Setting up a game with multiple players
-2. Managing player turns
-3. Handling card drawing for each player
-4. Checking for a win condition
-5. Displaying the game state for all players
-
-To run this example, you would need to handle user input (e.g., pressing the space bar to draw a card) and update the game state accordingly. This could be done using Ink's `useInput` hook or by integrating with a state management library like Redux.
-
-The multiplayer structure can be easily extended to support more complex game rules, player interactions, and turn-based mechanics.
+- `addPlayer(id)` registers players with the `DeckProvider` before drawing
+- `draw(count, playerId)` dispatches an action — cards appear in `hands[playerId]` after re-render
+- `hands` is `Record<string, TCard[]>` — access with bracket notation
+- `isStandardCard(card)` type guard for safe access to `suit` and `value`
+- `CardStack` displays each player's hand compactly
+- Turn management via local `useState` index cycling through player IDs
+- `deck.length` to check remaining cards (not `deck.cards.length`)

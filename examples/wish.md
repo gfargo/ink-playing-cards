@@ -1,44 +1,172 @@
-# Implementing Wish with ink-playing-cards
+# Wish
 
-This guide demonstrates how to create the Wish card game using the `ink-playing-cards` library and the `ink` library for terminal-based rendering.
+A simple matching game — remove all cards by pairing cards of the same rank. Clear the board and make a wish!
 
-## Game Overview
+## Rules
 
-Wish is a simple matching game suitable for children. The game uses 32 cards from sevens upward, plus the aces. The objective is to remove all cards by matching pairs of the same rank.
-
-## Game Rules
-
-1. Use 32 cards: 7, 8, 9, 10, J, Q, K, A of all suits.
-2. Shuffle the cards and lay them out face down in 8 piles of 4 cards each.
-3. Turn over the top card of each pile.
-4. Remove any pairs of cards with the same rank.
-5. When a card is removed, turn over the next card in that pile.
-6. Continue until all cards are removed or no more matches are possible.
-7. If all cards are removed, the player wins and can make a wish!
-
-## Key Concepts
-
-1. **DeckProvider**: Manages the deck state.
-2. **useDeck Hook**: Provides deck operations like `shuffle` and `draw`.
-3. **Card Component**: Renders individual cards.
-4. **Pile Management**: Manages the 8 piles of cards.
-5. **Pair Matching**: Handles the matching and removal of pairs.
-6. **Game State**: Tracks the current state of the game (in progress, won, or lost).
+1. Use 32 cards: 7, 8, 9, 10, J, Q, K, A of all four suits.
+2. Deal into 8 piles of 4 cards each, top card face up.
+3. Select two piles whose top cards share the same rank to remove them.
+4. When a card is removed, the next card in that pile flips face up.
+5. Win if all cards are removed. Lose if no matching pairs remain.
 
 ## Implementation
 
-### 1. Setup and Imports
-
-```typescript
+```tsx
 import React, { useState, useEffect } from 'react'
 import { Box, Text, useInput } from 'ink'
-import { DeckProvider, useDeck, Card } from 'ink-playing-cards'
+import {
+  DeckProvider,
+  Card,
+  createStandardDeck,
+  type TCard,
+  isStandardCard,
+  type TCardValue,
+} from 'ink-playing-cards'
 
-const WishGame: React.FC = () => {
-  // Component logic will go here
+const WISH_VALUES: TCardValue[] = ['7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+
+const shuffleArray = <T,>(arr: T[]): T[] => {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
 }
 
-const App: React.FC = () => (
+const WishGame = () => {
+  const [piles, setPiles] = useState<TCard[][]>([])
+  const [selected, setSelected] = useState<number | null>(null)
+  const [phase, setPhase] = useState<'playing' | 'won' | 'lost'>('playing')
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    startGame()
+  }, [])
+
+  const startGame = () => {
+    const allCards = createStandardDeck()
+    const wishCards = allCards.filter(
+      (c) => isStandardCard(c) && WISH_VALUES.includes(c.value)
+    )
+    const shuffled = shuffleArray(wishCards)
+    const newPiles: TCard[][] = []
+    for (let i = 0; i < 8; i++) {
+      newPiles.push(shuffled.slice(i * 4, i * 4 + 4))
+    }
+    setPiles(newPiles)
+    setSelected(null)
+    setPhase('playing')
+    setMessage('Select two piles with matching top cards (1-8).')
+  }
+
+  const topCard = (pile: TCard[]) => pile[pile.length - 1]
+
+  const selectPile = (idx: number) => {
+    if (phase !== 'playing') return
+    const pile = piles[idx]
+    if (!pile || pile.length === 0) {
+      setMessage('Pile is empty.')
+      return
+    }
+
+    if (selected === null) {
+      setSelected(idx)
+      const card = topCard(pile)
+      setMessage(
+        `Selected pile ${idx + 1} (${isStandardCard(card) ? card.value : '?'}). Pick a matching pile.`
+      )
+    } else if (selected === idx) {
+      setSelected(null)
+      setMessage('Deselected.')
+    } else {
+      const card1 = topCard(piles[selected])
+      const card2 = topCard(pile)
+      if (
+        isStandardCard(card1) && isStandardCard(card2) &&
+        card1.value === card2.value
+      ) {
+        // Match — remove both top cards
+        const next = piles.map((p, i) => {
+          if (i === selected || i === idx) return p.slice(0, -1)
+          return p
+        })
+        setPiles(next)
+        setSelected(null)
+        setMessage('Match!')
+        checkState(next)
+      } else {
+        setSelected(idx)
+        setMessage('No match. Try another pile.')
+      }
+    }
+  }
+
+  const checkState = (currentPiles: TCard[][]) => {
+    if (currentPiles.every((p) => p.length === 0)) {
+      setPhase('won')
+      setMessage('You cleared the board! Make a wish! ✨')
+      return
+    }
+
+    // Check if any valid moves remain
+    const tops = currentPiles
+      .filter((p) => p.length > 0)
+      .map((p) => {
+        const c = topCard(p)
+        return isStandardCard(c) ? c.value : null
+      })
+      .filter(Boolean)
+
+    const hasDuplicates = new Set(tops).size < tops.length
+    if (!hasDuplicates) {
+      setPhase('lost')
+      setMessage('No more matches possible. Game over.')
+    }
+  }
+
+  useInput((input) => {
+    if (phase !== 'playing') {
+      if (input === 'r') startGame()
+      return
+    }
+    const idx = Number.parseInt(input, 10)
+    if (idx >= 1 && idx <= 8) selectPile(idx - 1)
+  })
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Text>Wish Card Game</Text>
+      <Text>{message}</Text>
+      <Box gap={1}>
+        {piles.map((pile, i) => (
+          <Box key={i} flexDirection="column">
+            <Text>{i + 1}{selected === i ? '←' : ' '}</Text>
+            {pile.length > 0 && isStandardCard(topCard(pile)) ? (
+              <Card
+                id={topCard(pile).id}
+                suit={(topCard(pile) as any).suit}
+                value={(topCard(pile) as any).value}
+                faceUp
+                selected={selected === i}
+                variant="mini"
+              />
+            ) : (
+              <Text dimColor>empty</Text>
+            )}
+            <Text dimColor>({pile.length})</Text>
+          </Box>
+        ))}
+      </Box>
+      {phase === 'playing' && <Text>[1-8] select pile | [r] restart</Text>}
+      {phase === 'won' && <Text color="green">Make a wish! [r] new game</Text>}
+      {phase === 'lost' && <Text color="red">No moves left. [r] new game</Text>}
+    </Box>
+  )
+}
+
+const App = () => (
   <DeckProvider>
     <WishGame />
   </DeckProvider>
@@ -47,184 +175,11 @@ const App: React.FC = () => (
 export default App
 ```
 
-### 2. Game State
+## Key Concepts
 
-```typescript
-const WishGame: React.FC = () => {
-  const { deck, shuffle, draw } = useDeck()
-  const [piles, setPiles] = useState<Card[][]>([])
-  const [selectedPile, setSelectedPile] = useState<number | null>(null)
-  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>(
-    'playing'
-  )
-  const [message, setMessage] = useState('')
-
-  // Rest of the component logic
-}
-```
-
-### 3. Game Initialization
-
-```typescript
-useEffect(() => {
-  startNewGame()
-}, [])
-
-const startNewGame = () => {
-  // Filter the deck to include only 7, 8, 9, 10, J, Q, K, A
-  const wishDeck = deck.filter((card) =>
-    ['7', '8', '9', '10', 'J', 'Q', 'K', 'A'].includes(card.rank)
-  )
-  shuffle(wishDeck)
-
-  // Create 8 piles of 4 cards each
-  const newPiles: Card[][] = []
-  for (let i = 0; i < 8; i++) {
-    newPiles.push(wishDeck.slice(i * 4, (i + 1) * 4))
-    newPiles[i][0].faceUp = true // Turn over the top card of each pile
-  }
-
-  setPiles(newPiles)
-  setSelectedPile(null)
-  setGameState('playing')
-  setMessage('New game started. Select piles to match pairs.')
-}
-```
-
-### 4. Game Logic
-
-```typescript
-const selectPile = (pileIndex: number) => {
-  if (gameState !== 'playing') return
-
-  if (selectedPile === null) {
-    setSelectedPile(pileIndex)
-  } else {
-    const firstPile = piles[selectedPile]
-    const secondPile = piles[pileIndex]
-
-    if (firstPile[0].rank === secondPile[0].rank) {
-      // Match found
-      removePair(selectedPile, pileIndex)
-    } else {
-      setMessage('No match. Try again.')
-    }
-    setSelectedPile(null)
-  }
-}
-
-const removePair = (pileIndex1: number, pileIndex2: number) => {
-  const newPiles = [...piles]
-  newPiles[pileIndex1].shift()
-  newPiles[pileIndex2].shift()
-
-  // Turn over the next card in each pile if available
-  if (newPiles[pileIndex1].length > 0) newPiles[pileIndex1][0].faceUp = true
-  if (newPiles[pileIndex2].length > 0) newPiles[pileIndex2][0].faceUp = true
-
-  setPiles(newPiles)
-  setMessage('Pair removed!')
-  checkGameState()
-}
-
-const checkGameState = () => {
-  if (piles.every((pile) => pile.length === 0)) {
-    setGameState('won')
-    setMessage('Congratulations! You won! Make a wish!')
-  } else if (!hasValidMoves()) {
-    setGameState('lost')
-    setMessage('Game over. No more valid moves.')
-  }
-}
-
-const hasValidMoves = (): boolean => {
-  const topCards = piles.map((pile) => pile[0]?.rank).filter(Boolean)
-  return new Set(topCards).size < topCards.length
-}
-```
-
-### 5. User Input Handling
-
-```typescript
-useInput((input, key) => {
-  if (gameState !== 'playing') {
-    if (input === 'r') startNewGame()
-    return
-  }
-
-  const pileIndex = parseInt(input)
-  if (!isNaN(pileIndex) && pileIndex >= 1 && pileIndex <= 8) {
-    selectPile(pileIndex - 1)
-  }
-})
-```
-
-### 6. Rendering
-
-```typescript
-return (
-  <Box flexDirection="column">
-    <Text>Wish Card Game</Text>
-    <Text>{message}</Text>
-    <Box flexDirection="column" marginY={1}>
-      {piles.map((pile, index) => (
-        <Box key={index}>
-          <Text>{index + 1}: </Text>
-          {pile.map((card, cardIndex) => (
-            <Card
-              key={cardIndex}
-              {...card}
-              faceUp={card.faceUp}
-              selected={selectedPile === index}
-            />
-          ))}
-        </Box>
-      ))}
-    </Box>
-    {gameState === 'playing' && (
-      <Text>Enter a number (1-8) to select a pile</Text>
-    )}
-    {gameState !== 'playing' && <Text>Press 'r' to start a new game</Text>}
-  </Box>
-)
-```
-
-## Key Concepts Explained
-
-1. **Deck Filtering**: We filter the deck to include only the cards needed for Wish (7 through A).
-2. **Pile Management**: The game maintains 8 piles of cards, each starting with 4 cards.
-3. **Card Flipping**: The top card of each pile is always face up.
-4. **Pair Matching**: The game checks for matching pairs when two piles are selected.
-5. **Game State Tracking**: The game tracks whether it's in progress, won, or lost.
-
-## Error Handling and Edge Cases
-
-1. **Invalid Pile Selection**: The game ignores selections of empty piles or non-existent pile numbers.
-2. **No More Moves**: The game checks if there are any valid moves left after each pair removal.
-3. **Game End**: The game properly handles both win and lose conditions.
-
-## Performance Considerations
-
-1. **State Updates**: The game uses efficient state update methods to avoid unnecessary re-renders.
-2. **Move Validation**: The `hasValidMoves` function efficiently checks for the existence of valid moves.
-
-## Potential Enhancements
-
-1. Implement an undo feature.
-2. Add animations for card removal and flipping.
-3. Implement a scoring system based on the number of moves or time taken.
-4. Add sound effects for matching pairs and winning the game.
-5. Create a multi-player version where players take turns finding pairs.
-
-This implementation provides a foundation for the Wish card game using the `ink-playing-cards` library. It demonstrates how to manage multiple piles of cards, implement pair-matching logic, and create an engaging single-player experience in a terminal-based environment.
-
-## Educational Value
-
-Wish is an excellent game for teaching children:
-
-1. **Memory Skills**: Players need to remember the positions of cards they've seen.
-2. **Pattern Recognition**: Identifying matching pairs helps develop pattern recognition skills.
-3. **Strategy**: Deciding which piles to select can involve strategic thinking.
-4. **Patience**: The game encourages patience as players work towards clearing all the cards.
-
-By implementing this game, developers can create an educational tool that's both fun and beneficial for cognitive development.
+- `createStandardDeck()` generates all 52 cards, then filtered to the 32 needed for Wish
+- `isStandardCard(card)` type guard for safe access to `suit` and `value`
+- Cards managed in local state piles — each pile is a `TCard[]` array
+- `Card` with `variant="mini"` for compact display
+- Matching logic compares `card.value` (not `card.rank` — the library uses `value`)
+- Win detection: all piles empty. Loss detection: no duplicate values among top cards

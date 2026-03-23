@@ -1,62 +1,59 @@
-# Event System Example
+# Event System
 
-The Event system in the Card Game Library for Ink allows you to create, dispatch, and listen to game events. This enables you to implement complex game logic and card interactions. This example demonstrates how to use the Event system.
+The event system dispatches game events automatically when the `DeckProvider` reducer processes actions. You can subscribe to these events to implement custom game logic, logging, animations, or sound effects.
 
 ## Basic Usage
 
-```jsx
+```tsx
 import React, { useEffect } from 'react'
-import { Box, Text } from 'ink'
-import { DeckProvider, useDeck, Card } from 'card-game-library-ink'
+import { Box, Text, useInput } from 'ink'
+import {
+  DeckProvider,
+  useDeck,
+  useHand,
+  CardStack,
+  type GameEventData,
+} from 'ink-playing-cards'
 
 const EventExample = () => {
-  const { deck, hand, draw, shuffle, eventManager } = useDeck()
+  const { deck, shuffle, draw, eventManager } = useDeck()
+  const { hand, playCard } = useHand('player1')
+  const [log, setLog] = React.useState<string[]>([])
+
+  useEffect(() => {
+    const listener = {
+      handleEvent(event: GameEventData) {
+        const msg = `${event.type}${event.playerId ? ` (${event.playerId})` : ''}`
+        setLog((prev) => [...prev.slice(-4), msg])
+      },
+    }
+
+    eventManager.addEventListener('CARDS_DRAWN', listener)
+    eventManager.addEventListener('CARD_PLAYED', listener)
+    eventManager.addEventListener('DECK_SHUFFLED', listener)
+
+    return () => eventManager.removeAllListeners()
+  }, [eventManager])
 
   useEffect(() => {
     shuffle()
-
-    // Add event listeners
-    eventManager.addEventListener('CARD_DRAWN', handleCardDrawn)
-    eventManager.addEventListener('CARD_PLAYED', handleCardPlayed)
-
-    return () => {
-      // Remove event listeners on cleanup
-      eventManager.removeEventListener('CARD_DRAWN', handleCardDrawn)
-      eventManager.removeEventListener('CARD_PLAYED', handleCardPlayed)
-    }
+    draw(5, 'player1')
   }, [])
 
-  const handleCardDrawn = (event) => {
-    console.log(`Card drawn: ${event.data.card.name}`)
-  }
-
-  const handleCardPlayed = (event) => {
-    console.log(`Card played: ${event.data.card.name}`)
-  }
-
-  const drawCard = () => {
-    const drawnCard = draw(1, 'player1')[0]
-    eventManager.dispatchEvent({
-      type: 'CARD_DRAWN',
-      data: { card: drawnCard },
-    })
-  }
-
-  const playCard = (card) => {
-    hand.removeCard(card)
-    eventManager.dispatchEvent({ type: 'CARD_PLAYED', data: { card } })
-  }
+  useInput((input) => {
+    if (input === 'd') draw(1, 'player1')
+    if (input === 'p' && hand.length > 0) playCard(hand[0].id)
+  })
 
   return (
-    <Box flexDirection="column">
-      <Text>Deck: {deck.cards.length} cards</Text>
-      <Text>Hand: {hand.cards.length} cards</Text>
-      <Box>
-        {hand.cards.map((card) => (
-          <Card key={card.id} {...card} onClick={() => playCard(card)} />
-        ))}
-      </Box>
-      <Text>Press 'D' to draw a card</Text>
+    <Box flexDirection="column" gap={1}>
+      <Text>Deck: {deck.length} | Hand: {hand.length}</Text>
+      <CardStack cards={hand} name="Hand" isFaceUp maxDisplay={5} />
+      <Text bold>Event Log:</Text>
+      {log.map((msg, i) => (
+        <Text key={i} dimColor>  {msg}</Text>
+      ))}
+      <Text>[d] Draw | [p] Play first card</Text>
     </Box>
   )
 }
@@ -70,10 +67,54 @@ const App = () => (
 export default App
 ```
 
-This example demonstrates:
+## Event Listener Interface
 
-1. Creating and registering event listeners
-2. Dispatching events when game actions occur
-3. Handling events to implement game logic
+Listeners must implement `handleEvent`:
 
-The Event system allows for decoupled and extensible game mechanics. You can easily add new events and listeners to implement complex card interactions and game rules.
+```ts
+const listener = {
+  handleEvent(event: GameEventData) {
+    // event.type — the event name
+    // event.playerId — who triggered it (optional)
+    // event.card — single card involved (optional)
+    // event.cards — multiple cards involved (optional)
+    // event.count — number of cards (optional)
+  },
+}
+
+eventManager.addEventListener('CARDS_DRAWN', listener)
+eventManager.removeEventListener('CARDS_DRAWN', listener)
+```
+
+## Built-in Event Types
+
+| Event | Dispatched When |
+|-------|----------------|
+| `DECK_SHUFFLED` | `shuffle()` is called |
+| `CARDS_DRAWN` | `draw(count, playerId)` moves cards to a hand |
+| `CARDS_DEALT` | `deal()` distributes cards (fires per player) |
+| `CARD_PLAYED` | A card moves from hand to play area |
+| `CARD_DISCARDED` | A card moves from hand to discard pile |
+| `DECK_RESET` | `reset()` restores the deck |
+| `DECK_CUT` | `cutDeck()` reorders the deck |
+
+Custom string event types are also supported for game-specific events.
+
+## EventManager API
+
+```ts
+const { eventManager } = useDeck()
+
+eventManager.addEventListener(eventType, listener)
+eventManager.removeEventListener(eventType, listener)
+eventManager.dispatchEvent({ type: 'CUSTOM_EVENT', playerId: 'p1' })
+eventManager.removeAllListeners()
+```
+
+## Key Concepts
+
+- Events are dispatched automatically by the reducer — no manual dispatch needed for built-in actions
+- Each `DeckProvider` instance creates its own `EventManager` (no cross-provider leaks)
+- Always clean up listeners in `useEffect` return to avoid memory leaks
+- Use `removeAllListeners()` for bulk cleanup
+- You can dispatch custom events for game-specific logic

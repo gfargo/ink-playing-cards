@@ -1,149 +1,99 @@
-# Advanced Effects Example
+# Advanced Effects
 
-This example demonstrates how to use the advanced effect system in the Card Game Library for Ink. We'll create a simple collectible card game that showcases various types of effects, including conditional, triggered, continuous, delayed, and targeted effects.
+This example demonstrates composing multiple effect types to create a simple collectible card game with complex card abilities.
 
 ## Implementation
 
-```jsx
+```tsx
 import React, { useState, useEffect } from 'react'
-import { Box, Text } from 'ink'
-import { DeckProvider, useDeck, Card } from 'card-game-library-ink'
-import { CardStack } from '../components/CardStack'
+import { Box, Text, useInput } from 'ink'
 import {
-  ConditionalEffect,
-  TriggeredEffect,
-  ContinuousEffect,
-  DelayedEffect,
-  TargetedEffect,
-  DrawCardEffect,
-  DamageEffect,
-} from '../systems/Effects'
+  DeckProvider,
+  useDeck,
+  useHand,
+  Effects,
+  CardStack,
+  Card,
+  type TCard,
+  type GameState,
+  type GameEventData,
+} from 'ink-playing-cards'
 
-// Custom card factory function
-const createCard = (name, effects) => ({
-  id: `card-${name}`,
-  name,
-  effects,
-})
+// Helper to build a game state snapshot for effect evaluation
+function buildGameState(
+  deck: TCard[],
+  hand: TCard[],
+  turn: number
+): GameState {
+  return {
+    currentPlayerId: 'player1',
+    players: ['player1'],
+    turn,
+    phase: 'playing',
+    zones: {
+      deck: [...deck],
+      hands: { player1: [...hand] },
+      discardPile: [],
+      playArea: [],
+    },
+  }
+}
 
 const AdvancedEffectsGame = () => {
-  const { deck, hand, discardPile, shuffle, draw, effectManager } = useDeck()
-  const [playerHealth, setPlayerHealth] = useState(30)
-  const [opponentHealth, setOpponentHealth] = useState(30)
-  const [turn, setTurn] = useState(1)
-  const [activeEffects, setActiveEffects] = useState([])
+  const { deck, shuffle, draw, effectManager } = useDeck()
+  const { hand, playCard } = useHand('player1')
+  const [opponentLife, setOpponentLife] = useState(20)
+  const [turn, setTurn] = useState(0)
+  const [log, setLog] = useState<string[]>([])
 
   useEffect(() => {
-    // Create a custom deck with advanced effects
-    const customDeck = [
-      createCard('Fireball', [
-        new TargetedEffect(
-          (gameState) => gameState.opponent,
-          new DamageEffect(3)
-        ),
-      ]),
-      createCard('Growth Spell', [
-        new ConditionalEffect(
-          (gameState) => gameState.turn % 2 === 0,
-          new DrawCardEffect(2)
-        ),
-      ]),
-      createCard('Poison Dart', [
-        new TriggeredEffect('TURN_END', new DamageEffect(1)),
-      ]),
-      createCard('Healing Aura', [
-        new ContinuousEffect(
-          (gameState) => gameState.playerHealth < 15,
-          (gameState) => {
-            gameState.playerHealth += 1
-          },
-          () => {}
-        ),
-      ]),
-      createCard('Time Bomb', [new DelayedEffect(3, new DamageEffect(5))]),
-      createCard('Combo Strike', [
-        new DamageEffect(2),
-        new ConditionalEffect(
-          (gameState) => gameState.cardsPlayedThisTurn > 1,
-          new DamageEffect(3)
-        ),
-      ]),
-    ]
-    shuffle(customDeck)
+    shuffle()
     draw(5, 'player1')
   }, [])
 
-  const playCard = (card) => {
-    const gameState = {
-      playerHealth,
-      opponentHealth,
-      turn,
-      cardsPlayedThisTurn: hand.cards.length - 1,
-      opponent: {
-        takeDamage: (damage) => setOpponentHealth((prev) => prev - damage),
-      },
-      player: {
-        takeDamage: (damage) => setPlayerHealth((prev) => prev - damage),
-      },
+  const addLog = (msg: string) =>
+    setLog((prev) => [...prev.slice(-3), msg])
+
+  const playCardWithEffects = (card: TCard) => {
+    const target = { life: opponentLife }
+    const gs = buildGameState(deck, hand, turn)
+    const eventData: GameEventData = {
+      type: 'CARD_PLAYED',
+      playerId: 'player1',
+      card,
+      target,
     }
 
-    effectManager.applyCardEffects(card, gameState, {})
-
-    setPlayerHealth(gameState.playerHealth)
-    setOpponentHealth(gameState.opponentHealth)
-
-    if (card.effects.some((effect) => effect instanceof ContinuousEffect)) {
-      setActiveEffects([...activeEffects, card])
-    }
-
-    hand.removeCard(card)
-    discardPile.addCard(card)
+    effectManager.applyCardEffects(card, gs, eventData)
+    setOpponentLife(target.life)
+    playCard(card.id)
+    addLog(`Played ${card.id} — opponent life: ${target.life}`)
   }
 
   const endTurn = () => {
-    setTurn((prev) => prev + 1)
+    setTurn((t) => t + 1)
     draw(1, 'player1')
-
-    // Apply continuous effects
-    const gameState = {
-      playerHealth,
-      opponentHealth,
-      turn: turn + 1,
-      opponent: {
-        takeDamage: (damage) => setOpponentHealth((prev) => prev - damage),
-      },
-      player: {
-        takeDamage: (damage) => setPlayerHealth((prev) => prev - damage),
-      },
-    }
-
-    activeEffects.forEach((card) => {
-      effectManager.applyCardEffects(card, gameState, { type: 'TURN_END' })
-    })
-
-    setPlayerHealth(gameState.playerHealth)
-    setOpponentHealth(gameState.opponentHealth)
+    addLog(`Turn ${turn + 1}`)
   }
 
+  useInput((input) => {
+    if (input === 'e') endTurn()
+    if (input >= '1' && input <= '5') {
+      const idx = Number(input) - 1
+      if (hand[idx]) playCardWithEffects(hand[idx])
+    }
+  })
+
   return (
-    <Box flexDirection="column">
-      <Text>Player Health: {playerHealth}</Text>
-      <Text>Opponent Health: {opponentHealth}</Text>
-      <Text>Turn: {turn}</Text>
-      <Box flexDirection="row" justifyContent="space-between">
-        <CardStack cards={deck.cards} name="Deck" />
-        <CardStack
-          cards={hand.cards}
-          name="Hand"
-          faceUp
-          maxDisplay={5}
-          onCardClick={playCard}
-        />
-        <CardStack cards={discardPile.cards} name="Discard" faceUp />
-      </Box>
-      <Text>Active Effects:</Text>
-      <CardStack cards={activeEffects} name="Active Effects" faceUp />
-      <Text onPress={endTurn}>End Turn</Text>
+    <Box flexDirection="column" gap={1}>
+      <Text>Opponent Life: {opponentLife} | Turn: {turn}</Text>
+      <Text>Deck: {deck.length}</Text>
+      <CardStack cards={hand} name="Hand" isFaceUp maxDisplay={5} />
+      <Text bold>Log:</Text>
+      {log.map((msg, i) => (
+        <Text key={i} dimColor>  {msg}</Text>
+      ))}
+      <Text>[1-5] Play card | [e] End turn</Text>
     </Box>
   )
 }
@@ -157,17 +107,69 @@ const App = () => (
 export default App
 ```
 
-This example showcases:
+## Creating Cards with Effects
 
-1. **Conditional Effect**: The "Growth Spell" card draws 2 cards only on even-numbered turns.
-2. **Triggered Effect**: The "Poison Dart" card deals 1 damage at the end of each turn.
-3. **Continuous Effect**: The "Healing Aura" card heals the player for 1 health each turn if their health is below 15.
-4. **Delayed Effect**: The "Time Bomb" card deals 5 damage after 3 turns.
-5. **Targeted Effect**: The "Fireball" card deals 3 damage directly to the opponent.
-6. **Chained Effects**: The "Combo Strike" card deals 2 damage and an additional 3 damage if it's not the first card played this turn.
+Before the game starts, attach effects to cards:
 
-The game loop handles the application of continuous effects and triggered effects at the end of each turn. This example demonstrates how the advanced effect system can be used to create complex card interactions and game mechanics.
+```ts
+const cards: TCard[] = [
+  { id: 'fireball', suit: 'hearts', value: 'A' },
+  { id: 'growth', suit: 'diamonds', value: 'K' },
+  { id: 'poison', suit: 'spades', value: 'Q' },
+  { id: 'heal-aura', suit: 'clubs', value: 'J' },
+  { id: 'time-bomb', suit: 'hearts', value: '10' },
+  { id: 'combo', suit: 'diamonds', value: '9' },
+]
 
-To further expand this example, you could add more cards with unique combinations of effects, implement a more detailed combat system, or add additional phases to each turn (e.g., draw phase, main phase, combat phase).
+// Targeted damage
+Effects.attachEffectToCard(cards[0], new Effects.DamageEffect(3))
 
-This advanced effect system provides a flexible foundation for creating a wide variety of card games with complex interactions and abilities.
+// Draw 2 cards only on even turns
+Effects.attachEffectToCard(
+  cards[1],
+  new Effects.ConditionalEffect(
+    (gs) => gs.turn % 2 === 0,
+    new Effects.DrawCardEffect(2)
+  )
+)
+
+// Triggered: 1 damage whenever any card is played
+Effects.attachEffectToCard(
+  cards[2],
+  new Effects.TriggeredEffect('CARD_PLAYED', new Effects.DamageEffect(1))
+)
+
+// Continuous: heals while hand is small
+Effects.attachEffectToCard(
+  cards[3],
+  new Effects.ContinuousEffect(
+    (gs) => (gs.zones.hands['player1']?.length ?? 0) < 3,
+    (gs) => { /* apply healing */ },
+    () => { /* remove healing */ }
+  )
+)
+
+// Delayed: 5 damage after 3 turns
+Effects.attachEffectToCard(
+  cards[4],
+  new Effects.DelayedEffect(3, new Effects.DamageEffect(5))
+)
+
+// Combo: 2 damage + conditional bonus 3 damage
+Effects.attachEffectToCard(cards[5], new Effects.DamageEffect(2))
+Effects.attachEffectToCard(
+  cards[5],
+  new Effects.ConditionalEffect(
+    (gs) => gs.turn > 3,
+    new Effects.DamageEffect(3)
+  )
+)
+```
+
+## Effect Composition Patterns
+
+- Chain multiple effects on one card with repeated `attachEffectToCard` calls
+- Nest effects: `DelayedEffect(3, TargetedEffect(selector, DamageEffect(5)))`
+- Use `ConditionalEffect` for situational abilities
+- Use `TriggeredEffect` for reactive abilities that fire on specific events
+- Use `ContinuousEffect` for persistent auras that toggle based on game state
