@@ -6,6 +6,7 @@ import { CustomCard } from './index.js'
 test('render custom card with ASCII art', (t) => {
   const { lastFrame } = render(
     <CustomCard
+      id="test-custom-ascii"
       size="medium"
       title="Custom Card"
       description="This is a custom card with ASCII art"
@@ -34,6 +35,7 @@ test('render custom card with different sizes', (t) => {
   for (const size of sizes) {
     const { lastFrame } = render(
       <CustomCard
+        id={`test-custom-${size}`}
         size={size}
         title={`${size.charAt(0).toUpperCase() + size.slice(1)} Card`}
         description={`This is a ${size} custom card`}
@@ -46,7 +48,7 @@ test('render custom card with different sizes', (t) => {
 
 test('render face down custom card', (t) => {
   const { lastFrame } = render(
-    <CustomCard size="medium" title="Face Down Card" faceUp={false} />
+    <CustomCard id="test-custom-facedown" size="medium" title="Face Down Card" faceUp={false} />
   )
   const customCardLastFrame = lastFrame()
   t.snapshot(customCardLastFrame)

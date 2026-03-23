@@ -294,6 +294,7 @@ export function MiniCardView({ goBack }: { readonly goBack?: () => void }) {
       </Box>
       <Box marginY={1}>
         <MiniCard
+          id="preview-mini-card"
           variant={variant}
           suit={suit}
           value={value}

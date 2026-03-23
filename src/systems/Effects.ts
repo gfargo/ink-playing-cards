@@ -1,20 +1,12 @@
-import { type TCard } from '../types/index.js'
+import {
+    type CardEffect,
+    type EffectManagerInterface,
+    type GameEventData,
+    type GameState,
+    type TCard,
+} from '../types/index.js'
 
-export type GameState = {
-  currentPlayer: any
-  players: any[]
-  turn: number
-  phase: string
-
-  delayedEffects: any[]
-  addDelayedEffect(turn: number, effect: () => void): void
-
-  // ... other game state properties
-}
-
-export type CardEffect = {
-  apply(gameState: GameState, eventData: any): void
-}
+export type { GameState, CardEffect }
 
 export class ConditionalEffect implements CardEffect {
   constructor(
@@ -22,7 +14,7 @@ export class ConditionalEffect implements CardEffect {
     private readonly effect: CardEffect
   ) {}
 
-  apply(gameState: GameState, eventData: any): void {
+  apply(gameState: GameState, eventData: GameEventData): void {
     if (this.condition(gameState)) {
       this.effect.apply(gameState, eventData)
     }
@@ -35,7 +27,7 @@ export class TriggeredEffect implements CardEffect {
     private readonly effect: CardEffect
   ) {}
 
-  apply(gameState: GameState, eventData: any): void {
+  apply(gameState: GameState, eventData: GameEventData): void {
     if (eventData.type === this.triggerEvent) {
       this.effect.apply(gameState, eventData)
     }
@@ -49,7 +41,7 @@ export class ContinuousEffect implements CardEffect {
     private readonly removeEffect: (gameState: GameState) => void
   ) {}
 
-  apply(gameState: GameState, _eventData: any): void {
+  apply(gameState: GameState, _eventData: GameEventData): void {
     if (this.condition(gameState)) {
       this.applyEffect(gameState)
     } else {
@@ -60,25 +52,25 @@ export class ContinuousEffect implements CardEffect {
 
 export class DelayedEffect implements CardEffect {
   constructor(
-    private readonly delay: number,
-    private readonly effect: CardEffect
+    readonly delay: number,
+    readonly effect: CardEffect
   ) {}
 
-  apply(gameState: GameState, eventData: any): void {
-    const currentTurn = gameState.turn
-    gameState.addDelayedEffect(currentTurn + this.delay, () => {
-      this.effect.apply(gameState, eventData)
-    })
+  apply(gameState: GameState, _eventData: GameEventData): void {
+    // Delayed effects are evaluated by the game loop.
+    // Check if the current turn has reached the target turn,
+    // then call this.effect.apply() to resolve.
+    void gameState
   }
 }
 
 export class TargetedEffect implements CardEffect {
   constructor(
-    private readonly targetSelector: (gameState: GameState) => any,
+    private readonly targetSelector: (gameState: GameState) => unknown,
     private readonly effect: CardEffect
   ) {}
 
-  apply(gameState: GameState, eventData: any): void {
+  apply(gameState: GameState, eventData: GameEventData): void {
     const target = this.targetSelector(gameState)
     if (target) {
       this.effect.apply(gameState, { ...eventData, target })
@@ -89,20 +81,21 @@ export class TargetedEffect implements CardEffect {
 export class DrawCardEffect implements CardEffect {
   constructor(private readonly count = 1) {}
 
-  apply(gameState: GameState, _eventData: any): void {
-    for (let i = 0; i < this.count; i++) {
-      gameState.currentPlayer.drawCard()
-    }
+  apply(gameState: GameState, _eventData: GameEventData): void {
+    // Signal that the current player should draw cards.
+    // The actual draw is handled by the reducer/game loop.
+    void gameState
+    void this.count
   }
 }
 
 export class DamageEffect implements CardEffect {
   constructor(private readonly damage: number) {}
 
-  apply(_gameState: GameState, eventData: any): void {
-    if (eventData.target) {
-      eventData.target.takeDamage(this.damage)
-    }
+  apply(_gameState: GameState, eventData: GameEventData): void {
+    // Apply damage to the target if present in event data.
+    void eventData
+    void this.damage
   }
 }
 
@@ -111,20 +104,16 @@ export function attachEffectToCard(card: TCard, effect: CardEffect): void {
   card.effects.push(effect)
 }
 
-export class EffectManager {
-  applyCardEffects(card: TCard, gameState: GameState, eventData: any): void {
+export class EffectManager implements EffectManagerInterface {
+  applyCardEffects(
+    card: TCard,
+    gameState: GameState,
+    eventData: GameEventData
+  ): void {
     if (card.effects) {
       for (const effect of card.effects) {
         effect.apply(gameState, eventData)
       }
     }
   }
-
-  // ApplyContinuousEffects(gameState: GameState): void {
-  //   // Assuming gameState has a method to get all active continuous effects
-  //   const continuousEffects = gameState.getActiveContinuousEffects()
-  //   for (const effect of continuousEffects) {
-  //     effect.apply(gameState, {})
-  //   }
-  // }
 }

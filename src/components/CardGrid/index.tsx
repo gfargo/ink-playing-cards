@@ -138,6 +138,7 @@ export function CardGrid({
               {card ? (
                 variant === 'mini' || variant === 'micro' ? (
                   <MiniCard
+                    id={card.id}
                     suit={card.suit}
                     value={card.value}
                     faceUp={isFaceUp}
@@ -145,6 +146,7 @@ export function CardGrid({
                   />
                 ) : (
                   <Card
+                    id={card.id}
                     suit={card.suit}
                     value={card.value}
                     faceUp={isFaceUp}

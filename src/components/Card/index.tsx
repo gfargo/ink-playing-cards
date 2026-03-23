@@ -1,13 +1,17 @@
 import { Box, Text, type BoxProps } from 'ink'
-import React from 'react'
+import React, { useContext } from 'react'
 import { CARD_DIMENSIONS, SUIT_SYMBOL_MAP } from '../../constants/card.js'
-import { useDeck } from '../../hooks/useDeck.js'
+import { DeckContext } from '../../contexts/DeckContext.js'
+import { defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { type AsciiTheme, type CardProps } from '../../types/index.js'
 import { createCardContent } from './utils.js'
 
 /**
  * Card component that renders a playing card with various display variants.
  * Supports simple, ASCII, and minimal display styles.
+ *
+ * Can be used inside or outside a DeckProvider — falls back to default
+ * back artwork when no provider is present.
  */
 export function Card({
   suit,
@@ -21,7 +25,9 @@ export function Card({
   readonly variant?: 'ascii' | 'simple' | 'minimal'
   readonly theme?: AsciiTheme
 }) {
-  const { backArtwork } = useDeck()
+  const context = useContext(DeckContext)
+  const backArtwork = context?.backArtwork ?? defaultBackArtwork
+
   const config = {
     ...CARD_DIMENSIONS[variant],
     pip:

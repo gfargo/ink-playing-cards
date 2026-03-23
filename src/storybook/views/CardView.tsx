@@ -2,9 +2,9 @@ import { Box, Text } from 'ink'
 import React from 'react'
 import Card from '../../components/Card/index.js'
 import {
-  type AsciiTheme,
-  type TCardValue,
-  type TSuit,
+    type AsciiTheme,
+    type TCardValue,
+    type TSuit,
 } from '../../types/index.js'
 import { EnhancedSelectInput } from '../utils/EnhancedSelectInput.js'
 
@@ -394,6 +394,7 @@ export function CardView({ goBack }: { readonly goBack?: () => void }) {
       </Box>
       <Box marginY={1}>
         <Card
+          id="preview-card"
           variant={variant}
           suit={suit}
           value={value}
