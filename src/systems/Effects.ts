@@ -49,16 +49,23 @@ export class ContinuousEffect implements CardEffect {
 }
 
 export class DelayedEffect implements CardEffect {
+  private turnRegistered: number | undefined
+
   constructor(
     readonly delay: number,
     readonly effect: CardEffect
   ) {}
 
-  apply(gameState: GameState, _eventData: GameEventData): void {
-    // Delayed effects are evaluated by the game loop.
-    // Check if the current turn has reached the target turn,
-    // then call this.effect.apply() to resolve.
-    void gameState
+  apply(gameState: GameState, eventData: GameEventData): void {
+    if (this.turnRegistered === undefined) {
+      this.turnRegistered = gameState.turn
+      return
+    }
+
+    if (gameState.turn >= this.turnRegistered + this.delay) {
+      this.effect.apply(gameState, eventData)
+      this.turnRegistered = undefined
+    }
   }
 }
 
@@ -77,23 +84,36 @@ export class TargetedEffect implements CardEffect {
 }
 
 export class DrawCardEffect implements CardEffect {
-  constructor(private readonly count = 1) {}
+  readonly count: number
 
-  apply(gameState: GameState, _eventData: GameEventData): void {
-    // Signal that the current player should draw cards.
-    // The actual draw is handled by the reducer/game loop.
-    void gameState
-    void this.count
+  constructor(count = 1) {
+    this.count = count
+  }
+
+  apply(gameState: GameState, eventData: GameEventData): void {
+    const playerId = eventData.playerId ?? gameState.currentPlayerId
+    const { deck } = gameState.zones
+    const drawCount = Math.min(this.count, deck.length)
+    const drawn = deck.splice(deck.length - drawCount, drawCount)
+    const hand = gameState.zones.hands[playerId] ?? []
+    gameState.zones.hands[playerId] = [...hand, ...drawn]
   }
 }
 
 export class DamageEffect implements CardEffect {
-  constructor(private readonly damage: number) {}
+  constructor(readonly damage: number) {}
 
   apply(_gameState: GameState, eventData: GameEventData): void {
-    // Apply damage to the target if present in event data.
-    void eventData
-    void this.damage
+    const target = eventData.target as
+      | { life?: number; health?: number }
+      | undefined
+    if (target) {
+      if (typeof target.life === 'number') {
+        target.life -= this.damage
+      } else if (typeof target.health === 'number') {
+        target.health -= this.damage
+      }
+    }
   }
 }
 

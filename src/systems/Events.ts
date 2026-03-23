@@ -37,6 +37,10 @@ export class EventManager implements EventManagerInterface {
       }
     }
   }
+
+  removeAllListeners(): void {
+    this.listeners.clear()
+  }
 }
 
 export { type EventListenerInterface as EventListener } from '../types/index.js'

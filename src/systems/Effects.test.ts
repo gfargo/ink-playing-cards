@@ -128,22 +128,106 @@ test('TargetedEffect skips when target is null', (t) => {
   t.is(spy.calls.length, 0)
 })
 
-test('DelayedEffect stores delay and effect', (t) => {
+test('DelayedEffect does not fire before delay', (t) => {
   const spy = new SpyEffect()
   const effect = new DelayedEffect(3, spy)
-  t.is(effect.delay, 3)
-  t.is(effect.effect, spy)
-  effect.apply(makeGameState(), makeEvent('X'))
-  t.pass()
+  // First call registers the turn
+  effect.apply(makeGameState({ turn: 1 }), makeEvent('X'))
+  t.is(spy.calls.length, 0)
+  // Turn 2 — not yet
+  effect.apply(makeGameState({ turn: 2 }), makeEvent('X'))
+  t.is(spy.calls.length, 0)
+  // Turn 3 — not yet (need turn 1 + 3 = 4)
+  effect.apply(makeGameState({ turn: 3 }), makeEvent('X'))
+  t.is(spy.calls.length, 0)
 })
 
-test('DrawCardEffect apply does not throw', (t) => {
+test('DelayedEffect fires after delay turns', (t) => {
+  const spy = new SpyEffect()
+  const effect = new DelayedEffect(2, spy)
+  effect.apply(makeGameState({ turn: 5 }), makeEvent('X'))
+  t.is(spy.calls.length, 0)
+  effect.apply(makeGameState({ turn: 7 }), makeEvent('X'))
+  t.is(spy.calls.length, 1)
+})
+
+test('DelayedEffect resets after firing', (t) => {
+  const spy = new SpyEffect()
+  const effect = new DelayedEffect(1, spy)
+  effect.apply(makeGameState({ turn: 0 }), makeEvent('X'))
+  effect.apply(makeGameState({ turn: 1 }), makeEvent('X'))
+  t.is(spy.calls.length, 1)
+  // Re-register
+  effect.apply(makeGameState({ turn: 2 }), makeEvent('X'))
+  t.is(spy.calls.length, 1)
+  effect.apply(makeGameState({ turn: 3 }), makeEvent('X'))
+  t.is(spy.calls.length, 2)
+})
+
+test('DrawCardEffect moves cards from deck to hand', (t) => {
   const effect = new DrawCardEffect(2)
-  effect.apply(makeGameState(), makeEvent('X'))
-  t.pass()
+  const gs = makeGameState({
+    currentPlayerId: 'p1',
+    zones: {
+      deck: [
+        { id: 'c1', suit: 'hearts', value: 'A' },
+        { id: 'c2', suit: 'spades', value: 'K' },
+        { id: 'c3', suit: 'clubs', value: 'Q' },
+      ],
+      hands: { p1: [] },
+      discardPile: [],
+      playArea: [],
+    },
+  })
+  effect.apply(gs, makeEvent('X'))
+  t.is(gs.zones.deck.length, 1)
+  t.is(gs.zones.hands['p1']!.length, 2)
 })
 
-test('DamageEffect apply does not throw', (t) => {
+test('DrawCardEffect uses playerId from event data', (t) => {
+  const effect = new DrawCardEffect(1)
+  const gs = makeGameState({
+    zones: {
+      deck: [{ id: 'c1', suit: 'hearts', value: 'A' }],
+      hands: { p2: [] },
+      discardPile: [],
+      playArea: [],
+    },
+  })
+  effect.apply(gs, makeEvent('X', { playerId: 'p2' }))
+  t.is(gs.zones.hands['p2']!.length, 1)
+})
+
+test('DrawCardEffect clamps to available cards', (t) => {
+  const effect = new DrawCardEffect(5)
+  const gs = makeGameState({
+    zones: {
+      deck: [{ id: 'c1', suit: 'hearts', value: 'A' }],
+      hands: { p1: [] },
+      discardPile: [],
+      playArea: [],
+    },
+  })
+  effect.apply(gs, makeEvent('X'))
+  t.is(gs.zones.deck.length, 0)
+  t.is(gs.zones.hands['p1']!.length, 1)
+})
+
+test('DamageEffect reduces target life', (t) => {
+  const effect = new DamageEffect(3)
+  const target = { life: 20 }
+  effect.apply(makeGameState(), makeEvent('X', { target }))
+  t.is(target.life, 17)
+})
+
+test('DamageEffect reduces target health', (t) => {
+  const effect = new DamageEffect(5)
+  const target = { health: 10 }
+  effect.apply(makeGameState(), makeEvent('X', { target }))
+  t.is(target.health, 5)
+})
+
+test('DamageEffect does nothing without target', (t) => {
   const effect = new DamageEffect(5)
   effect.apply(makeGameState(), makeEvent('X'))
   t.pass()
