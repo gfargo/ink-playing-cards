@@ -18,4 +18,6 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: npx ava --update-snapshots
+        env:
+          CI: ''
       - run: yarn lint
