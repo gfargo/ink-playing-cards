@@ -10,6 +10,10 @@ export {
   createStandardDeck,
 } from './components/Deck/utils.js'
 export { MiniCard } from './components/MiniCard/index.js'
+export {
+  UnicodeCard,
+  type UnicodeCardProps,
+} from './components/UnicodeCard/index.js'
 export { GameContext, GameProvider } from './contexts/GameContext.js'
 export { useDeck } from './hooks/useDeck.js'
 export { useHand } from './hooks/useHand.js'

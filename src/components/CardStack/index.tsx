@@ -1,7 +1,8 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React from 'react'
-import { isStandardCard, type TCard } from '../../types/index.js'
+import { isCustomCard, isStandardCard, type TCard } from '../../types/index.js'
 import Card from '../Card/index.js'
+import { CustomCard } from '../CustomCard/index.js'
 import { MiniCard } from '../MiniCard/index.js'
 
 type CardStackProperties = {
@@ -94,6 +95,8 @@ export function CardStack({
                     variant={variant}
                   />
                 )
+              ) : isCustomCard(card) ? (
+                <CustomCard {...card} faceUp={isFaceUp} />
               ) : null}
             </Box>
           )
