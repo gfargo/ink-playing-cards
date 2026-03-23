@@ -1,16 +1,16 @@
-export type GameEvent = {
-  type: string
-  data: any
-}
+import {
+    type EventListenerInterface,
+    type EventManagerInterface,
+    type GameEventData,
+} from '../types/index.js'
 
-export type EventListener = {
-  handleEvent(event: GameEvent): void
-}
+export type { EventListenerInterface as EventListener }
+export type GameEvent = GameEventData
 
-export class EventManager {
-  private readonly listeners = new Map<string, EventListener[]>()
+export class EventManager implements EventManagerInterface {
+  private readonly listeners = new Map<string, EventListenerInterface[]>()
 
-  addEventListener(eventType: string, listener: EventListener): void {
+  addEventListener(eventType: string, listener: EventListenerInterface): void {
     if (!this.listeners.has(eventType)) {
       this.listeners.set(eventType, [])
     }
@@ -18,7 +18,10 @@ export class EventManager {
     this.listeners.get(eventType)!.push(listener)
   }
 
-  removeEventListener(eventType: string, listener: EventListener): void {
+  removeEventListener(
+    eventType: string,
+    listener: EventListenerInterface
+  ): void {
     if (this.listeners.has(eventType)) {
       const typeListeners = this.listeners.get(eventType)!
       const index = typeListeners.indexOf(listener)
@@ -28,7 +31,7 @@ export class EventManager {
     }
   }
 
-  dispatchEvent(event: GameEvent): void {
+  dispatchEvent(event: GameEventData): void {
     if (this.listeners.has(event.type)) {
       for (const listener of this.listeners.get(event.type)!) {
         listener.handleEvent(event)

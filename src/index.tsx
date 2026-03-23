@@ -7,10 +7,10 @@ export { CustomCard } from './components/CustomCard/index.js'
 export { Deck } from './components/Deck/index.js'
 export {
   createPairedDeck,
-  createStandardDeck
+  createStandardDeck,
 } from './components/Deck/utils.js'
 export { MiniCard } from './components/MiniCard/index.js'
-export { GameContext } from './contexts/GameContext.js'
+export { GameContext, GameProvider } from './contexts/GameContext.js'
 export { useDeck } from './hooks/useDeck.js'
 export { useHand } from './hooks/useHand.js'
 export * as Effects from './systems/Effects.js'

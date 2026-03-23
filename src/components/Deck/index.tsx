@@ -2,9 +2,9 @@ import { Box } from 'ink'
 import React, { useMemo } from 'react'
 import { useDeck } from '../../hooks/useDeck.js'
 import {
-  type CardProps,
-  type TCardValue,
-  type TSuit,
+    isStandardCard,
+    type TCardValue,
+    type TSuit,
 } from '../../types/index.js'
 import Card from '../Card/index.js'
 
@@ -30,15 +30,15 @@ export function Deck({
   }
 
   const renderTopCard = useMemo(() => {
-    if (deck.cards.length > 0) {
-      const topCard = deck.cards[0] as CardProps
-      if (topCard?.suit === undefined || topCard.value === undefined) {
-        console.error('Invalid top card:', topCard)
+    if (deck.length > 0) {
+      const topCard = deck[deck.length - 1]
+      if (!topCard || !isStandardCard(topCard)) {
         return null
       }
 
       return (
         <Card
+          id={topCard.id}
           suit={topCard.suit}
           value={topCard.value}
           faceUp={showTopCard}
@@ -47,11 +47,8 @@ export function Deck({
       )
     }
 
-    //  Else if (customCards && customCards.length > 0) {
-    //   return <CustomCard {...customCards[0]} faceUp={showTopCard} variant={variant} />
-    // }
     return null
-  }, [deck.cards, showTopCard, variant])
+  }, [deck, showTopCard, variant])
 
   return (
     // @ts-ignore
@@ -59,6 +56,7 @@ export function Deck({
       {renderTopCard}
       <Box marginTop={1}>
         <Card
+          id="placeholder"
           suit={placeholderCard.suit}
           value={placeholderCard.value}
           faceUp={!showTopCard}

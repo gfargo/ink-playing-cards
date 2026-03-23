@@ -1,10 +1,9 @@
 import { useContext } from 'react'
 import { DeckContext } from '../contexts/DeckContext.js'
-import { type Deck } from '../systems/Zones.js'
 import {
-  type BackArtwork,
-  type CustomCardProps,
-  type TCard,
+    type BackArtwork,
+    type CustomCardProps,
+    type TCard,
 } from '../types/index.js'
 
 export const useDeck = () => {
@@ -24,8 +23,8 @@ export const useDeck = () => {
     dispatch({ type: 'DRAW', payload: { count, playerId } })
   }
 
-  const reset = (deck?: Deck) => {
-    dispatch({ type: 'RESET', payload: { deck } })
+  const reset = (cards?: TCard[]) => {
+    dispatch({ type: 'RESET', payload: cards ? { cards } : undefined })
   }
 
   const setBackArtwork = (artwork: Partial<BackArtwork>) => {
@@ -36,8 +35,8 @@ export const useDeck = () => {
     dispatch({ type: 'ADD_CUSTOM_CARD', payload: card })
   }
 
-  const removeCustomCard = (card: TCard) => {
-    dispatch({ type: 'REMOVE_CUSTOM_CARD', payload: card })
+  const removeCustomCard = (cardId: string) => {
+    dispatch({ type: 'REMOVE_CUSTOM_CARD', payload: { cardId } })
   }
 
   const cutDeck = (index: number) => {
@@ -48,9 +47,20 @@ export const useDeck = () => {
     dispatch({ type: 'DEAL', payload: { count, playerIds } })
   }
 
+  const addPlayer = (playerId: string) => {
+    dispatch({ type: 'ADD_PLAYER', payload: playerId })
+  }
+
+  const removePlayer = (playerId: string) => {
+    dispatch({ type: 'REMOVE_PLAYER', payload: playerId })
+  }
+
+  const getPlayerHand = (playerId: string): TCard[] =>
+    zones.hands[playerId] ?? []
+
   return {
     deck: zones.deck,
-    hand: zones.hand,
+    hands: zones.hands,
     discardPile: zones.discardPile,
     playArea: zones.playArea,
     players,
@@ -65,5 +75,8 @@ export const useDeck = () => {
     removeCustomCard,
     cutDeck,
     deal,
+    addPlayer,
+    removePlayer,
+    getPlayerHand,
   }
 }

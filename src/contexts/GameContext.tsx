@@ -1,14 +1,16 @@
 import React, {
-  createContext,
-  type ReactNode,
-  useMemo,
-  useReducer,
+    createContext,
+    type ReactNode,
+    useMemo,
+    useReducer,
 } from 'react'
 import { type GameAction, type GameContextType } from '../types/index.js'
 
 const initialState: GameContextType = {
   currentPlayerId: '',
   players: [],
+  turn: 0,
+  phase: 'setup',
   dispatch: () => null,
 }
 
@@ -19,24 +21,27 @@ const gameReducer = (
   action: GameAction
 ): GameContextType => {
   switch (action.type) {
-    case 'ADD_PLAYER': {
-      return {
-        ...state,
-        players: [...state.players, action.payload],
-      }
-    }
-
-    case 'REMOVE_PLAYER': {
-      return {
-        ...state,
-        players: state.players.filter((id) => id !== action.payload),
-      }
-    }
-
     case 'SET_CURRENT_PLAYER': {
       return {
         ...state,
         currentPlayerId: action.payload,
+      }
+    }
+
+    case 'NEXT_TURN': {
+      const currentIndex = state.players.indexOf(state.currentPlayerId)
+      const nextIndex = (currentIndex + 1) % state.players.length
+      return {
+        ...state,
+        currentPlayerId: state.players[nextIndex] ?? state.currentPlayerId,
+        turn: state.turn + 1,
+      }
+    }
+
+    case 'SET_PHASE': {
+      return {
+        ...state,
+        phase: action.payload,
       }
     }
   }
@@ -59,6 +64,7 @@ export function GameProvider({
   const [state, dispatch] = useReducer(customReducer ?? gameReducer, {
     ...initialState,
     players: initialPlayers,
+    currentPlayerId: initialPlayers[0] ?? '',
   })
 
   const contextValue = useMemo(() => ({ ...state, dispatch }), [state])

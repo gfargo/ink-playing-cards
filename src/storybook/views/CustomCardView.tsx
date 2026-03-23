@@ -387,6 +387,7 @@ export function CustomCardView({ goBack }: { readonly goBack?: () => void }) {
       </Box>
       <Box marginY={1}>
         <CustomCard
+          id="preview-custom-card"
           size={size}
           faceUp={faceUp}
           title={title}

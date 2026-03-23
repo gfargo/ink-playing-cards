@@ -1,7 +1,8 @@
 import chalk from 'chalk'
 import { Box, type BoxProps, Text } from 'ink'
-import React from 'react'
-import { useDeck } from '../../hooks/useDeck.js'
+import React, { useContext } from 'react'
+import { DeckContext } from '../../contexts/DeckContext.js'
+import { defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { type CustomCardProps } from '../../types/index.js'
 
 export function CustomCard({
@@ -13,11 +14,11 @@ export function CustomCard({
   description,
   symbols = [],
   borderColor = 'white',
-  // BackgroundColor = 'black',
   textColor = 'white',
   faceUp = true,
 }: CustomCardProps) {
-  const { backArtwork } = useDeck()
+  const context = useContext(DeckContext)
+  const backArtwork = context?.backArtwork ?? defaultBackArtwork
 
   const cardWidth = width ?? getDefaultWidth(size)
   const cardHeight = height ?? getDefaultHeight(size)
@@ -30,7 +31,6 @@ export function CustomCard({
     alignItems: 'center',
     justifyContent: 'center',
     borderColor,
-    // BackgroundColor,
   }
 
   if (!faceUp) {
@@ -46,7 +46,6 @@ export function CustomCard({
       ' '.repeat(cardWidth)
     )
 
-    // Paint ASCII art
     if (asciiArt) {
       const artLines = asciiArt.split('\n')
       for (const [index, line] of artLines.entries()) {
@@ -56,12 +55,10 @@ export function CustomCard({
       }
     }
 
-    // Add title
     if (title) {
       content[0] = title.padEnd(cardWidth).slice(0, cardWidth)
     }
 
-    // Add description
     if (description) {
       const wrappedDesc = wrapText(description, cardWidth)
       for (const [index, line] of wrappedDesc.entries()) {
@@ -71,7 +68,6 @@ export function CustomCard({
       }
     }
 
-    // Add symbols
     for (const { char, position, color } of symbols) {
       const symbolColor = color
         ? (chalk as any)[color]
@@ -113,7 +109,6 @@ export function CustomCard({
   return <Box {...cardStyle}>{renderCardContent()}</Box>
 }
 
-// Helper functions
 const getDefaultWidth = (
   size: 'small' | 'medium' | 'large' | unknown
 ): number => {

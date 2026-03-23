@@ -1,6 +1,6 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React from 'react'
-import { type CardProps, type TCard } from '../../types/index.js'
+import { isStandardCard, type TCard } from '../../types/index.js'
 import Card from '../Card/index.js'
 import { MiniCard } from '../MiniCard/index.js'
 
@@ -30,7 +30,6 @@ export function CardStack({
 }: CardStackProperties) {
   const displayCards = cards.slice(-maxDisplay)
 
-  // Calculate overlap based on variant and custom spacing
   const getOverlap = () => {
     const baseOverlap = spacing.overlap ?? -2
     const scale = variant === 'mini' || variant === 'micro' ? 0.5 : 1
@@ -43,7 +42,6 @@ export function CardStack({
 
   const { marginLeft, marginTop } = getOverlap()
 
-  // Get alignment style
   const getAlignmentStyle = (): BoxProps => {
     const alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch' =
       alignment === 'start'
@@ -66,33 +64,40 @@ export function CardStack({
         {name} ({cards.length})
       </Text>
       <Box flexDirection={stackDirection === 'horizontal' ? 'row' : 'column'}>
-        {displayCards.map((card, index) => (
-          <Box
-            key={card.id}
-            marginLeft={
-              stackDirection === 'horizontal' && index > 0 ? marginLeft : 0
-            }
-            marginTop={
-              stackDirection === 'vertical' && index > 0 ? marginTop : 0
-            }
-          >
-            {variant === 'mini' || variant === 'micro' ? (
-              <MiniCard
-                suit={(card as CardProps).suit}
-                value={(card as CardProps).value}
-                faceUp={isFaceUp}
-                variant={variant}
-              />
-            ) : (
-              <Card
-                suit={(card as CardProps).suit}
-                value={(card as CardProps).value}
-                faceUp={isFaceUp}
-                variant={variant}
-              />
-            )}
-          </Box>
-        ))}
+        {displayCards.map((card, index) => {
+          const std = isStandardCard(card)
+          return (
+            <Box
+              key={card.id}
+              marginLeft={
+                stackDirection === 'horizontal' && index > 0 ? marginLeft : 0
+              }
+              marginTop={
+                stackDirection === 'vertical' && index > 0 ? marginTop : 0
+              }
+            >
+              {std ? (
+                variant === 'mini' || variant === 'micro' ? (
+                  <MiniCard
+                    id={card.id}
+                    suit={card.suit}
+                    value={card.value}
+                    faceUp={isFaceUp}
+                    variant={variant}
+                  />
+                ) : (
+                  <Card
+                    id={card.id}
+                    suit={card.suit}
+                    value={card.value}
+                    faceUp={isFaceUp}
+                    variant={variant}
+                  />
+                )
+              ) : null}
+            </Box>
+          )
+        })}
       </Box>
     </Box>
   )
