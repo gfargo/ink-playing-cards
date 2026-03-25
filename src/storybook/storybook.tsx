@@ -8,6 +8,7 @@ import { CustomCardView } from './views/CustomCardView.js'
 import { DeckView } from './views/DeckView.js'
 import { GridView } from './views/GridView.js'
 import { MiniCardView } from './views/MiniCardView.js'
+import { TarotCardView } from './views/TarotCardView.js'
 import { UnicodeCardView } from './views/UnicodeCardView.js'
 
 type ComponentView =
@@ -15,6 +16,7 @@ type ComponentView =
   | 'mini-card'
   | 'unicode-card'
   | 'custom-card'
+  | 'tarot-card'
   | 'card-stack'
   | 'deck'
   | 'grid'
@@ -70,6 +72,12 @@ export function Storybook() {
                 value: 'custom-card',
                 indicator: <Text color="cyan">♥</Text>,
                 hotkey: 't',
+              },
+              {
+                label: 'Tarot Card',
+                value: 'tarot-card',
+                indicator: <Text color="magenta">☾</Text>,
+                hotkey: 'r',
               },
               {
                 label: 'Card Stack',
@@ -137,6 +145,13 @@ export function Storybook() {
       )}
       {currentComponent === 'custom-card' && (
         <CustomCardView
+          goBack={() => {
+            setCurrentComponent(undefined)
+          }}
+        />
+      )}
+      {currentComponent === 'tarot-card' && (
+        <TarotCardView
           goBack={() => {
             setCurrentComponent(undefined)
           }}
