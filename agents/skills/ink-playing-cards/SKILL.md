@@ -1,9 +1,6 @@
 ---
-description: >-
-  Use when building terminal card games or CLI apps with ink-playing-cards —
-  card components, deck management, zone/event/effect systems using Ink 6 and
-  React 19.
-inclusion: manual
+name: ink-playing-cards
+description: "Use when building terminal card games with ink-playing-cards, working with card components, deck management, zone systems, event systems, effect systems, or any card game logic using Ink and React for CLI rendering."
 ---
 
 # ink-playing-cards v1.0.0
@@ -173,6 +170,41 @@ Size presets: `micro` (5×3), `mini` (8×5), `small` (12×7), `medium` (18×11, 
 <CustomCard id="c3" faceUp={false} back={{ art: '♠♠♠', color: 'cyan' }} />
 ```
 
+### TarotCard — tarot deck cards
+
+Wraps `CustomCard` with tarot-specific semantics. Uses a discriminated union on `arcana` for Major vs Minor Arcana. Renders a 20×13 card with themed defaults.
+
+Standard 78-card tarot deck: 22 Major Arcana + 56 Minor Arcana (14 per suit × 4 suits).
+Tarot suits: `wands` (🜂), `cups` (☽), `swords` (⚔), `pentacles` (⛤).
+Minor values: `Ace`–`10` + `Page`, `Knight`, `Queen`, `King`.
+
+```tsx
+import { TarotCard, createTarotDeck } from 'ink-playing-cards'
+
+// Major Arcana (index 0–21: The Fool through The World)
+<TarotCard id="fool" arcana="major" majorIndex={0} />
+<TarotCard id="tower" arcana="major" majorIndex={16} reversed />
+
+// Minor Arcana
+<TarotCard id="ace-cups" arcana="minor" suit="cups" value="Ace" />
+<TarotCard id="qw" arcana="minor" suit="wands" value="Queen" reversed />
+
+// Face down with custom tarot back
+<TarotCard id="hidden" arcana="major" majorIndex={13} faceUp={false} />
+
+// Custom styling
+<TarotCard id="devil" arcana="major" majorIndex={15}
+  borderColor="red" textColor="red" artColor="red" />
+```
+
+Props (Major): `arcana="major"`, `majorIndex` (0–21), `reversed?`, `asciiArt?`, `borderColor?`, `textColor?`, `artColor?`, `back?`, plus all `BaseCardProps`.
+
+Props (Minor): `arcana="minor"`, `suit` (`TarotSuit`), `value` (`TarotMinorValue`), `reversed?`, `asciiArt?`, `borderColor?`, `textColor?`, `artColor?`, `back?`, plus all `BaseCardProps`.
+
+Types: `TarotCardProps`, `TarotMajorProps`, `TarotMinorProps`, `TarotSuit`, `TarotMinorValue`, `MajorArcanaIndex`.
+
+Defaults: Major Arcana uses yellow border / magenta art. Minor Arcana uses cyan border / cyan art. All 22 Major Arcana have built-in ASCII art. Minor pip cards auto-generate suit symbol art. `reversed` shows "⟳ Reversed" on the type line.
+
 ### CardStack — overlapping card list
 
 Renders `TCard[]` with overlap. Handles both standard and custom cards.
@@ -270,7 +302,7 @@ Effects mutate `gameState`/`eventData` directly — designed for effect pipeline
 ## Zone Utilities
 
 ```ts
-import { Zones, createStandardDeck, createPairedDeck } from 'ink-playing-cards'
+import { Zones, createStandardDeck, createPairedDeck, createTarotDeck } from 'ink-playing-cards'
 
 // Pure functions (immutable, safe for reducers)
 Zones.shuffleCards(cards)        // Fisher-Yates, new array
@@ -284,6 +316,7 @@ Zones.cutDeck(cards, index)      // split and reorder
 // Deck creation
 createStandardDeck()             // 52 cards with unique IDs
 createPairedDeck(shuffle?)       // paired deck for Memory games
+createTarotDeck()                // 78-card tarot deck (22 Major + 56 Minor Arcana)
 
 // Legacy class API (mutable): Zones.Deck, Zones.Hand, Zones.DiscardPile, Zones.PlayArea
 // Each has addCard(), removeCard(), shuffle(). Deck also has drawCard(), drawCards(n).
