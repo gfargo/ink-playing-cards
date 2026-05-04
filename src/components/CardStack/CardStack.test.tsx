@@ -3,6 +3,9 @@ import { render } from 'ink-testing-library'
 import React from 'react'
 import { CardStack } from './index.js'
 
+const ansiPattern = new RegExp(`${String.fromCodePoint(27)}\\[[\\d;]*m`, 'g')
+const stripAnsi = (value: string): string => value.replaceAll(ansiPattern, '')
+
 test('render queen of clubs face up', (t) => {
   const { lastFrame } = render(
     <CardStack
@@ -241,6 +244,27 @@ test('render three cards face down', (t) => {
   t.snapshot(threeCardsLastFrame)
 })
 
+test('render no cards when maxDisplay is 0', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[
+        { id: 'ace-spades', suit: 'spades', value: 'A' },
+        { id: 'two-hearts', suit: 'hearts', value: '2' },
+      ]}
+      name="test"
+      maxDisplay={0}
+    />
+  )
+
+  const maxDisplayZeroLastFrame = lastFrame()
+  t.snapshot(maxDisplayZeroLastFrame)
+  if (maxDisplayZeroLastFrame) {
+    t.false(maxDisplayZeroLastFrame.includes('♠'))
+    t.false(maxDisplayZeroLastFrame.includes('♥'))
+  }
+})
+
 test('render four cards face up', (t) => {
   const { lastFrame } = render(
     <CardStack
@@ -374,6 +398,9 @@ test('render minimal variant horizontal stack', (t) => {
 
   const minimalVariantHorizontalStackLastFrame = lastFrame()
   t.snapshot(minimalVariantHorizontalStackLastFrame)
+  if (minimalVariantHorizontalStackLastFrame) {
+    t.false(stripAnsi(minimalVariantHorizontalStackLastFrame).includes('││'))
+  }
 })
 
 test('render minimal variant face down', (t) => {
@@ -394,6 +421,28 @@ test('render minimal variant face down', (t) => {
 
   const minimalVariantFaceDownLastFrame = lastFrame()
   t.snapshot(minimalVariantFaceDownLastFrame)
+})
+
+test('render minimal variant face down horizontal stack without border bleed', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp={false}
+      cards={[
+        { id: 'ace-spades', suit: 'spades', value: 'A' },
+        { id: 'two-hearts', suit: 'hearts', value: '2' },
+        { id: 'three-diamonds', suit: 'diamonds', value: '3' },
+      ]}
+      name="test"
+      stackDirection="horizontal"
+      variant="minimal"
+    />
+  )
+
+  const minimalFaceDownHorizontalStackLastFrame = lastFrame()
+  t.snapshot(minimalFaceDownHorizontalStackLastFrame)
+  if (minimalFaceDownHorizontalStackLastFrame) {
+    t.false(stripAnsi(minimalFaceDownHorizontalStackLastFrame).includes('││'))
+  }
 })
 
 test('render ascii variant', (t) => {

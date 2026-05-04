@@ -5,6 +5,25 @@ import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { type AsciiTheme, type CardProps } from '../../types/index.js'
 import { createCardContent } from './utils.js'
 
+function createMinimalBackContent(
+  backArtwork: string,
+  width: number,
+  height: number
+): string {
+  const innerWidth = width - 2
+  const innerHeight = height - 2
+  const label = backArtwork.split('\n').join('').slice(0, innerWidth)
+  const leftPadding = Math.floor((innerWidth - label.length) / 2)
+  const rightPadding = innerWidth - label.length - leftPadding
+  const labelLine =
+    ' '.repeat(leftPadding) + label + ' '.repeat(Math.max(0, rightPadding))
+  const verticalCenter = Math.floor(innerHeight / 2)
+
+  return Array.from({ length: innerHeight }, (_, index) =>
+    index === verticalCenter ? labelLine : ' '.repeat(innerWidth)
+  ).join('\n')
+}
+
 /**
  * Card component that renders a playing card with various display variants.
  * Supports simple, ASCII, and minimal display styles.
@@ -53,7 +72,15 @@ export function Card({
     return (
       <Box {...cardStyle}>
         <Box width="100%" height="100%">
-          <Text>{backArtwork[variant]}</Text>
+          <Text>
+            {variant === 'minimal'
+              ? createMinimalBackContent(
+                  backArtwork[variant],
+                  config.width,
+                  config.height
+                )
+              : backArtwork[variant]}
+          </Text>
         </Box>
       </Box>
     )
