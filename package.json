@@ -10,12 +10,17 @@
   "engines": {
     "node": ">=20"
   },
+  "agents": {
+    "skills": [
+      { "name": "ink-playing-cards", "path": "./skills/ink-playing-cards" }
+    ]
+  },
   "scripts": {
     "prestart": "yarn build",
     "start": "node dist/storybook/storybook.js",
     "build": "tsc",
     "dev": "npx tsx ./src/storybook/storybook.tsx",
-    "release": "release-it",
+    "release": "cp agents/skills/ink-playing-cards/SKILL.md skills/ink-playing-cards/SKILL.md && release-it",
     "lint": "xo",
     "lint:fix": "xo --fix",
     "pretest": "yarn build",
@@ -23,7 +28,8 @@
     "test:fix": "yarn build && yarn lint:fix && ava --update-snapshots"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "dependencies": {
     "ink": "^6.0.0",
