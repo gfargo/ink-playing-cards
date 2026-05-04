@@ -1,5 +1,6 @@
 import { Box, type BoxProps } from 'ink'
 import React from 'react'
+import { CARD_DIMENSIONS } from '../../constants/card.js'
 import { type TCardValue, type TSuit } from '../../types/index.js'
 import Card from '../Card/index.js'
 import { MiniCard } from '../MiniCard/index.js'
@@ -107,19 +108,28 @@ export function CardGrid({
       }
 
       case 'micro': {
-        return { width: 3, height: 2 }
+        return { width: 4, height: 4 }
       }
 
       case 'minimal': {
-        return { width: 5, height: 3 }
+        return {
+          width: CARD_DIMENSIONS.minimal.width,
+          height: CARD_DIMENSIONS.minimal.height,
+        }
       }
 
       case 'ascii': {
-        return { width: 13, height: 11 }
+        return {
+          width: CARD_DIMENSIONS.ascii.width,
+          height: CARD_DIMENSIONS.ascii.height,
+        }
       }
 
       default: {
-        return { width: 9, height: 7 }
+        return {
+          width: CARD_DIMENSIONS.simple.width,
+          height: CARD_DIMENSIONS.simple.height,
+        }
       }
     }
   }

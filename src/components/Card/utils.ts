@@ -374,9 +374,21 @@ export function createCardContent(
     padding: 0,
   }
 
-  // For minimal variant, just return a centered suit
+  // Minimal cards need explicit space-filled rows so overlapped stacks repaint
+  // the cells from cards underneath them.
   if (variant === 'minimal') {
-    return `\n${center(`${rank}${suit}`, width - (rank.length > 1 ? 2 : 0))}\n`
+    const innerWidth = width - 2
+    const innerHeight = height - 2
+    const label = `${rank}${suit}`.slice(0, innerWidth)
+    const leftPadding = Math.floor((innerWidth - label.length) / 2)
+    const rightPadding = innerWidth - label.length - leftPadding
+    const labelLine =
+      spaces(leftPadding) + label + spaces(Math.max(0, rightPadding))
+    const verticalCenter = Math.floor(innerHeight / 2)
+
+    return Array.from({ length: innerHeight }, (_, index) =>
+      index === verticalCenter ? labelLine : spaces(innerWidth)
+    ).join('\n')
   }
 
   const lines: string[] = []

@@ -169,6 +169,17 @@ test('render empty grid with placeholders', (t) => {
   t.snapshot(gridFrame)
 })
 
+test('render empty micro grid with card-sized placeholders', (t) => {
+  const { lastFrame } = render(
+    <CardGrid fillEmpty rows={1} cols={2} cards={[]} variant="micro" />
+  )
+  const gridFrame = lastFrame()
+  t.snapshot(gridFrame)
+  if (gridFrame) {
+    t.true(gridFrame.includes('┌──┐'))
+  }
+})
+
 test('render partial grid without placeholders', (t) => {
   const { lastFrame } = render(
     <CardGrid

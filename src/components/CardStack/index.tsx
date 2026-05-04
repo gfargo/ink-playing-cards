@@ -29,7 +29,8 @@ export function CardStack({
   spacing = { overlap: -2, margin: 1 },
   alignment = 'start',
 }: CardStackProperties) {
-  const displayCards = cards.slice(-maxDisplay)
+  const displayLimit = Math.max(0, Math.floor(maxDisplay))
+  const displayCards = displayLimit === 0 ? [] : cards.slice(-displayLimit)
 
   const getOverlap = () => {
     const baseOverlap = spacing.overlap ?? -2
