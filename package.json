@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@ava/typescript": "^5.0.0",
+    "@release-it/conventional-changelog": "9",
     "@types/node": "^22.8.2",
     "@types/react": "^19.0.0",
     "ava": "^6.2.0",

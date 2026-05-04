@@ -8,7 +8,8 @@
   },
   "github": {
     "release": true,
-    "autoGenerate": true
+    "autoGenerate": true,
+    "tokenRef": "GITHUB_TOKEN"
   },
   "plugins": {
     "@release-it/conventional-changelog": {
