@@ -20,7 +20,7 @@
     "start": "node dist/storybook/storybook.js",
     "build": "tsc",
     "dev": "npx tsx ./src/storybook/storybook.tsx",
-    "release": "cp agents/skills/ink-playing-cards/SKILL.md skills/ink-playing-cards/SKILL.md && release-it",
+    "release": "release-it",
     "lint": "xo",
     "lint:fix": "xo --fix",
     "pretest": "yarn build",
