@@ -1,3 +1,4 @@
+import { shuffleCards } from '../../systems/Zones.js'
 import {
   type CardProps,
   type TCard,
@@ -79,9 +80,9 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
     }
   }
 
-  // Randomize the order of pairs
+  // Randomize the order of pairs using Fisher-Yates via shuffleCards
   if (shufflePairs) {
-    pairs.sort(() => Math.random() - 0.5)
+    return shuffleCards(pairs.flat() as TCard[]) as CardProps[]
   }
 
   // Flatten pairs into sequential array
