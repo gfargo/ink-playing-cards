@@ -79,3 +79,23 @@ test('createPairedDeck(false) is deterministic across two calls', (t) => {
   const b = createPairedDeck(false).map((c) => toKey(c))
   t.deepEqual(a, b)
 })
+
+test('createPairedDeck keeps each matched pair adjacent after shuffle', (t) => {
+  const deck = createPairedDeck(true)
+  // Cards are laid out as consecutive pairs: [0,1], [2,3], ...
+  for (let i = 0; i < deck.length; i += 2) {
+    const a = deck[i]
+    const b = deck[i + 1]
+    t.true(
+      isCardProps(a) && isCardProps(b),
+      `slot ${i} or ${i + 1} is not a CardProps`
+    )
+    if (isCardProps(a) && isCardProps(b)) {
+      t.is(
+        a.value,
+        b.value,
+        `pair at positions ${i},${i + 1} has mismatched values`
+      )
+    }
+  }
+})
