@@ -79,9 +79,12 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
     }
   }
 
-  // Randomize the order of pairs
+  // Randomize the order of pairs (as units) using Fisher-Yates
   if (shufflePairs) {
-    pairs.sort(() => Math.random() - 0.5)
+    for (let i = pairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[pairs[i], pairs[j]] = [pairs[j]!, pairs[i]!]
+    }
   }
 
   // Flatten pairs into sequential array
