@@ -318,8 +318,12 @@ export function createSpecialArt(
 
   if (variant === 'ascii') {
     // Use new renderer for robot theme
+    // Pass w - 2 (inner width) consistent with all other art branches, so
+    // renderCardArt/padReplacement pads to the inner content width rather
+    // than the full card width (which would produce a jagged right edge when
+    // the surrounding spacer lines are width - 2).
     if (theme === 'robot') {
-      return createRobotArt(rank, suit, w)
+      return createRobotArt(rank, suit, w - 2)
     }
 
     const themeArt = THEME_MAP[theme]
