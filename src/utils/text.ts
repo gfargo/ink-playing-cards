@@ -17,7 +17,7 @@ export const center = (
   width: number,
   paddingCharacter?: string
 ): string => {
-  const padding = Math.max(0, width - 2 - text.length) / 2
+  const padding = Math.max(0, width - text.length) / 2
   return (
     spaces(Math.floor(padding), paddingCharacter) +
     text +
@@ -32,7 +32,7 @@ export const center = (
  * @returns The left-aligned text with padding spaces
  */
 export const left = (text: string, width: number): string => {
-  return text + spaces(Math.max(0, width - 2 - text.length))
+  return text + spaces(Math.max(0, width - text.length))
 }
 
 /**
@@ -42,5 +42,5 @@ export const left = (text: string, width: number): string => {
  * @returns The right-aligned text with padding spaces
  */
 export const right = (text: string, width: number): string => {
-  return spaces(Math.max(0, width - 2 - text.length)) + text
+  return spaces(Math.max(0, width - text.length)) + text
 }
