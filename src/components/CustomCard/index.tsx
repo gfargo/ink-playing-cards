@@ -290,7 +290,7 @@ export function CustomCard({
   const cardWidth = width ?? presetW
   const cardHeight = height ?? presetH
 
-  // Border takes 2 chars on each side
+  // Border takes 1 cell per side (2 total) on each axis
   const innerWidth = Math.max(1, cardWidth - 2)
   const innerHeight = Math.max(1, cardHeight - 2)
 
