@@ -15,7 +15,13 @@ import type {
   TSuitIcon,
 } from '../../types/index.js'
 import { renderCardArt } from '../../utils/cardArtRenderer.js'
-import { center, left, right, spaces } from '../../utils/text.js'
+import {
+  applyReplacements,
+  center,
+  left,
+  right,
+  spaces,
+} from '../../utils/text.js'
 
 /**
  * Get theme-specific replacements for a given suit
@@ -57,21 +63,6 @@ function getThemeReplacements(
   }
 
   return replacements[theme] ?? {}
-}
-
-/**
- * Apply theme-specific replacements to a line of art
- */
-function applyThemeReplacements(
-  line: string,
-  replacements: Record<string, string>
-): string {
-  let result = line
-  for (const [key, value] of Object.entries(replacements)) {
-    result = result.replaceAll(new RegExp(`{${key}}`, 'g'), value)
-  }
-
-  return result
 }
 
 /**
@@ -330,7 +321,7 @@ export function createSpecialArt(
       let processedLine = line.replaceAll('{suit}', suit)
 
       // Then apply theme-specific replacements
-      processedLine = applyThemeReplacements(processedLine, replacements)
+      processedLine = applyReplacements(processedLine, replacements)
 
       return center(processedLine, w)
     })
