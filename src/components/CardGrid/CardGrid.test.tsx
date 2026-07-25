@@ -192,3 +192,61 @@ test('render partial grid without placeholders', (t) => {
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
 })
+
+// F18: CardGrid now supports custom cards (TCard, not just GridCard)
+test('render grid with custom cards', (t) => {
+  const { lastFrame } = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={2}
+      cards={[
+        {
+          id: 'custom-1',
+          title: 'Flame Lance',
+          size: 'small' as const,
+          borderColor: 'red',
+        },
+        {
+          id: 'custom-2',
+          title: 'Frost Nova',
+          size: 'small' as const,
+          borderColor: 'blue',
+        },
+      ]}
+    />
+  )
+  const gridFrame = lastFrame()
+  t.snapshot(gridFrame)
+  if (gridFrame) {
+    t.true(gridFrame.includes('Flame'))
+    t.true(gridFrame.includes('Frost'))
+  }
+})
+
+test('render grid with mixed standard and custom cards', (t) => {
+  const { lastFrame } = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={3}
+      cards={[
+        { id: 'ace-spades', suit: 'spades' as const, value: 'A' as const },
+        {
+          id: 'custom-1',
+          title: 'Wild',
+          size: 'small' as const,
+          borderColor: 'yellow',
+        },
+        { id: 'two-hearts', suit: 'hearts' as const, value: '2' as const },
+      ]}
+    />
+  )
+  const gridFrame = lastFrame()
+  t.snapshot(gridFrame)
+  if (gridFrame) {
+    t.true(gridFrame.includes('♠'))
+    t.true(gridFrame.includes('Wild'))
+    t.true(gridFrame.includes('♥'))
+  }
+})

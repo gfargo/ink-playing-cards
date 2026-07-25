@@ -1,12 +1,9 @@
 import { Box, type BoxProps } from 'ink'
 import React, { useMemo } from 'react'
 import { useDeck } from '../../hooks/useDeck.js'
-import {
-  isStandardCard,
-  type TCardValue,
-  type TSuit,
-} from '../../types/index.js'
+import { type TCardValue, type TSuit } from '../../types/index.js'
 import Card from '../Card/index.js'
+import { AnyCard } from '../AnyCard/index.js'
 
 type DeckProperties = {
   readonly showTopCard?: boolean
@@ -32,19 +29,11 @@ export function Deck({
   const renderTopCard = useMemo(() => {
     if (deck.length > 0) {
       const topCard = deck.at(-1)
-      if (!topCard || !isStandardCard(topCard)) {
+      if (!topCard) {
         return null
       }
 
-      return (
-        <Card
-          id={topCard.id}
-          suit={topCard.suit}
-          value={topCard.value}
-          faceUp={showTopCard}
-          variant={variant}
-        />
-      )
+      return <AnyCard card={topCard} variant={variant} faceUp={showTopCard} />
     }
 
     return null
