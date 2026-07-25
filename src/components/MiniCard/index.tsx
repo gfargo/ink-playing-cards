@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink'
 import React from 'react'
+import { getSuitColor } from '../../constants/card.js'
 import { type CardProps } from '../../types/index.js'
 
 type MiniCardProps = {
@@ -21,7 +22,7 @@ export function MiniCard({
     spades: '♠',
   }[suit]
 
-  const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
+  const color = getSuitColor(suit)
 
   // Micro cards are 2x4, mini cards are 5x4
   return (

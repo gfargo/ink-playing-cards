@@ -1,6 +1,10 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React, { useContext } from 'react'
-import { CARD_DIMENSIONS, SUIT_SYMBOL_MAP } from '../../constants/card.js'
+import {
+  CARD_DIMENSIONS,
+  getSuitColor,
+  SUIT_SYMBOL_MAP,
+} from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { type AsciiTheme, type CardProps } from '../../types/index.js'
 import { createCardContent } from './utils.js'
@@ -86,7 +90,7 @@ export function Card({
     )
   }
 
-  const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
+  const color = getSuitColor(suit)
   const symbol = SUIT_SYMBOL_MAP[suit]
   const cardContent = createCardContent(value, symbol, variant, config, theme)
 
