@@ -62,7 +62,8 @@ render(
 - `GameProvider` context for turn management and game phases
 - Theming support for ASCII card art (original, geometric, animal, robot, pixel, medieval)
 - Custom card component with structured layout regions and freeform mode
-- Utility functions: `createStandardDeck`, `createPairedDeck`
+- `TarotCard` component with full 78-card tarot deck support (Major and Minor Arcana)
+- Utility functions: `createStandardDeck`, `createPairedDeck`, `createTarotDeck`
 
 ## Architecture
 
@@ -151,6 +152,41 @@ Freeform card for non-standard card games (TCG, color-matching, party games):
 ```
 
 Supports structured layout (title, cost, art, typeLine, description, footer) or freeform mode via `content` prop. Custom card backs via the `back` prop.
+
+### TarotCard
+
+Renders a tarot card (Major or Minor Arcana) using a `CustomCard` layout with tarot-specific semantics. Produces a 20×13 card with themed defaults and built-in ASCII art for all 22 Major Arcana.
+
+```tsx
+import { TarotCard } from 'ink-playing-cards'
+
+// Major Arcana — The Fool (index 0) through The World (index 21)
+<TarotCard id="fool" arcana="major" majorIndex={0} />
+<TarotCard id="tower" arcana="major" majorIndex={16} reversed />
+
+// Minor Arcana — four suits: wands, cups, swords, pentacles
+<TarotCard id="ace-cups" arcana="minor" suit="cups" value="Ace" />
+<TarotCard id="qw" arcana="minor" suit="wands" value="Queen" reversed />
+
+// Face down with the default celestial card back
+<TarotCard id="hidden" arcana="major" majorIndex={13} faceUp={false} />
+
+// Custom styling
+<TarotCard
+  id="devil"
+  arcana="major"
+  majorIndex={15}
+  borderColor="red"
+  textColor="red"
+  artColor="red"
+/>
+```
+
+Major Arcana props: `arcana="major"`, `majorIndex` (0–21), `reversed?`, `asciiArt?`, `borderColor?`, `textColor?`, `artColor?`, `back?`, plus all `BaseCardProps`.
+
+Minor Arcana props: `arcana="minor"`, `suit` (`'wands' | 'cups' | 'swords' | 'pentacles'`), `value` (`'Ace'`–`'10'` plus `'Page'`, `'Knight'`, `'Queen'`, `'King'`), `reversed?`, plus the same optional styling props.
+
+`reversed` renders "⟳ Reversed" on the type line. Minor pip cards auto-generate suit-symbol art; court cards use a compact icon layout.
 
 ### CardStack
 
@@ -328,10 +364,11 @@ Effect types: `ConditionalEffect`, `TriggeredEffect`, `ContinuousEffect`, `Delay
 ## Utilities
 
 ```tsx
-import { createStandardDeck, createPairedDeck, generateCardId } from 'ink-playing-cards'
+import { createStandardDeck, createPairedDeck, createTarotDeck, generateCardId } from 'ink-playing-cards'
 
 const deck = createStandardDeck()       // 52 cards with unique IDs
 const pairs = createPairedDeck()        // paired deck for Memory-style games
+const tarot = createTarotDeck()         // 78-card tarot deck (22 Major + 56 Minor Arcana)
 const id = generateCardId('hearts', 'A') // "hearts-A-abc123"
 ```
 
