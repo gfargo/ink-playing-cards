@@ -367,12 +367,7 @@ export function createCardContent(
   },
   theme: AsciiTheme = 'original'
 ): string {
-  const { width, height } = config || {
-    width: 11,
-    height: 9,
-    pip: { left: 2, center: 4, right: 6 },
-    padding: 0,
-  }
+  const { width, height } = config
 
   // Minimal cards need explicit space-filled rows so overlapped stacks repaint
   // the cells from cards underneath them.
@@ -401,14 +396,15 @@ export function createCardContent(
   if (isSpecialCard) {
     const art = createSpecialArt(rank, suit, width, variant, theme)
 
-    while (lines.length < height / 2 - art.length / 2 - 2) {
+    while (lines.length < Math.ceil((height - art.length) / 2) - 2) {
       lines.push(spaces(width - 2))
     }
 
     lines.push(...art)
 
-    // Pad to full height
-    while (lines.length < height - 2 - 1) {
+    // Pad to full height — contentRows is the fill target before the bottom label row
+    const contentRows = height - 3
+    while (lines.length < contentRows) {
       lines.push(spaces(width - 2))
     }
   } else if (config.pip) {
