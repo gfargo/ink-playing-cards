@@ -90,11 +90,11 @@ export function createTopLine(
   variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
   if (variant === 'simple') {
-    return left(rank, width)
+    return left(rank, width - 2)
   }
 
   const leftPart = `${rank} ${suit}`
-  return left(leftPart, width)
+  return left(leftPart, width - 2)
 }
 
 /**
@@ -107,11 +107,11 @@ export function createBottomLine(
   variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
   if (variant === 'simple') {
-    return right(rank, width)
+    return right(rank, width - 2)
   }
 
   const rightPart = `${suit} ${rank}`
-  return right(rightPart, width)
+  return right(rightPart, width - 2)
 }
 
 /**
@@ -324,8 +324,12 @@ export function createSpecialArt(
 
   if (variant === 'ascii') {
     // Use new renderer for robot theme
+    // Pass w - 2 (inner width) consistent with all other art branches, so
+    // renderCardArt/padReplacement pads to the inner content width rather
+    // than the full card width (which would produce a jagged right edge when
+    // the surrounding spacer lines are width - 2).
     if (theme === 'robot') {
-      return createRobotArt(rank, suit, w)
+      return createRobotArt(rank, suit, w - 2)
     }
 
     const themeArt = THEME_MAP[theme]
@@ -338,7 +342,7 @@ export function createSpecialArt(
       // Then apply theme-specific replacements
       processedLine = applyThemeReplacements(processedLine, replacements)
 
-      return center(processedLine, w)
+      return center(processedLine, w - 2)
     })
 
     return art ?? []
@@ -349,11 +353,11 @@ export function createSpecialArt(
     const processedLine = line.replaceAll('{suit}', suit)
     // For Ace, center the art
     if (rank === 'A') {
-      return center(processedLine, w)
+      return center(processedLine, w - 2)
     }
 
     // For face cards (J, Q, K), right align the art
-    return right(processedLine, w)
+    return right(processedLine, w - 2)
   })
   return art ?? []
 }
