@@ -81,7 +81,7 @@ test('standard card face down renders back', (t) => {
   t.snapshot(frame)
   // Face down should NOT contain the suit symbol
   if (frame) {
-    t.false(frame.includes('J'))
+    t.false(frame.includes('♥'))
   }
 })
 
