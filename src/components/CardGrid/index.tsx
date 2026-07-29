@@ -1,9 +1,8 @@
 import { Box, type BoxProps } from 'ink'
 import React from 'react'
 import { CARD_DIMENSIONS } from '../../constants/card.js'
-import { type TCardValue, type TSuit } from '../../types/index.js'
-import Card from '../Card/index.js'
-import { MiniCard } from '../MiniCard/index.js'
+import { type TCard, type TCardValue, type TSuit } from '../../types/index.js'
+import { AnyCard } from '../AnyCard/index.js'
 
 // Type for cards that can be displayed in the grid
 export type GridCard = {
@@ -15,7 +14,7 @@ export type GridCard = {
 type CardGridProps = {
   readonly rows: number
   readonly cols: number
-  readonly cards: Array<GridCard | undefined> // Null for empty cells
+  readonly cards: Array<TCard | undefined> // Null for empty cells
   readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
   readonly spacing?: {
     row?: number // Space between rows
@@ -42,7 +41,7 @@ export function CardGrid({
 }: CardGridProps) {
   // Split cards into rows
   const grid = React.useMemo(() => {
-    const result: Array<Array<GridCard | undefined>> = []
+    const result: Array<Array<TCard | undefined>> = []
     for (let i = 0; i < rows; i++) {
       result.push(cards.slice(i * cols, (i + 1) * cols))
       // Pad with null if row is incomplete
@@ -146,23 +145,7 @@ export function CardGrid({
           {row.map((card, colIndex) => (
             <Box key={`${rowIndex}-${colIndex}`} marginX={spacing.col}>
               {card ? (
-                variant === 'mini' || variant === 'micro' ? (
-                  <MiniCard
-                    id={card.id}
-                    suit={card.suit}
-                    value={card.value}
-                    faceUp={isFaceUp}
-                    variant={variant === 'mini' ? 'mini' : 'micro'}
-                  />
-                ) : (
-                  <Card
-                    id={card.id}
-                    suit={card.suit}
-                    value={card.value}
-                    faceUp={isFaceUp}
-                    variant={variant}
-                  />
-                )
+                <AnyCard card={card} variant={variant} faceUp={isFaceUp} />
               ) : fillEmpty ? (
                 // Render empty placeholder
                 <Box {...getPlaceholderSize()} borderStyle="single" />

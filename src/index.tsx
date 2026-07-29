@@ -1,5 +1,6 @@
 export * from './types/index.js'
 
+export { AnyCard } from './components/AnyCard/index.js'
 export { Card } from './components/Card/index.js'
 export { CardGrid, type GridCard } from './components/CardGrid/index.js'
 export { CardStack } from './components/CardStack/index.js'
