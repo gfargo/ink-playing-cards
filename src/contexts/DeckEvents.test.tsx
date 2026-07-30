@@ -13,6 +13,7 @@ function renderWithEvents(
   function Capture() {
     const ctx = useContext(DeckContext)
     const dispatched = useRef(false)
+    if (!ctx) return null
     if (!dispatched.current) {
       dispatched.current = true
       ctx.eventManager.addEventListener('DECK_SHUFFLED', {
@@ -188,6 +189,7 @@ test('pendingEvents queue drains back to empty after dispatch flushes', async (t
 
   function Capture() {
     const ctx = useContext(DeckContext)
+    if (!ctx) return null
     if (!dispatched.current) {
       dispatched.current = true
       ctx.dispatch({ type: 'SHUFFLE' })
