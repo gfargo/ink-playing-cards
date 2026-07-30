@@ -95,3 +95,18 @@ test('SET_PHASE changes game phase', (t) => {
   const state = results.at(-1)!
   t.is(state.phase, 'playing')
 })
+
+test('unknown action type preserves existing state', (t) => {
+  const results = renderWithProvider(
+    [
+      { type: 'SET_PHASE', payload: 'playing' },
+      { type: 'TOTALLY_UNKNOWN' } as unknown as GameAction,
+    ],
+    ['alice', 'bob']
+  )
+  const state = results.at(-1)!
+  t.is(state.phase, 'playing')
+  t.is(state.currentPlayerId, 'alice')
+  t.deepEqual(state.players, ['alice', 'bob'])
+  t.is(state.turn, 0)
+})

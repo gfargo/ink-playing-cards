@@ -44,6 +44,11 @@ const gameReducer = (
         phase: action.payload,
       }
     }
+
+    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
+    default: {
+      return state
+    }
   }
 }
 
