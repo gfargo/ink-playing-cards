@@ -235,6 +235,7 @@ export type DeckContextType = {
   backArtwork: BackArtwork
   eventManager: EventManagerInterface
   effectManager: EffectManagerInterface
+  pendingEvents: GameEventData[]
   dispatch: React.Dispatch<DeckAction>
 }
 
@@ -284,6 +285,7 @@ export type DeckAction =
   | { type: 'DISCARD'; payload: { playerId: string; cardId: string } }
   | { type: 'ADD_PLAYER'; payload: string }
   | { type: 'REMOVE_PLAYER'; payload: string }
+  | { type: 'FLUSH_EVENTS'; payload: { count: number } }
 
 export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: string }
