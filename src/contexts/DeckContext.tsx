@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useEffect,
   useMemo,
   useReducer,
   type ReactNode,
@@ -18,6 +19,7 @@ import {
   type BackArtwork,
   type DeckAction,
   type DeckContextType,
+  type GameEventData,
   type TCard,
 } from '../types/index.js'
 
@@ -49,6 +51,7 @@ const createInitialState = (): DeckContextType => ({
   backArtwork: defaultBackArtwork,
   eventManager: new EventManager(),
   effectManager: new EffectManager(),
+  pendingEvents: [],
   dispatch: () => null,
 })
 
@@ -61,8 +64,11 @@ const deckReducer = (
   switch (action.type) {
     case 'SHUFFLE': {
       const newDeck = shuffleCards(state.zones.deck)
-      state.eventManager.dispatchEvent({ type: 'DECK_SHUFFLED' })
-      return { ...state, zones: { ...state.zones, deck: newDeck } }
+      return {
+        ...state,
+        zones: { ...state.zones, deck: newDeck },
+        pendingEvents: [...state.pendingEvents, { type: 'DECK_SHUFFLED' }],
+      }
     }
 
     case 'DRAW': {
@@ -76,25 +82,24 @@ const deckReducer = (
       const newPlayers = state.players.includes(playerId)
         ? state.players
         : [...state.players, playerId]
-      state.eventManager.dispatchEvent({
-        type: 'CARDS_DRAWN',
-        playerId,
-        cards: drawn,
-      })
       return {
         ...state,
         zones: { ...state.zones, deck: remaining, hands: newHands },
         players: newPlayers,
+        pendingEvents: [
+          ...state.pendingEvents,
+          { type: 'CARDS_DRAWN', playerId, cards: drawn },
+        ],
       }
     }
 
     case 'RESET': {
       const newCards = action.payload?.cards ?? createStandardDeck()
-      state.eventManager.dispatchEvent({ type: 'DECK_RESET' })
       return {
         ...state,
         zones: { deck: newCards, hands: {}, discardPile: [], playArea: [] },
         players: [],
+        pendingEvents: [...state.pendingEvents, { type: 'DECK_RESET' }],
       }
     }
 
@@ -127,8 +132,11 @@ const deckReducer = (
 
     case 'CUT_DECK': {
       const newDeck = cutDeckCards(state.zones.deck, action.payload)
-      state.eventManager.dispatchEvent({ type: 'DECK_CUT' })
-      return { ...state, zones: { ...state.zones, deck: newDeck } }
+      return {
+        ...state,
+        zones: { ...state.zones, deck: newDeck },
+        pendingEvents: [...state.pendingEvents, { type: 'DECK_CUT' }],
+      }
     }
 
     case 'DEAL': {
@@ -136,6 +144,7 @@ const deckReducer = (
       let currentDeck = state.zones.deck
       const newHands = { ...state.zones.hands }
       let newPlayers = [...state.players]
+      const dealtEvents: GameEventData[] = []
       for (const playerId of playerIds) {
         const [drawn, remaining] = drawCards(currentDeck, dealCount)
         currentDeck = remaining
@@ -144,7 +153,7 @@ const deckReducer = (
           newPlayers = [...newPlayers, playerId]
         }
 
-        state.eventManager.dispatchEvent({
+        dealtEvents.push({
           type: 'CARDS_DEALT',
           playerId,
           cards: drawn,
@@ -156,6 +165,7 @@ const deckReducer = (
         ...state,
         zones: { ...state.zones, deck: currentDeck, hands: newHands },
         players: newPlayers,
+        pendingEvents: [...state.pendingEvents, ...dealtEvents],
       }
     }
 
@@ -164,11 +174,6 @@ const deckReducer = (
       const pcHand = state.zones.hands[pcPid] ?? []
       const pcCard = pcHand.find((c: TCard) => c.id === pcCid)
       if (!pcCard) return state
-      state.eventManager.dispatchEvent({
-        type: 'CARD_PLAYED',
-        playerId: pcPid,
-        card: pcCard,
-      })
       return {
         ...state,
         zones: {
@@ -176,6 +181,10 @@ const deckReducer = (
           hands: { ...state.zones.hands, [pcPid]: removeCard(pcHand, pcCid) },
           playArea: addCard(state.zones.playArea, pcCard),
         },
+        pendingEvents: [
+          ...state.pendingEvents,
+          { type: 'CARD_PLAYED', playerId: pcPid, card: pcCard },
+        ],
       }
     }
 
@@ -184,11 +193,6 @@ const deckReducer = (
       const dHand = state.zones.hands[dPid] ?? []
       const dCard = dHand.find((c: TCard) => c.id === dCid)
       if (!dCard) return state
-      state.eventManager.dispatchEvent({
-        type: 'CARD_DISCARDED',
-        playerId: dPid,
-        card: dCard,
-      })
       return {
         ...state,
         zones: {
@@ -196,6 +200,10 @@ const deckReducer = (
           hands: { ...state.zones.hands, [dPid]: removeCard(dHand, dCid) },
           discardPile: addCard(state.zones.discardPile, dCard),
         },
+        pendingEvents: [
+          ...state.pendingEvents,
+          { type: 'CARD_DISCARDED', playerId: dPid, card: dCard },
+        ],
       }
     }
 
@@ -219,6 +227,13 @@ const deckReducer = (
         ...state,
         players: state.players.filter((p: string) => p !== action.payload),
         zones: { ...state.zones, hands: remainingHands },
+      }
+    }
+
+    case 'FLUSH_EVENTS': {
+      return {
+        ...state,
+        pendingEvents: state.pendingEvents.slice(action.payload.count),
       }
     }
 
@@ -257,6 +272,13 @@ export function DeckProvider({
       }
     }
   )
+  useEffect(() => {
+    const events = state.pendingEvents ?? []
+    if (events.length === 0) return
+    for (const event of events) state.eventManager.dispatchEvent(event)
+    dispatch({ type: 'FLUSH_EVENTS', payload: { count: events.length } })
+  }, [state.pendingEvents, state.eventManager])
+
   const contextValue = useMemo(
     () => ({ ...state, dispatch }),
     [state, dispatch]
