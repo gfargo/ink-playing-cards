@@ -3,12 +3,21 @@ import React from 'react'
 import test from 'ava'
 import { useHand } from './useHand.js'
 
-function Probe() {
-  useHand('p1')
-  return null
-}
-
 test('useHand throws when used outside a DeckProvider', (t) => {
-  const { lastFrame } = render(<Probe />)
-  t.true(lastFrame()?.includes('useHand must be used within a DeckProvider'))
+  let caught: unknown
+
+  function Probe() {
+    try {
+      useHand('p1')
+    } catch (error) {
+      caught = error
+    }
+
+    return null
+  }
+
+  render(<Probe />)
+
+  t.true(caught instanceof Error)
+  t.is((caught as Error).message, 'useHand must be used within a DeckProvider')
 })
