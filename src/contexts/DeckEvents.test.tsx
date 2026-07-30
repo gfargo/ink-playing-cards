@@ -1,12 +1,7 @@
 import { render } from 'ink-testing-library'
 import React, { useContext, useRef } from 'react'
 import test from 'ava'
-import type {
-  DeckAction,
-  DeckContextType,
-  GameEventData,
-  TCard,
-} from '../types/index.js'
+import type { DeckAction, GameEventData, TCard } from '../types/index.js'
 import { DeckContext, DeckProvider } from './DeckContext.js'
 
 function renderWithEvents(
@@ -41,6 +36,16 @@ function renderWithEvents(
         },
       })
       ctx.eventManager.addEventListener('CARD_DISCARDED', {
+        handleEvent(event) {
+          events.push(event)
+        },
+      })
+      ctx.eventManager.addEventListener('DECK_RESET', {
+        handleEvent(event) {
+          events.push(event)
+        },
+      })
+      ctx.eventManager.addEventListener('DECK_CUT', {
         handleEvent(event) {
           events.push(event)
         },
@@ -148,6 +153,18 @@ test('DISCARD is a no-op and emits nothing when card is not in hand', (t) => {
   )
 })
 
+test('StrictMode: CUT_DECK + RESET fire exactly once each, in order', (t) => {
+  const cards = makeCards(10)
+  const events = renderWithEvents(
+    [{ type: 'CUT_DECK', payload: 3 }, { type: 'RESET' }],
+    { strictMode: true, initialCards: cards }
+  )
+  t.deepEqual(
+    events.map((e) => e.type),
+    ['DECK_CUT', 'DECK_RESET']
+  )
+})
+
 test('PLAY_CARD and DISCARD each fire exactly once under StrictMode', (t) => {
   const cards = makeCards(5)
   const events = renderWithEvents(
@@ -164,13 +181,20 @@ test('PLAY_CARD and DISCARD each fire exactly once under StrictMode', (t) => {
   )
 })
 
-test('deckReducer contains no direct dispatchEvent calls (pure reducer)', (t) => {
-  const cards = makeCards(3)
-  const results: DeckContextType[] = []
+test('pendingEvents queue drains back to empty after dispatch flushes', async (t) => {
+  const cards = makeCards(5)
+  const pendingEventsPerRender: GameEventData[][] = []
+  const dispatched = { current: false }
 
   function Capture() {
     const ctx = useContext(DeckContext)
-    results.push(ctx)
+    if (!dispatched.current) {
+      dispatched.current = true
+      ctx.dispatch({ type: 'SHUFFLE' })
+      ctx.dispatch({ type: 'DRAW', payload: { count: 2, playerId: 'p1' } })
+    }
+
+    pendingEventsPerRender.push(ctx.pendingEvents)
     return null
   }
 
@@ -180,6 +204,19 @@ test('deckReducer contains no direct dispatchEvent calls (pure reducer)', (t) =>
     </DeckProvider>
   )
 
-  const state = results.at(-1)!
-  t.deepEqual(state.pendingEvents, [])
+  // The FLUSH_EVENTS dispatch triggered from the flush effect lands on a
+  // later macrotask, so poll a few ticks to let that render commit.
+  for (
+    let attempt = 0;
+    attempt < 20 && pendingEventsPerRender.at(-1)?.length !== 0;
+    attempt++
+  ) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((resolve) => {
+      setImmediate(resolve)
+    })
+  }
+
+  t.true(pendingEventsPerRender.length > 1)
+  t.deepEqual(pendingEventsPerRender.at(-1), [])
 })
