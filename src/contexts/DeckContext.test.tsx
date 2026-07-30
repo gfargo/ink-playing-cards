@@ -15,7 +15,7 @@ function renderWithProvider(actions: DeckAction[], initialCards?: TCard[]) {
   const results: CapturedState[] = []
 
   function Capture() {
-    const ctx = useContext(DeckContext)
+    const ctx = useContext(DeckContext)!
     const dispatched = useRef(false)
     if (!dispatched.current) {
       dispatched.current = true

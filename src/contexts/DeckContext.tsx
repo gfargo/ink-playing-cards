@@ -52,7 +52,7 @@ const createInitialState = (): DeckContextType => ({
   dispatch: () => null,
 })
 
-export const DeckContext = createContext<DeckContextType>(createInitialState())
+export const DeckContext = createContext<DeckContextType | undefined>(undefined)
 
 const deckReducer = (
   state: DeckContextType,
