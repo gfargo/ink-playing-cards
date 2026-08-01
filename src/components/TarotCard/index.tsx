@@ -123,36 +123,42 @@ const TAROT_BACK: CustomCardBack = {
 }
 
 /**
+ * Shared shape for the layout props returned by both builder functions.
+ * footerLeft/footerRight are optional — Major Arcana omits them.
+ */
+type TarotLayoutProps = {
+  title: string
+  typeLine: string
+  asciiArt: string
+  symbols: CustomCardSymbol[]
+  footerLeft?: string
+  footerRight?: string
+}
+
+/**
  * Builds the title and layout props for a Major Arcana card.
  */
-function buildMajorProps(props: TarotMajorProps) {
+function buildMajorProps(props: TarotMajorProps): TarotLayoutProps {
   const entry = MAJOR_ARCANA[props.majorIndex]
   const { name } = entry
   const { numeral } = entry
   const art = props.asciiArt ?? MAJOR_ARCANA_ART[name] ?? ''
 
-  const symbols: CustomCardSymbol[] = [
-    { char: numeral, position: 'top-left', color: props.textColor ?? 'yellow' },
-    {
-      char: numeral,
-      position: 'bottom-right',
-      color: props.textColor ?? 'yellow',
-    },
-  ]
-
+  // Route the numeral to footerLeft so it appears once, bottom-anchored.
+  // No corner symbols: avoids duplication and the dedicated full-width symbol row.
   return {
     title: name,
     typeLine: props.reversed ? '⟳ Reversed' : 'Major Arcana',
     asciiArt: art,
     footerLeft: numeral,
-    symbols,
+    symbols: [],
   }
 }
 
 /**
  * Builds the title and layout props for a Minor Arcana card.
  */
-function buildMinorProps(props: TarotMinorProps) {
+function buildMinorProps(props: TarotMinorProps): TarotLayoutProps {
   const icon = TAROT_SUIT_ICONS[props.suit] ?? '?'
   const isCourt = (MINOR_COURT as readonly string[]).includes(props.value)
   const isPip = (MINOR_PIPS as readonly string[]).includes(props.value)
@@ -235,7 +241,7 @@ export function TarotCard(props: TarotCardProps) {
       typeLine={layout.typeLine}
       asciiArt={layout.asciiArt}
       footerLeft={layout.footerLeft}
-      footerRight={'footerRight' in layout ? layout.footerRight : undefined}
+      footerRight={layout.footerRight}
       symbols={layout.symbols}
       borderColor={props.borderColor ?? defaultBorder}
       textColor={props.textColor ?? defaultText}

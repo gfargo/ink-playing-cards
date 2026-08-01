@@ -141,6 +141,84 @@ test('render with custom art override', (t) => {
   t.snapshot(lastFrame())
 })
 
+// ── Regression guards (OSS-1783) ─────────────────────────────────────
+
+/**
+ * Strip ANSI escape codes so we can inspect plain rendered text.
+ */
+function stripAnsi(s: string): string {
+  // eslint-disable-next-line no-control-regex
+  return s.replaceAll(/\u001B\[[\d;]*m/g, '')
+}
+
+test('Major Arcana: numeral appears exactly once, on the last inner row (bottom)', (t) => {
+  // The Fool has numeral "0". It should appear once, in the footer (last row
+  // before the border), never in the header (first row).
+  const { lastFrame } = render(
+    <TarotCard id="fool-reg" arcana="major" majorIndex={0} />
+  )
+  const frame = lastFrame() ?? ''
+  const plain = stripAnsi(frame)
+  const rows = plain.split('\n')
+
+  // Count occurrences of "0" across the whole card
+  const totalOccurrences = rows.filter((r) => r.includes('0')).length
+  t.is(totalOccurrences, 1, 'numeral "0" should appear in exactly one row')
+
+  // The numeral must be in the last inner row (second-to-last overall row)
+  const lastInnerRow = rows.at(-2) ?? ''
+  t.true(
+    lastInnerRow.includes('0'),
+    'numeral "0" should be on the last inner (footer) row'
+  )
+
+  // The header row (first inner row, index 1) must NOT contain the numeral
+  const headerRow = rows[1] ?? ''
+  t.false(headerRow.includes('0'), 'header row should not contain the numeral')
+})
+
+test('Major Arcana: multi-char numeral (XIII) appears once, on bottom row', (t) => {
+  // Death has numeral "XIII".
+  const { lastFrame } = render(
+    <TarotCard id="death-reg" arcana="major" majorIndex={13} />
+  )
+  const frame = lastFrame() ?? ''
+  const plain = stripAnsi(frame)
+  const rows = plain.split('\n')
+
+  const occurrences = rows.filter((r) => r.includes('XIII')).length
+  t.is(occurrences, 1, 'numeral "XIII" should appear in exactly one row')
+
+  const lastInnerRow = rows.at(-2) ?? ''
+  t.true(
+    lastInnerRow.includes('XIII'),
+    '"XIII" should be on the last inner row'
+  )
+})
+
+test('Major Arcana reversed: numeral still appears once at bottom', (t) => {
+  // The Fool reversed: typeLine becomes "⟳ Reversed", numeral "0" stays in footer.
+  const { lastFrame } = render(
+    <TarotCard reversed id="fool-rev-reg" arcana="major" majorIndex={0} />
+  )
+  const frame = lastFrame() ?? ''
+  const plain = stripAnsi(frame)
+  const rows = plain.split('\n')
+
+  const occurrences = rows.filter((r) => r.includes('0')).length
+  t.is(
+    occurrences,
+    1,
+    'numeral "0" should appear in exactly one row when reversed'
+  )
+
+  const lastInnerRow = rows.at(-2) ?? ''
+  t.true(
+    lastInnerRow.includes('0'),
+    '"0" should be on the last inner row when reversed'
+  )
+})
+
 // ── createTarotDeck utility ─────────────────────────────────────────
 
 test('createTarotDeck returns 78 cards', (t) => {
