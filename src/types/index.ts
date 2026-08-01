@@ -131,8 +131,6 @@ export type CustomCardProps = BaseCardProps & {
   value?: TCardValue | string
   /** Card type for game logic (e.g. "Creature", "Action", "Wild") */
   type?: string
-  /** Callback when card is activated/played */
-  onClick?: () => void
 }
 
 /**
