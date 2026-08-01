@@ -183,6 +183,7 @@ function StructuredLayout({
   const bodyLines = Math.max(0, innerHeight - headerRows - footerRows)
 
   // TypeLine renders inside the body Box, so it consumes body budget, not header/footer rows.
+  // availableLines = innerHeight − headerRows − footerRows − typeLine (all inside the body).
   const availableLines = Math.max(0, bodyLines - (hasTypeLine ? 1 : 0))
 
   // Split available space between art and description
@@ -191,11 +192,6 @@ function StructuredLayout({
   const descLines = description ? wrapText(description, innerWidth) : []
   const remainingForDesc = Math.max(0, availableLines - artLineCount)
   const descLineCount = Math.min(descLines.length, remainingForDesc)
-
-  // Width of a single symbol char (assumed 1 column; emoji/wide glyphs are a
-  // known pre-existing limitation and out of scope here).
-  const topLeftW = topLeft ? topLeft.char.length : 0
-  const topRightW = topRight ? topRight.char.length : 0
 
   // Build the header row, merging corner symbols if present.
   // Layout: [topLeft?][title…][cost?][topRight?]
@@ -216,6 +212,11 @@ function StructuredLayout({
         </Box>
       )
     }
+
+    // Width of corner symbols (assumed 1 column; emoji/wide glyphs are a
+    // known pre-existing limitation and out of scope here).
+    const topLeftW = topLeft ? topLeft.char.length : 0
+    const topRightW = topRight ? topRight.char.length : 0
 
     // Width reserved on the right: cost + separator (if any) + topRight symbol (if any)
     const rightReserved =

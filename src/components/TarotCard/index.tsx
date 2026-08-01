@@ -123,9 +123,22 @@ const TAROT_BACK: CustomCardBack = {
 }
 
 /**
+ * Shared shape for the layout props returned by both builder functions.
+ * footerLeft/footerRight are optional — Major Arcana omits them.
+ */
+type TarotLayoutProps = {
+  title: string
+  typeLine: string
+  asciiArt: string
+  symbols: CustomCardSymbol[]
+  footerLeft?: string
+  footerRight?: string
+}
+
+/**
  * Builds the title and layout props for a Major Arcana card.
  */
-function buildMajorProps(props: TarotMajorProps) {
+function buildMajorProps(props: TarotMajorProps): TarotLayoutProps {
   const entry = MAJOR_ARCANA[props.majorIndex]
   const { name } = entry
   const { numeral } = entry
@@ -147,7 +160,7 @@ function buildMajorProps(props: TarotMajorProps) {
 /**
  * Builds the title and layout props for a Minor Arcana card.
  */
-function buildMinorProps(props: TarotMinorProps) {
+function buildMinorProps(props: TarotMinorProps): TarotLayoutProps {
   const icon = TAROT_SUIT_ICONS[props.suit] ?? '?'
   const isCourt = (MINOR_COURT as readonly string[]).includes(props.value)
   const isPip = (MINOR_PIPS as readonly string[]).includes(props.value)
@@ -229,8 +242,8 @@ export function TarotCard(props: TarotCardProps) {
       title={layout.title}
       typeLine={layout.typeLine}
       asciiArt={layout.asciiArt}
-      footerLeft={'footerLeft' in layout ? layout.footerLeft : undefined}
-      footerRight={'footerRight' in layout ? layout.footerRight : undefined}
+      footerLeft={layout.footerLeft}
+      footerRight={layout.footerRight}
       symbols={layout.symbols}
       borderColor={props.borderColor ?? defaultBorder}
       textColor={props.textColor ?? defaultText}
