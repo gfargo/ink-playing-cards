@@ -55,6 +55,9 @@
     "xo": "^0.59.3"
   },
   "ava": {
+    "environmentVariables": {
+      "FORCE_COLOR": "1"
+    },
     "typescript": {
       "extensions": [
         "ts",
