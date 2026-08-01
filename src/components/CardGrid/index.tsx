@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { Box, type BoxProps } from 'ink'
 import React from 'react'
 import { CARD_DIMENSIONS } from '../../constants/card.js'
@@ -41,6 +42,14 @@ export function CardGrid({
 }: CardGridProps) {
   // Split cards into rows
   const grid = React.useMemo(() => {
+    const capacity = rows * cols
+    if (process.env['NODE_ENV'] !== 'production' && cards.length > capacity) {
+      console.warn(
+        `CardGrid: received ${cards.length} cards but the ${rows}x${cols} grid only has room for ${capacity}. ` +
+          `${cards.length - capacity} card(s) will not be rendered.`
+      )
+    }
+
     const result: Array<Array<TCard | undefined>> = []
     for (let i = 0; i < rows; i++) {
       result.push(cards.slice(i * cols, (i + 1) * cols))
