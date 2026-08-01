@@ -131,13 +131,10 @@ function buildMajorProps(props: TarotMajorProps) {
   const { numeral } = entry
   const art = props.asciiArt ?? MAJOR_ARCANA_ART[name] ?? ''
 
+  // Only keep top-left; the numeral is already shown in footerLeft so
+  // a bottom-right symbol would duplicate it.
   const symbols: CustomCardSymbol[] = [
     { char: numeral, position: 'top-left', color: props.textColor ?? 'yellow' },
-    {
-      char: numeral,
-      position: 'bottom-right',
-      color: props.textColor ?? 'yellow',
-    },
   ]
 
   return {

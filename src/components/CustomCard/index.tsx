@@ -124,33 +124,12 @@ function CardBackFace({
 }
 
 /**
- * Renders corner symbols onto the card by overlaying them on the first/last lines.
- */
-function CornerSymbols({
-  symbols,
-  position,
-  innerWidth,
-  textColor,
-}: {
-  readonly symbols: CustomCardSymbol[]
-  readonly position: 'top' | 'bottom'
-  readonly innerWidth: number
-  readonly textColor: string
-}) {
-  const left = symbols.find((s) => s.position === `${position}-left`)
-  const right = symbols.find((s) => s.position === `${position}-right`)
-  if (!left && !right) return null
-
-  return (
-    <Box width={innerWidth} justifyContent="space-between">
-      <Text color={left?.color ?? textColor}>{left?.char ?? ' '}</Text>
-      <Text color={right?.color ?? textColor}>{right?.char ?? ' '}</Text>
-    </Box>
-  )
-}
-
-/**
  * Renders the structured card layout with header, art, typeLine, body, footer regions.
+ *
+ * Corner symbols (top-left/top-right/bottom-left/bottom-right) are folded into
+ * the header and footer rows rather than rendered on their own dedicated lines.
+ * The body region uses flexGrow={1} so the footer is always pushed to the bottom
+ * of the fixed-height card, eliminating blank rows below it.
  */
 function StructuredLayout({
   title,
@@ -179,18 +158,29 @@ function StructuredLayout({
   readonly textColor: string
   readonly artColor: string
 }) {
-  const hasSymbols = symbols.length > 0
   const hasHeader = Boolean(title ?? cost)
   const hasFooter = Boolean(footerLeft ?? footerRight)
   const hasTypeLine = Boolean(typeLine)
 
-  // Calculate how many lines are available for art + description
+  // Corner symbols to overlay on header/footer rows
+  const topLeft = symbols.find((s) => s.position === 'top-left')
+  const topRight = symbols.find((s) => s.position === 'top-right')
+  const bottomLeft = symbols.find((s) => s.position === 'bottom-left')
+  const bottomRight = symbols.find((s) => s.position === 'bottom-right')
+
+  const hasTopSymbols = Boolean(topLeft ?? topRight)
+  const hasBottomSymbols = Boolean(bottomLeft ?? bottomRight)
+
+  // Calculate how many lines are available for art + description.
+  // Symbols are folded into header/footer rows — they no longer consume extra lines.
+  // A symbol-only row is added only when there is no header/footer to merge into.
+  const symbolOnlyTopRow = hasTopSymbols && !hasHeader
+  const symbolOnlyBottomRow = hasBottomSymbols && !hasFooter
+
   let usedLines = 0
-  if (hasSymbols) usedLines += 1 // Top symbols
-  if (hasHeader) usedLines += 1
+  if (hasHeader || symbolOnlyTopRow) usedLines += 1
   if (hasTypeLine) usedLines += 1
-  if (hasFooter) usedLines += 1
-  if (hasSymbols) usedLines += 1 // Bottom symbols
+  if (hasFooter || symbolOnlyBottomRow) usedLines += 1
 
   const availableLines = Math.max(0, innerHeight - usedLines)
 
@@ -201,63 +191,131 @@ function StructuredLayout({
   const remainingForDesc = Math.max(0, availableLines - artLineCount)
   const descLineCount = Math.min(descLines.length, remainingForDesc)
 
+  // Width of a single symbol char (assumed 1 column; emoji/wide glyphs are a
+  // known pre-existing limitation and out of scope here).
+  const topLeftW = topLeft ? topLeft.char.length : 0
+  const topRightW = topRight ? topRight.char.length : 0
+
+  // Build the header row, merging corner symbols if present.
+  // Layout: [topLeft?][title…][cost?][topRight?]
+  // The title is fitted into the remaining horizontal space.
+  function renderHeaderRow() {
+    if (!hasHeader && !hasTopSymbols) return null
+
+    if (!hasHeader && hasTopSymbols) {
+      // Symbol-only fallback: no title/cost, just the corner chars
+      return (
+        <Box width={innerWidth} justifyContent="space-between">
+          <Text color={topLeft?.color ?? textColor}>
+            {topLeft?.char ?? ' '}
+          </Text>
+          <Text color={topRight?.color ?? textColor}>
+            {topRight?.char ?? ' '}
+          </Text>
+        </Box>
+      )
+    }
+
+    // Width reserved on the right: cost + separator (if any) + topRight symbol (if any)
+    const rightReserved =
+      (cost ? cost.length + 1 : 0) + (topRight ? topRightW : 0)
+    // Width reserved on the left: topLeft symbol (if any)
+    const leftReserved = topLeft ? topLeftW : 0
+    const titleWidth = Math.max(0, innerWidth - leftReserved - rightReserved)
+
+    return (
+      <Box width={innerWidth} justifyContent="space-between">
+        <Box>
+          {topLeft ? (
+            <Text color={topLeft.color ?? textColor}>{topLeft.char}</Text>
+          ) : null}
+          <Text bold color={textColor}>
+            {fit(title ?? '', titleWidth)}
+          </Text>
+        </Box>
+        <Box>
+          {cost ? <Text color={textColor}>{cost}</Text> : null}
+          {topRight ? (
+            <Text color={topRight.color ?? textColor}>{topRight.char}</Text>
+          ) : null}
+        </Box>
+      </Box>
+    )
+  }
+
+  // Build the footer row, merging corner symbols if present.
+  // Layout: [bottomLeft?][footerLeft?]…[footerRight?][bottomRight?]
+  function renderFooterRow() {
+    if (!hasFooter && !hasBottomSymbols) return null
+
+    if (!hasFooter && hasBottomSymbols) {
+      // Symbol-only fallback
+      return (
+        <Box width={innerWidth} justifyContent="space-between">
+          <Text color={bottomLeft?.color ?? textColor}>
+            {bottomLeft?.char ?? ' '}
+          </Text>
+          <Text color={bottomRight?.color ?? textColor}>
+            {bottomRight?.char ?? ' '}
+          </Text>
+        </Box>
+      )
+    }
+
+    return (
+      <Box width={innerWidth} justifyContent="space-between">
+        <Box>
+          {bottomLeft ? (
+            <Text color={bottomLeft.color ?? textColor}>{bottomLeft.char}</Text>
+          ) : null}
+          {footerLeft ? (
+            <Text bold color={textColor}>
+              {footerLeft}
+            </Text>
+          ) : null}
+        </Box>
+        <Box>
+          {footerRight ? (
+            <Text dimColor color={textColor}>
+              {footerRight}
+            </Text>
+          ) : null}
+          {bottomRight ? (
+            <Text color={bottomRight.color ?? textColor}>
+              {bottomRight.char}
+            </Text>
+          ) : null}
+        </Box>
+      </Box>
+    )
+  }
+
   return (
     <>
-      {hasSymbols ? (
-        <CornerSymbols
-          symbols={symbols}
-          position="top"
-          innerWidth={innerWidth}
-          textColor={textColor}
-        />
-      ) : null}
+      {renderHeaderRow()}
 
-      {hasHeader ? (
-        <Box width={innerWidth} justifyContent="space-between">
-          <Text bold color={textColor}>
-            {fit(title ?? '', cost ? innerWidth - cost.length - 1 : innerWidth)}
+      {/* Body grows to fill remaining vertical space, pushing footer to bottom */}
+      <Box flexDirection="column" flexGrow={1}>
+        {artLines.slice(0, artLineCount).map((line, i) => (
+          <Text key={`art-${i}`} color={artColor}>
+            {fit(line, innerWidth)}
           </Text>
-          {cost ? <Text color={textColor}>{cost}</Text> : null}
-        </Box>
-      ) : null}
+        ))}
 
-      {artLines.slice(0, artLineCount).map((line, i) => (
-        <Text key={`art-${i}`} color={artColor}>
-          {fit(line, innerWidth)}
-        </Text>
-      ))}
-
-      {hasTypeLine ? (
-        <Text dimColor color={textColor}>
-          {fit(typeLine!, innerWidth)}
-        </Text>
-      ) : null}
-
-      {descLines.slice(0, descLineCount).map((line, i) => (
-        <Text key={`desc-${i}`} color={textColor}>
-          {fit(line, innerWidth)}
-        </Text>
-      ))}
-
-      {hasFooter ? (
-        <Box width={innerWidth} justifyContent="space-between">
-          <Text bold color={textColor}>
-            {footerLeft ?? ''}
-          </Text>
+        {hasTypeLine ? (
           <Text dimColor color={textColor}>
-            {footerRight ?? ''}
+            {fit(typeLine!, innerWidth)}
           </Text>
-        </Box>
-      ) : null}
+        ) : null}
 
-      {hasSymbols ? (
-        <CornerSymbols
-          symbols={symbols}
-          position="bottom"
-          innerWidth={innerWidth}
-          textColor={textColor}
-        />
-      ) : null}
+        {descLines.slice(0, descLineCount).map((line, i) => (
+          <Text key={`desc-${i}`} color={textColor}>
+            {fit(line, innerWidth)}
+          </Text>
+        ))}
+      </Box>
+
+      {renderFooterRow()}
     </>
   )
 }
