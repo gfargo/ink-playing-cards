@@ -21,23 +21,36 @@ const SIZE_PRESETS: Record<CustomCardSize, [number, number]> = {
 
 /**
  * Wraps text to fit within a given width, breaking on word boundaries.
+ * Respects embedded newlines as hard line breaks, and hard-breaks any
+ * single word longer than `maxWidth` so no content is silently dropped.
  */
 function wrapText(text: string, maxWidth: number): string[] {
-  const words = text.split(' ')
   const lines: string[] = []
-  let current = ''
-  for (const word of words) {
-    if (current.length === 0) {
-      current = word
-    } else if (current.length + 1 + word.length <= maxWidth) {
-      current += ' ' + word
-    } else {
-      lines.push(current)
-      current = word
-    }
-  }
+  for (const paragraph of text.split('\n')) {
+    const words = paragraph.split(' ')
+    let current = ''
+    for (const word of words) {
+      let remaining = word
+      while (remaining.length > maxWidth) {
+        if (current.length > 0) {
+          lines.push(current)
+          current = ''
+        }
 
-  if (current) {
+        lines.push(remaining.slice(0, maxWidth))
+        remaining = remaining.slice(maxWidth)
+      }
+
+      if (current.length === 0) {
+        current = remaining
+      } else if (current.length + 1 + remaining.length <= maxWidth) {
+        current += ' ' + remaining
+      } else {
+        lines.push(current)
+        current = remaining
+      }
+    }
+
     lines.push(current)
   }
 
