@@ -294,6 +294,35 @@ test('imitation: micro token card', (t) => {
   t.snapshot(lastFrame())
 })
 
+test('description wraps a word longer than the line without dropping characters', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-long-word"
+      size="small"
+      description="Supercalifragilisticexpialidocious"
+    />
+  )
+  const frame = lastFrame() ?? ''
+  t.true(frame.includes('Supercalif'))
+  t.true(frame.includes('ragilistic'))
+  t.snapshot(frame)
+})
+
+test('description splits on embedded newlines before wrapping', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-embedded-newlines"
+      size="medium"
+      description={'Line one\nLine two\nLine three'}
+    />
+  )
+  const frame = lastFrame() ?? ''
+  t.true(frame.includes('Line one'))
+  t.true(frame.includes('Line two'))
+  t.true(frame.includes('Line three'))
+  t.snapshot(frame)
+})
+
 test('imitation: mini hand card', (t) => {
   const { lastFrame } = render(
     <CustomCard
