@@ -4,22 +4,7 @@ import {
   createFramedSection,
   padReplacement,
 } from './layout.js'
-import { center } from './text.js'
-
-/**
- * Applies replacements to a string using a replacement map
- */
-function applyReplacements(
-  text: string,
-  replacements: Record<string, string>
-): string {
-  let result = text
-  for (const [key, value] of Object.entries(replacements)) {
-    result = result.replaceAll(new RegExp(`{${key}}`, 'g'), value)
-  }
-
-  return result
-}
+import { center, applyReplacements } from './text.js'
 
 /**
  * Renders a section of card art

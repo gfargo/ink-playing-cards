@@ -16,6 +16,7 @@ import type {
 } from '../../types/index.js'
 import { renderCardArt } from '../../utils/cardArtRenderer.js'
 import {
+  applyReplacements,
   center,
   centerLabelBlock,
   left,
@@ -63,21 +64,6 @@ function getThemeReplacements(
   }
 
   return replacements[theme] ?? {}
-}
-
-/**
- * Apply theme-specific replacements to a line of art
- */
-function applyThemeReplacements(
-  line: string,
-  replacements: Record<string, string>
-): string {
-  let result = line
-  for (const [key, value] of Object.entries(replacements)) {
-    result = result.replaceAll(new RegExp(`{${key}}`, 'g'), value)
-  }
-
-  return result
 }
 
 /**
@@ -340,7 +326,7 @@ export function createSpecialArt(
       let processedLine = line.replaceAll('{suit}', suit)
 
       // Then apply theme-specific replacements
-      processedLine = applyThemeReplacements(processedLine, replacements)
+      processedLine = applyReplacements(processedLine, replacements)
 
       return center(processedLine, w - 2)
     })

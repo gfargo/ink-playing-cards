@@ -68,3 +68,23 @@ export const centerLabelBlock = (
     index === verticalCenter ? labelLine : spaces(innerWidth)
   ).join('\n')
 }
+
+/**
+ * Applies a map of named replacements to a string.
+ * Each key `k` in the map replaces every occurrence of the literal token `{k}`.
+ * Uses plain-string replaceAll (no regex) so keys never need escaping.
+ * @param text - The template string containing `{key}` tokens
+ * @param replacements - Map of key → replacement value
+ * @returns The string with all tokens replaced
+ */
+export const applyReplacements = (
+  text: string,
+  replacements: Record<string, string>
+): string => {
+  let result = text
+  for (const [key, value] of Object.entries(replacements)) {
+    result = result.replaceAll('{' + key + '}', value)
+  }
+
+  return result
+}
