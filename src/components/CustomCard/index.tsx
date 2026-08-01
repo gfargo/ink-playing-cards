@@ -177,12 +177,13 @@ function StructuredLayout({
   const symbolOnlyTopRow = hasTopSymbols && !hasHeader
   const symbolOnlyBottomRow = hasBottomSymbols && !hasFooter
 
-  let usedLines = 0
-  if (hasHeader || symbolOnlyTopRow) usedLines += 1
-  if (hasTypeLine) usedLines += 1
-  if (hasFooter || symbolOnlyBottomRow) usedLines += 1
+  // Fixed rows outside the flexGrow body (header and footer).
+  const headerRows = hasHeader || symbolOnlyTopRow ? 1 : 0
+  const footerRows = hasFooter || symbolOnlyBottomRow ? 1 : 0
+  const bodyLines = Math.max(0, innerHeight - headerRows - footerRows)
 
-  const availableLines = Math.max(0, innerHeight - usedLines)
+  // TypeLine renders inside the body Box, so it consumes body budget, not header/footer rows.
+  const availableLines = Math.max(0, bodyLines - (hasTypeLine ? 1 : 0))
 
   // Split available space between art and description
   const artLines = asciiArt ? asciiArt.split('\n') : []

@@ -131,8 +131,7 @@ function buildMajorProps(props: TarotMajorProps) {
   const { numeral } = entry
   const art = props.asciiArt ?? MAJOR_ARCANA_ART[name] ?? ''
 
-  // Only keep top-left; the numeral is already shown in footerLeft so
-  // a bottom-right symbol would duplicate it.
+  // Numeral in top-left corner only; omitting footerLeft avoids duplication.
   const symbols: CustomCardSymbol[] = [
     { char: numeral, position: 'top-left', color: props.textColor ?? 'yellow' },
   ]
@@ -141,7 +140,6 @@ function buildMajorProps(props: TarotMajorProps) {
     title: name,
     typeLine: props.reversed ? '⟳ Reversed' : 'Major Arcana',
     asciiArt: art,
-    footerLeft: numeral,
     symbols,
   }
 }
@@ -231,7 +229,7 @@ export function TarotCard(props: TarotCardProps) {
       title={layout.title}
       typeLine={layout.typeLine}
       asciiArt={layout.asciiArt}
-      footerLeft={layout.footerLeft}
+      footerLeft={'footerLeft' in layout ? layout.footerLeft : undefined}
       footerRight={'footerRight' in layout ? layout.footerRight : undefined}
       symbols={layout.symbols}
       borderColor={props.borderColor ?? defaultBorder}
