@@ -79,7 +79,6 @@ type CustomCardProps = BaseCardProps & {
   back?: CustomCardBack                      // { art?, symbol?, color?, label? }
   borderColor?: string; textColor?: string
   value?: TCardValue | string; type?: string // game logic metadata (not rendered)
-  onClick?: () => void
 }
 
 // Type guards
