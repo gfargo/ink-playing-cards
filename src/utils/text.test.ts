@@ -64,7 +64,7 @@ test('center with paddingCharacter uses that char', (t) => {
   t.is(result, '----AB----')
 })
 
-// applyReplacements()
+// ApplyReplacements()
 test('applyReplacements replaces a single token', (t) => {
   t.is(applyReplacements('hello {name}', { name: 'world' }), 'hello world')
 })
