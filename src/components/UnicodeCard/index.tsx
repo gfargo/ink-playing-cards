@@ -1,5 +1,6 @@
 import { Box, Text, type TextProps } from 'ink'
 import React from 'react'
+import { getSuitColor } from '../../constants/card.js'
 import type { TSuit, TCardValue } from '../../types/index.js'
 import { getCardUnicode, SPECIAL_CARDS } from './constants.js'
 
@@ -48,8 +49,7 @@ export function UnicodeCard({
     : SPECIAL_CARDS.CARD_BACK
 
   // Determine color based on suit if no custom color provided
-  const defaultColor =
-    suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
+  const defaultColor = getSuitColor(suit)
   const baseColor = color ?? defaultColor
 
   // Apply dimming for face down cards if dimmed is true

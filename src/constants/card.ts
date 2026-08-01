@@ -1,3 +1,4 @@
+import type { TextProps } from 'ink'
 import type { TSuit, TSuitIcon } from '../types/index.js'
 
 /**
@@ -39,3 +40,21 @@ export const SYMBOL_SUIT_MAP: Record<TSuitIcon, TSuit> = {
   '♣': 'clubs',
   '♠': 'spades',
 } as const
+
+const RED_SUITS = new Set<TSuit>(['hearts', 'diamonds'])
+
+/**
+ * Returns the Ink text color for a given suit.
+ *
+ * Red suits (hearts, diamonds) → 'red'.
+ * Black suits (clubs, spades) → 'white' (white renders correctly on dark terminals).
+ *
+ * The optional `_theme` parameter is an intentional seam for future theming /
+ * monochrome mode (F14). It is accepted but unused until that feature lands.
+ */
+export function getSuitColor(
+  suit: TSuit,
+  _theme?: unknown
+): TextProps['color'] {
+  return RED_SUITS.has(suit) ? 'red' : 'white'
+}
