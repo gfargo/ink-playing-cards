@@ -16,6 +16,7 @@ export const ORIGINAL_ASCII_CARD_ART: Partial<Record<TCardValue, string[]>> = {
   J: ['(^ ^)', '({suit})', '/|\\', '/ \\'],
   Q: ['(o o)', '({suit})', '\\|/', ' | '],
   K: ['\\^/', '({suit})', '/|\\', '/ \\'],
+  JOKER: [',^,', '(oYo)', '({suit})', ' /|\\ ', ' d b '],
 }
 
 /**
@@ -45,6 +46,12 @@ export const ANIMAL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
     ' ┌{fur}┐ ', // Playful features
     ' │{suit}│ ', // Body with suit
     ' └{paw}┘ ', // Small paws
+  ],
+  JOKER: [
+    ' *{eyes}* ', // Joker - mischievous animal
+    ' ☆{fur}☆ ', // Wild features
+    ' │{suit}│ ', // Body with suit
+    ' └{paw}┘ ', // Playful paws
   ],
 }
 
@@ -76,6 +83,12 @@ export const GEOMETRIC_CARD_ART: Partial<Record<TCardValue, string[]>> = {
     '├{outline}┤', // Middle bar
     '└{filled}┘', // Base
   ],
+  JOKER: [
+    '┌{outline}┐', // Playful top
+    '│{filled}│', // Center piece
+    '│{suit}│', // Suit indicator
+    '└{outline}┘', // Base
+  ],
 }
 
 /**
@@ -98,6 +111,12 @@ export const PIXEL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
   J: [
     '▄▀{crown}▀▄', // Simple crown
     '█{face}█', // Basic face
+    '▀{suit}▀', // Body with suit
+    '█{base}█', // Base pixels
+  ],
+  JOKER: [
+    '▓▓{crown}▓▓', // Jester cap pixels
+    '█{face}█', // Face pixels
     '▀{suit}▀', // Body with suit
     '█{base}█', // Base pixels
   ],
@@ -134,6 +153,13 @@ export const MEDIEVAL_CARD_ART: Partial<Record<TCardValue, string[]>> = {
     '║{suit}║', // Royal suit
     '║{class}║', // Class emblem
     '╚{base}╝', // Ornate base
+  ],
+  JOKER: [
+    '╔╬═╬╗', // Jester's cap
+    '║{crown}║', // Bells design
+    '║{suit}║', // Royal suit
+    '║{class}║', // Class emblem
+    '╚╬═╬╝', // Ornate base
   ],
 }
 
@@ -293,4 +319,6 @@ export const SIMPLE_CARD_ART: Partial<Record<TCardValue, string[]>> = {
     '%%%', // Lower body
     '_%%%>', // Base
   ],
+  // Joker is centered, like the ace
+  JOKER: [' * ', '(^_^)', ' {suit} ', ' /|\\ ', ' d b '],
 }
