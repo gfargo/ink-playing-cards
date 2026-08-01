@@ -4,7 +4,9 @@ import { CARD_DIMENSIONS } from '../../constants/card.js'
 import { type TCard, type TCardValue, type TSuit } from '../../types/index.js'
 import { AnyCard } from '../AnyCard/index.js'
 
-// Type for cards that can be displayed in the grid
+// Convenience alias for a standard playing card shape.
+// CardGrid itself accepts any TCard (standard, custom, or tarot) via the
+// `cards` prop below and renders each cell through AnyCard.
 export type GridCard = {
   id: string
   suit: TSuit
