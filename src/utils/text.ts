@@ -17,7 +17,7 @@ export const center = (
   width: number,
   paddingCharacter?: string
 ): string => {
-  const padding = Math.max(0, width - 2 - text.length) / 2
+  const padding = Math.max(0, width - text.length) / 2
   return (
     spaces(Math.floor(padding), paddingCharacter) +
     text +
@@ -32,7 +32,7 @@ export const center = (
  * @returns The left-aligned text with padding spaces
  */
 export const left = (text: string, width: number): string => {
-  return text + spaces(Math.max(0, width - 2 - text.length))
+  return text + spaces(Math.max(0, width - text.length))
 }
 
 /**
@@ -42,7 +42,31 @@ export const left = (text: string, width: number): string => {
  * @returns The right-aligned text with padding spaces
  */
 export const right = (text: string, width: number): string => {
-  return spaces(Math.max(0, width - 2 - text.length)) + text
+  return spaces(Math.max(0, width - text.length)) + text
+}
+
+/**
+ * Builds a block of innerHeight rows, each innerWidth wide, with the
+ * (truncated) label horizontally + vertically centred and the rest filled
+ * with spaces. Used by minimal card faces and minimal card backs.
+ * @param label - The label text to centre (sliced to innerWidth if longer)
+ * @param innerWidth - The width of the inner content area (excluding borders)
+ * @param innerHeight - The height of the inner content area (excluding borders)
+ * @returns A newline-joined string of innerHeight rows
+ */
+export const centerLabelBlock = (
+  label: string,
+  innerWidth: number,
+  innerHeight: number
+): string => {
+  const clipped = label.slice(0, innerWidth)
+  const leftPadding = Math.floor((innerWidth - clipped.length) / 2)
+  const rightPadding = innerWidth - clipped.length - leftPadding
+  const labelLine = spaces(leftPadding) + clipped + spaces(rightPadding)
+  const verticalCenter = Math.floor(innerHeight / 2)
+  return Array.from({ length: innerHeight }, (_, index) =>
+    index === verticalCenter ? labelLine : spaces(innerWidth)
+  ).join('\n')
 }
 
 /**

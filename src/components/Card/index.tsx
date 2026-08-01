@@ -1,8 +1,13 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React, { useContext } from 'react'
-import { CARD_DIMENSIONS, SUIT_SYMBOL_MAP } from '../../constants/card.js'
+import {
+  CARD_DIMENSIONS,
+  getSuitColor,
+  SUIT_SYMBOL_MAP,
+} from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { type AsciiTheme, type CardProps } from '../../types/index.js'
+import { centerLabelBlock } from '../../utils/text.js'
 import { createCardContent } from './utils.js'
 
 function createMinimalBackContent(
@@ -10,18 +15,8 @@ function createMinimalBackContent(
   width: number,
   height: number
 ): string {
-  const innerWidth = width - 2
-  const innerHeight = height - 2
-  const label = backArtwork.split('\n').join('').slice(0, innerWidth)
-  const leftPadding = Math.floor((innerWidth - label.length) / 2)
-  const rightPadding = innerWidth - label.length - leftPadding
-  const labelLine =
-    ' '.repeat(leftPadding) + label + ' '.repeat(Math.max(0, rightPadding))
-  const verticalCenter = Math.floor(innerHeight / 2)
-
-  return Array.from({ length: innerHeight }, (_, index) =>
-    index === verticalCenter ? labelLine : ' '.repeat(innerWidth)
-  ).join('\n')
+  const label = backArtwork.split('\n').join('')
+  return centerLabelBlock(label, width - 2, height - 2)
 }
 
 /**
@@ -86,7 +81,7 @@ export function Card({
     )
   }
 
-  const color = suit === 'hearts' || suit === 'diamonds' ? 'red' : 'white'
+  const color = getSuitColor(suit)
   const symbol = SUIT_SYMBOL_MAP[suit]
   const cardContent = createCardContent(value, symbol, variant, config, theme)
 

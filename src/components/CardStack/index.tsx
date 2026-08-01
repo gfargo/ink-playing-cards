@@ -1,9 +1,7 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React from 'react'
-import { isCustomCard, isStandardCard, type TCard } from '../../types/index.js'
-import Card from '../Card/index.js'
-import { CustomCard } from '../CustomCard/index.js'
-import { MiniCard } from '../MiniCard/index.js'
+import { type TCard } from '../../types/index.js'
+import { AnyCard } from '../AnyCard/index.js'
 
 type CardStackProperties = {
   readonly cards: TCard[]
@@ -66,42 +64,19 @@ export function CardStack({
         {name} ({cards.length})
       </Text>
       <Box flexDirection={stackDirection === 'horizontal' ? 'row' : 'column'}>
-        {displayCards.map((card, index) => {
-          const std = isStandardCard(card)
-          return (
-            <Box
-              key={card.id}
-              marginLeft={
-                stackDirection === 'horizontal' && index > 0 ? marginLeft : 0
-              }
-              marginTop={
-                stackDirection === 'vertical' && index > 0 ? marginTop : 0
-              }
-            >
-              {std ? (
-                variant === 'mini' || variant === 'micro' ? (
-                  <MiniCard
-                    id={card.id}
-                    suit={card.suit}
-                    value={card.value}
-                    faceUp={isFaceUp}
-                    variant={variant}
-                  />
-                ) : (
-                  <Card
-                    id={card.id}
-                    suit={card.suit}
-                    value={card.value}
-                    faceUp={isFaceUp}
-                    variant={variant}
-                  />
-                )
-              ) : isCustomCard(card) ? (
-                <CustomCard {...card} faceUp={isFaceUp} />
-              ) : null}
-            </Box>
-          )
-        })}
+        {displayCards.map((card, index) => (
+          <Box
+            key={card.id}
+            marginLeft={
+              stackDirection === 'horizontal' && index > 0 ? marginLeft : 0
+            }
+            marginTop={
+              stackDirection === 'vertical' && index > 0 ? marginTop : 0
+            }
+          >
+            <AnyCard card={card} variant={variant} faceUp={isFaceUp} />
+          </Box>
+        ))}
       </Box>
     </Box>
   )

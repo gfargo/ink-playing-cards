@@ -18,6 +18,7 @@ import { renderCardArt } from '../../utils/cardArtRenderer.js'
 import {
   applyReplacements,
   center,
+  centerLabelBlock,
   left,
   right,
   spaces,
@@ -75,11 +76,11 @@ export function createTopLine(
   variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
   if (variant === 'simple') {
-    return left(rank, width)
+    return left(rank, width - 2)
   }
 
   const leftPart = `${rank} ${suit}`
-  return left(leftPart, width)
+  return left(leftPart, width - 2)
 }
 
 /**
@@ -92,11 +93,11 @@ export function createBottomLine(
   variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
   if (variant === 'simple') {
-    return right(rank, width)
+    return right(rank, width - 2)
   }
 
   const rightPart = `${suit} ${rank}`
-  return right(rightPart, width)
+  return right(rightPart, width - 2)
 }
 
 /**
@@ -309,8 +310,12 @@ export function createSpecialArt(
 
   if (variant === 'ascii') {
     // Use new renderer for robot theme
+    // Pass w - 2 (inner width) consistent with all other art branches, so
+    // renderCardArt/padReplacement pads to the inner content width rather
+    // than the full card width (which would produce a jagged right edge when
+    // the surrounding spacer lines are width - 2).
     if (theme === 'robot') {
-      return createRobotArt(rank, suit, w)
+      return createRobotArt(rank, suit, w - 2)
     }
 
     const themeArt = THEME_MAP[theme]
@@ -323,7 +328,7 @@ export function createSpecialArt(
       // Then apply theme-specific replacements
       processedLine = applyReplacements(processedLine, replacements)
 
-      return center(processedLine, w)
+      return center(processedLine, w - 2)
     })
 
     return art ?? []
@@ -334,11 +339,11 @@ export function createSpecialArt(
     const processedLine = line.replaceAll('{suit}', suit)
     // For Ace, center the art
     if (rank === 'A') {
-      return center(processedLine, w)
+      return center(processedLine, w - 2)
     }
 
     // For face cards (J, Q, K), right align the art
-    return right(processedLine, w)
+    return right(processedLine, w - 2)
   })
   return art ?? []
 }
@@ -358,28 +363,12 @@ export function createCardContent(
   },
   theme: AsciiTheme = 'original'
 ): string {
-  const { width, height } = config || {
-    width: 11,
-    height: 9,
-    pip: { left: 2, center: 4, right: 6 },
-    padding: 0,
-  }
+  const { width, height } = config
 
   // Minimal cards need explicit space-filled rows so overlapped stacks repaint
   // the cells from cards underneath them.
   if (variant === 'minimal') {
-    const innerWidth = width - 2
-    const innerHeight = height - 2
-    const label = `${rank}${suit}`.slice(0, innerWidth)
-    const leftPadding = Math.floor((innerWidth - label.length) / 2)
-    const rightPadding = innerWidth - label.length - leftPadding
-    const labelLine =
-      spaces(leftPadding) + label + spaces(Math.max(0, rightPadding))
-    const verticalCenter = Math.floor(innerHeight / 2)
-
-    return Array.from({ length: innerHeight }, (_, index) =>
-      index === verticalCenter ? labelLine : spaces(innerWidth)
-    ).join('\n')
+    return centerLabelBlock(`${rank}${suit}`, width - 2, height - 2)
   }
 
   const lines: string[] = []
@@ -392,14 +381,15 @@ export function createCardContent(
   if (isSpecialCard) {
     const art = createSpecialArt(rank, suit, width, variant, theme)
 
-    while (lines.length < height / 2 - art.length / 2 - 2) {
+    while (lines.length < Math.ceil((height - art.length) / 2) - 2) {
       lines.push(spaces(width - 2))
     }
 
     lines.push(...art)
 
-    // Pad to full height
-    while (lines.length < height - 2 - 1) {
+    // Pad to full height — contentRows is the fill target before the bottom label row
+    const contentRows = height - 3
+    while (lines.length < contentRows) {
       lines.push(spaces(width - 2))
     }
   } else if (config.pip) {
