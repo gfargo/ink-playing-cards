@@ -144,16 +144,14 @@ function buildMajorProps(props: TarotMajorProps): TarotLayoutProps {
   const { numeral } = entry
   const art = props.asciiArt ?? MAJOR_ARCANA_ART[name] ?? ''
 
-  // Numeral in top-left corner only; omitting footerLeft avoids duplication.
-  const symbols: CustomCardSymbol[] = [
-    { char: numeral, position: 'top-left', color: props.textColor ?? 'yellow' },
-  ]
-
+  // Route the numeral to footerLeft so it appears once, bottom-anchored.
+  // No corner symbols: avoids duplication and the dedicated full-width symbol row.
   return {
     title: name,
     typeLine: props.reversed ? '⟳ Reversed' : 'Major Arcana',
     asciiArt: art,
-    symbols,
+    footerLeft: numeral,
+    symbols: [],
   }
 }
 

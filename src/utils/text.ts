@@ -70,6 +70,19 @@ export const centerLabelBlock = (
 }
 
 /**
+ * Returns the display width of a string in terminal columns, measured by
+ * counting Unicode code points (not UTF-16 code units). This fixes
+ * surrogate-pair symbols like 🜂 (U+1F702) which report `.length === 2`
+ * but occupy a single terminal column.
+ *
+ * NOTE: Genuinely double-wide CJK/emoji glyphs are still mis-measured (they
+ * occupy 2 columns but count as 1 here). All current tarot icons are width-1
+ * code points, so this is sufficient; pulling in a full wcwidth dependency is
+ * deferred until a double-wide symbol is actually used.
+ */
+export const displayWidth = (s: string): number => [...s].length
+
+/**
  * Applies a map of named replacements to a string.
  * Each key `k` in the map replaces every occurrence of the literal token `{k}`.
  * Uses plain-string replaceAll (no regex) so keys never need escaping.

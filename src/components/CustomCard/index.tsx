@@ -7,6 +7,7 @@ import {
   type CustomCardSize,
   type CustomCardSymbol,
 } from '../../types/index.js'
+import { displayWidth } from '../../utils/text.js'
 
 /**
  * Size presets: [width, height]
@@ -200,23 +201,24 @@ function StructuredLayout({
     if (!hasHeader && !hasTopSymbols) return null
 
     if (!hasHeader && hasTopSymbols) {
-      // Symbol-only fallback: no title/cost, just the corner chars
+      // Symbol-only fallback: no title/cost, just the present corner chars.
+      // Absent corners render nothing (not a literal space) so the row stays clean.
       return (
         <Box width={innerWidth} justifyContent="space-between">
-          <Text color={topLeft?.color ?? textColor}>
-            {topLeft?.char ?? ' '}
-          </Text>
-          <Text color={topRight?.color ?? textColor}>
-            {topRight?.char ?? ' '}
-          </Text>
+          {topLeft ? (
+            <Text color={topLeft.color ?? textColor}>{topLeft.char}</Text>
+          ) : null}
+          {topRight ? (
+            <Text color={topRight.color ?? textColor}>{topRight.char}</Text>
+          ) : null}
         </Box>
       )
     }
 
-    // Width of corner symbols (assumed 1 column; emoji/wide glyphs are a
-    // known pre-existing limitation and out of scope here).
-    const topLeftW = topLeft ? topLeft.char.length : 0
-    const topRightW = topRight ? topRight.char.length : 0
+    // Width of corner symbols: counted as code points, not UTF-16 units, so
+    // surrogate-pair glyphs like 🜂 (U+1F702) measure as 1 column correctly.
+    const topLeftW = topLeft ? displayWidth(topLeft.char) : 0
+    const topRightW = topRight ? displayWidth(topRight.char) : 0
 
     // Width reserved on the right: cost + separator (if any) + topRight symbol (if any)
     const rightReserved =
@@ -251,15 +253,18 @@ function StructuredLayout({
     if (!hasFooter && !hasBottomSymbols) return null
 
     if (!hasFooter && hasBottomSymbols) {
-      // Symbol-only fallback
+      // Symbol-only fallback: no footerLeft/Right, just the present corner chars.
+      // Absent corners render nothing (not a literal space).
       return (
         <Box width={innerWidth} justifyContent="space-between">
-          <Text color={bottomLeft?.color ?? textColor}>
-            {bottomLeft?.char ?? ' '}
-          </Text>
-          <Text color={bottomRight?.color ?? textColor}>
-            {bottomRight?.char ?? ' '}
-          </Text>
+          {bottomLeft ? (
+            <Text color={bottomLeft.color ?? textColor}>{bottomLeft.char}</Text>
+          ) : null}
+          {bottomRight ? (
+            <Text color={bottomRight.color ?? textColor}>
+              {bottomRight.char}
+            </Text>
+          ) : null}
         </Box>
       )
     }
