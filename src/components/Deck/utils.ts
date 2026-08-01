@@ -8,8 +8,9 @@ import {
 
 /**
  * Creates a standard deck of 52 playing cards, each with a unique ID.
+ * Optionally appends jokers (excluded by default to preserve the standard 52-card count).
  */
-export function createStandardDeck(): TCard[] {
+export function createStandardDeck(options?: { jokers?: number }): TCard[] {
   const suits: TSuit[] = ['hearts', 'diamonds', 'clubs', 'spades']
   const values: TCardValue[] = [
     '2',
@@ -32,6 +33,12 @@ export function createStandardDeck(): TCard[] {
     for (const value of values) {
       deck.push({ id: generateCardId(suit, value), suit, value })
     }
+  }
+
+  const jokerSuits: TSuit[] = ['hearts', 'spades']
+  for (let i = 0; i < (options?.jokers ?? 0); i++) {
+    const suit = jokerSuits[i % jokerSuits.length]!
+    deck.push({ id: generateCardId(suit, 'JOKER'), suit, value: 'JOKER' })
   }
 
   return deck
