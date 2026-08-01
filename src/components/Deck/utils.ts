@@ -4,6 +4,7 @@ import {
   type TCardValue,
   type TSuit,
   generateCardId,
+  isStandardCard,
 } from '../../types/index.js'
 
 /**
@@ -55,7 +56,7 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
   // eslint-disable-next-line unicorn/no-array-reduce
   const groupedByValue = standardDeck.reduce<Map<TCardValue, CardProps[]>>(
     (acc, card) => {
-      if ('value' in card && 'suit' in card) {
+      if (isStandardCard(card)) {
         const { value } = card
         const cards = acc.get(value) ?? []
         cards.push({

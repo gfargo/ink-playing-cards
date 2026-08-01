@@ -375,10 +375,13 @@ const id = generateCardId('hearts', 'A') // "hearts-A-abc123"
 ## Type Guards
 
 ```tsx
-import { isStandardCard, isCustomCard } from 'ink-playing-cards'
+import { isStandardCard, isCustomCard, isTarotCard } from 'ink-playing-cards'
 
 if (isStandardCard(card)) {
   // card.suit, card.value available
+}
+if (isTarotCard(card)) {
+  // card.arcana, card.majorIndex or card.suit/value available
 }
 if (isCustomCard(card)) {
   // card.title, card.description, etc. available
