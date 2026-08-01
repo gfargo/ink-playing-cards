@@ -1,3 +1,4 @@
+import process from 'node:process'
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import { Text } from 'ink'
@@ -307,4 +308,79 @@ test('imitation: mini hand card', (t) => {
     />
   )
   t.snapshot(lastFrame())
+})
+
+// ── Region overflow (dropped regions + dev warning) ─────────────────
+
+test('warns and prioritises regions when content overflows a micro card', (t) => {
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  const calls: unknown[][] = []
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'test'
+
+  try {
+    const { lastFrame } = render(
+      <CustomCard
+        id="overflow-micro"
+        size="micro"
+        title="Long Title"
+        typeLine="Creature"
+        description="Some long description text that will not fit."
+        footerLeft="3/4"
+        footerRight="R"
+        symbols={[{ char: '♠', position: 'top-left' }]}
+      />
+    )
+
+    // Only innerHeight=1 line is available — the header (highest priority) wins.
+    t.true(lastFrame()!.includes('Lon'))
+    t.false(lastFrame()!.includes('Creature'))
+
+    t.true(calls.length > 0)
+    const [message] = calls[0] as [string]
+    t.true(message.includes('overflow-micro') || message.includes('Long Title'))
+    t.true(message.includes('typeLine'))
+    t.true(message.includes('footer'))
+    t.true(message.includes('description'))
+    t.true(message.includes('symbols'))
+  } finally {
+    console.warn = originalWarn
+    process.env['NODE_ENV'] = originalNodeEnv
+  }
+})
+
+test('does not warn when all regions fit', (t) => {
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  const calls: unknown[][] = []
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'test'
+
+  try {
+    render(
+      <CustomCard
+        id="fits-large"
+        size="large"
+        title="Radiant Guardian"
+        cost="{3}{W}{W}"
+        typeLine="Creature — Angel"
+        description="Flying, vigilance."
+        footerLeft="4/4"
+        footerRight="R"
+        symbols={[{ char: '♠', position: 'top-left' }]}
+      />
+    )
+
+    t.is(calls.length, 0)
+  } finally {
+    console.warn = originalWarn
+    process.env['NODE_ENV'] = originalNodeEnv
+  }
 })

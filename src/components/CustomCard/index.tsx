@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { Box, type BoxProps, Text } from 'ink'
 import React, { useContext } from 'react'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
@@ -10,6 +11,20 @@ import {
 
 /**
  * Size presets: [width, height]
+ *
+ * Region budget per size (inner content height, after the 1-cell border on
+ * each side):
+ *
+ * | size   | width×height | innerHeight |
+ * |--------|--------------|-------------|
+ * | micro  | 5×3          | 1           |
+ * | mini   | 8×5          | 3           |
+ * | small  | 12×7         | 5           |
+ * | medium | 18×11        | 9           |
+ * | large  | 24×15        | 13          |
+ *
+ * When structured regions need more lines than `innerHeight` provides, they
+ * are allocated via `REGION_PRIORITY` — see `allocateRegions` below.
  */
 const SIZE_PRESETS: Record<CustomCardSize, [number, number]> = {
   micro: [5, 3],
@@ -17,6 +32,107 @@ const SIZE_PRESETS: Record<CustomCardSize, [number, number]> = {
   small: [12, 7],
   medium: [18, 11],
   large: [24, 15],
+}
+
+/**
+ * Region priority, highest first. When structured regions need more lines
+ * than `innerHeight` provides, regions are allocated in this order and
+ * whatever doesn't fit is dropped — textual identity (header/typeLine/footer)
+ * outranks decorative regions (description body, art, corner symbols). This
+ * is a deliberate, documented contract: keep it stable so card authors can
+ * predict what survives at small sizes.
+ */
+const REGION_PRIORITY = [
+  'header',
+  'typeLine',
+  'footer',
+  'description',
+  'art',
+  'symbols',
+] as const
+
+type RegionName = (typeof REGION_PRIORITY)[number]
+
+type RegionDescriptor = {
+  readonly name: RegionName
+  readonly present: boolean
+  readonly lineCost: number
+  /** Variable-length regions (art/description) are truncated to fit rather than dropped outright. */
+  readonly variable?: boolean
+}
+
+type RegionAllocation = {
+  readonly included: ReadonlySet<RegionName>
+  readonly dropped: readonly RegionName[]
+  readonly artLines: number
+  readonly descriptionLines: number
+}
+
+/**
+ * Allocates `innerHeight` lines across regions in priority order. Fixed-cost
+ * regions (header/typeLine/footer/symbols) are all-or-nothing. Variable-cost
+ * regions (art/description) are truncated to whatever remains and are only
+ * reported as "dropped" if truncated all the way to zero lines.
+ */
+function allocateRegions(
+  regions: readonly RegionDescriptor[],
+  innerHeight: number
+): RegionAllocation {
+  const included = new Set<RegionName>()
+  const dropped: RegionName[] = []
+  let artLines = 0
+  let descriptionLines = 0
+  let remaining = innerHeight
+
+  for (const region of regions) {
+    if (!region.present) continue
+
+    if (region.variable) {
+      const allotted = Math.min(region.lineCost, remaining)
+      if (allotted > 0) {
+        included.add(region.name)
+        remaining -= allotted
+        if (region.name === 'art') artLines = allotted
+        if (region.name === 'description') descriptionLines = allotted
+      } else {
+        dropped.push(region.name)
+      }
+
+      continue
+    }
+
+    if (region.lineCost <= remaining) {
+      included.add(region.name)
+      remaining -= region.lineCost
+    } else {
+      dropped.push(region.name)
+    }
+  }
+
+  return { included, dropped, artLines, descriptionLines }
+}
+
+const warnedSignatures = new Set<string>()
+
+/**
+ * Warns once (in development) per distinct card+size+dropped-region
+ * combination, so re-renders don't spam the console.
+ */
+function warnDroppedRegions(
+  cardLabel: string,
+  size: string,
+  innerHeight: number,
+  dropped: readonly RegionName[]
+): void {
+  if (process.env['NODE_ENV'] === 'production' || dropped.length === 0) return
+
+  const signature = `${cardLabel}|${size}|${dropped.join(',')}`
+  if (warnedSignatures.has(signature)) return
+  warnedSignatures.add(signature)
+
+  console.warn(
+    `[CustomCard] "${cardLabel}" (size="${size}", innerHeight=${innerHeight}) doesn't fit all content — dropped region(s): ${dropped.join(', ')}.`
+  )
 }
 
 /**
@@ -140,6 +256,8 @@ function CornerSymbols({
  * Renders the structured card layout with header, art, typeLine, body, footer regions.
  */
 function StructuredLayout({
+  cardLabel,
+  size,
   title,
   cost,
   asciiArt,
@@ -153,6 +271,8 @@ function StructuredLayout({
   textColor,
   artColor,
 }: {
+  readonly cardLabel: string
+  readonly size: string
   readonly title?: string
   readonly cost?: string
   readonly asciiArt?: string
@@ -171,26 +291,46 @@ function StructuredLayout({
   const hasFooter = Boolean(footerLeft ?? footerRight)
   const hasTypeLine = Boolean(typeLine)
 
-  // Calculate how many lines are available for art + description
-  let usedLines = 0
-  if (hasSymbols) usedLines += 1 // Top symbols
-  if (hasHeader) usedLines += 1
-  if (hasTypeLine) usedLines += 1
-  if (hasFooter) usedLines += 1
-  if (hasSymbols) usedLines += 1 // Bottom symbols
-
-  const availableLines = Math.max(0, innerHeight - usedLines)
-
-  // Split available space between art and description
   const artLines = asciiArt ? asciiArt.split('\n') : []
-  const artLineCount = Math.min(artLines.length, availableLines)
   const descLines = description ? wrapText(description, innerWidth) : []
-  const remainingForDesc = Math.max(0, availableLines - artLineCount)
-  const descLineCount = Math.min(descLines.length, remainingForDesc)
+
+  const {
+    included,
+    dropped,
+    artLines: artBudget,
+    descriptionLines: descBudget,
+  } = allocateRegions(
+    [
+      { name: 'header', present: hasHeader, lineCost: 1 },
+      { name: 'typeLine', present: hasTypeLine, lineCost: 1 },
+      { name: 'footer', present: hasFooter, lineCost: 1 },
+      {
+        name: 'description',
+        present: descLines.length > 0,
+        lineCost: descLines.length,
+        variable: true,
+      },
+      {
+        name: 'art',
+        present: artLines.length > 0,
+        lineCost: artLines.length,
+        variable: true,
+      },
+      { name: 'symbols', present: hasSymbols, lineCost: 2 },
+    ],
+    innerHeight
+  )
+
+  warnDroppedRegions(cardLabel, size, innerHeight, dropped)
+
+  const showSymbols = included.has('symbols')
+  const showHeader = included.has('header')
+  const showTypeLine = included.has('typeLine')
+  const showFooter = included.has('footer')
 
   return (
     <>
-      {hasSymbols ? (
+      {showSymbols ? (
         <CornerSymbols
           symbols={symbols}
           position="top"
@@ -199,7 +339,7 @@ function StructuredLayout({
         />
       ) : null}
 
-      {hasHeader ? (
+      {showHeader ? (
         <Box width={innerWidth} justifyContent="space-between">
           <Text bold color={textColor}>
             {fit(title ?? '', cost ? innerWidth - cost.length - 1 : innerWidth)}
@@ -208,25 +348,25 @@ function StructuredLayout({
         </Box>
       ) : null}
 
-      {artLines.slice(0, artLineCount).map((line, i) => (
+      {artLines.slice(0, artBudget).map((line, i) => (
         <Text key={`art-${i}`} color={artColor}>
           {fit(line, innerWidth)}
         </Text>
       ))}
 
-      {hasTypeLine ? (
+      {showTypeLine ? (
         <Text dimColor color={textColor}>
           {fit(typeLine!, innerWidth)}
         </Text>
       ) : null}
 
-      {descLines.slice(0, descLineCount).map((line, i) => (
+      {descLines.slice(0, descBudget).map((line, i) => (
         <Text key={`desc-${i}`} color={textColor}>
           {fit(line, innerWidth)}
         </Text>
       ))}
 
-      {hasFooter ? (
+      {showFooter ? (
         <Box width={innerWidth} justifyContent="space-between">
           <Text bold color={textColor}>
             {footerLeft ?? ''}
@@ -237,7 +377,7 @@ function StructuredLayout({
         </Box>
       ) : null}
 
-      {hasSymbols ? (
+      {showSymbols ? (
         <CornerSymbols
           symbols={symbols}
           position="bottom"
@@ -263,6 +403,7 @@ function StructuredLayout({
  * Override with explicit `width`/`height`.
  */
 export function CustomCard({
+  id,
   size = 'medium',
   width,
   height,
@@ -326,6 +467,8 @@ export function CustomCard({
   return (
     <Box {...cardStyle}>
       <StructuredLayout
+        cardLabel={title ?? id}
+        size={size}
         title={title}
         cost={cost}
         asciiArt={asciiArt}
