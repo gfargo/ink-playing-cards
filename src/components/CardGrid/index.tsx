@@ -16,7 +16,7 @@ export type GridCard = {
 type CardGridProps = {
   readonly rows: number
   readonly cols: number
-  readonly cards: Array<TCard | undefined> // Null for empty cells
+  readonly cards: Array<TCard | undefined> // Undefined for empty cells
   readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
   readonly spacing?: {
     row?: number // Space between rows
