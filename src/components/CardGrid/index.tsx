@@ -141,9 +141,16 @@ export function CardGrid({
       {...getAlignmentStyle()}
     >
       {grid.map((row, rowIndex) => (
-        <Box key={rowIndex} flexDirection="row" marginY={spacing.row}>
+        <Box
+          key={rowIndex}
+          flexDirection="row"
+          marginTop={rowIndex === 0 ? 0 : spacing.row}
+        >
           {row.map((card, colIndex) => (
-            <Box key={`${rowIndex}-${colIndex}`} marginX={spacing.col}>
+            <Box
+              key={`${rowIndex}-${colIndex}`}
+              marginLeft={colIndex === 0 ? 0 : spacing.col}
+            >
               {card ? (
                 <AnyCard card={card} variant={variant} faceUp={isFaceUp} />
               ) : fillEmpty ? (
