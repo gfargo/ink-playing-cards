@@ -306,7 +306,8 @@ export type GameEventData = {
  * Built-in zone names resolve to their dedicated field; any other string
  * resolves to `zones.custom[name]`.
  */
-export type ZoneName = 'deck' | 'discardPile' | 'playArea' | string
+// eslint-disable-next-line @typescript-eslint/ban-types -- `string & {}` preserves literal autocomplete while still accepting arbitrary zone names
+export type ZoneName = 'deck' | 'discardPile' | 'playArea' | (string & {})
 
 /**
  * Game state passed to effects for evaluation.
