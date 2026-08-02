@@ -82,6 +82,13 @@ export type CustomCardBack = {
  * │ L/stat  R/st │  ← footer (footerLeft + footerRight)
  * └──────────────┘
  *
+ * Small sizes don't have enough inner height for every region. Regions are
+ * allocated by priority — header > typeLine > footer > description > art >
+ * symbols — and whatever doesn't fit is dropped, with a dev-only console
+ * warning naming the dropped regions (see `allocateRegions` in
+ * `CustomCard/index.tsx`). Inner height per size: micro=1, mini=3, small=5,
+ * medium=9, large=13.
+ *
  * Pass `content` (ReactNode) for full freeform control instead.
  */
 export type CustomCardProps = BaseCardProps & {
