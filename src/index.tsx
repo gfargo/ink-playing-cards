@@ -1,5 +1,11 @@
 export * from './types/index.js'
 
+export {
+  CARD_DIMENSIONS,
+  SUIT_SYMBOL_MAP,
+  SYMBOL_SUIT_MAP,
+  getSuitColor,
+} from './constants/card.js'
 export { AnyCard } from './components/AnyCard/index.js'
 export { Card } from './components/Card/index.js'
 export { CardGrid, type GridCard } from './components/CardGrid/index.js'
@@ -32,4 +38,8 @@ export * as Effects from './systems/Effects.js'
 export * as Events from './systems/Events.js'
 export * as Zones from './systems/Zones.js'
 
-export { DeckContext, DeckProvider } from './contexts/DeckContext.js'
+export {
+  DeckContext,
+  DeckProvider,
+  defaultBackArtwork,
+} from './contexts/DeckContext.js'
