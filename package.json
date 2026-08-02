@@ -67,7 +67,10 @@
     },
     "require": [
       "ts-node/register"
-    ]
+    ],
+    "environmentVariables": {
+      "FORCE_COLOR": "1"
+    }
   },
   "xo": {
     "extends": "xo-react",
