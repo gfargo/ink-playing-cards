@@ -1,10 +1,13 @@
+import process from 'node:process'
 import { Box, type BoxProps } from 'ink'
 import React from 'react'
 import { CARD_DIMENSIONS } from '../../constants/card.js'
 import { type TCard, type TCardValue, type TSuit } from '../../types/index.js'
 import { AnyCard } from '../AnyCard/index.js'
 
-// Type for cards that can be displayed in the grid
+// Convenience alias for a standard playing card shape.
+// CardGrid itself accepts any TCard (standard, custom, or tarot) via the
+// `cards` prop below and renders each cell through AnyCard.
 export type GridCard = {
   id: string
   suit: TSuit
@@ -14,7 +17,7 @@ export type GridCard = {
 type CardGridProps = {
   readonly rows: number
   readonly cols: number
-  readonly cards: Array<TCard | undefined> // Null for empty cells
+  readonly cards: Array<TCard | undefined> // Undefined for empty cells
   readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
   readonly spacing?: {
     row?: number // Space between rows
@@ -39,6 +42,16 @@ export function CardGrid({
   fillEmpty = false,
   alignment = { horizontal: 'center', vertical: 'middle' },
 }: CardGridProps) {
+  React.useEffect(() => {
+    const capacity = rows * cols
+    if (process.env['NODE_ENV'] !== 'production' && cards.length > capacity) {
+      console.warn(
+        `CardGrid: received ${cards.length} cards but the ${rows}x${cols} grid only has room for ${capacity}. ` +
+          `${cards.length - capacity} card(s) will not be rendered.`
+      )
+    }
+  }, [cards, rows, cols])
+
   // Split cards into rows
   const grid = React.useMemo(() => {
     const result: Array<Array<TCard | undefined>> = []

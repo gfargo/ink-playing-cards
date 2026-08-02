@@ -375,10 +375,13 @@ const id = generateCardId('hearts', 'A') // "hearts-A-abc123"
 ## Type Guards
 
 ```tsx
-import { isStandardCard, isCustomCard } from 'ink-playing-cards'
+import { isStandardCard, isCustomCard, isTarotCard } from 'ink-playing-cards'
 
 if (isStandardCard(card)) {
   // card.suit, card.value available
+}
+if (isTarotCard(card)) {
+  // card.arcana, card.majorIndex or card.suit/value available
 }
 if (isCustomCard(card)) {
   // card.title, card.description, etc. available
@@ -420,6 +423,14 @@ The `examples/` directory contains markdown guides for building various card gam
 - [Zone System](examples/zone-system.md) — managing game areas
 - [Event System](examples/event-system.md) — responding to game actions
 - [Effect System](examples/effect-system.md) — card abilities and mechanics
+- [Cribbage](examples/cribbage.md) — pegging and 15/pair/run hand scoring
+- [Hearts](examples/hearts.md) — trick-taking, avoid penalty points
+- [Spades](examples/spades.md) — bidding plus spades-trump trick-taking
+- [Rummy](examples/rummy.md) — melding sets and runs
+- [Euchre](examples/euchre.md) — 24-card deck with right/left bower trump
+- [Crazy Eights](examples/crazy-eights.md) — suit/value matching with wild 8s
+- [Durak](examples/durak.md) — attack/defend combat with a trump suit
+- [President](examples/president.md) — climbing/shedding by rank
 
 See the full list in [`examples/`](examples/).
 

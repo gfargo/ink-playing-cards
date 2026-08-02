@@ -19,6 +19,8 @@
     "prestart": "yarn build",
     "start": "node dist/storybook/storybook.js",
     "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepack": "yarn clean && tsc -p tsconfig.build.json",
     "dev": "npx tsx ./src/storybook/storybook.tsx",
     "release": "release-it",
     "lint": "xo",
@@ -55,6 +57,9 @@
     "xo": "^0.59.3"
   },
   "ava": {
+    "environmentVariables": {
+      "FORCE_COLOR": "1"
+    },
     "typescript": {
       "extensions": [
         "ts",

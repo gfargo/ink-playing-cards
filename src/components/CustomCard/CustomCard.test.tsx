@@ -1,3 +1,4 @@
+import process from 'node:process'
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import { Text } from 'ink'
@@ -294,6 +295,35 @@ test('imitation: micro token card', (t) => {
   t.snapshot(lastFrame())
 })
 
+test('description wraps a word longer than the line without dropping characters', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-long-word"
+      size="small"
+      description="Supercalifragilisticexpialidocious"
+    />
+  )
+  const frame = lastFrame() ?? ''
+  t.true(frame.includes('Supercalif'))
+  t.true(frame.includes('ragilistic'))
+  t.snapshot(frame)
+})
+
+test('description splits on embedded newlines before wrapping', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-embedded-newlines"
+      size="medium"
+      description={'Line one\nLine two\nLine three'}
+    />
+  )
+  const frame = lastFrame() ?? ''
+  t.true(frame.includes('Line one'))
+  t.true(frame.includes('Line two'))
+  t.true(frame.includes('Line three'))
+  t.snapshot(frame)
+})
+
 test('imitation: mini hand card', (t) => {
   const { lastFrame } = render(
     <CustomCard
@@ -307,4 +337,82 @@ test('imitation: mini hand card', (t) => {
     />
   )
   t.snapshot(lastFrame())
+})
+
+// ── Region overflow (dropped regions + dev warning) ─────────────────
+
+test('warns and prioritises regions when content overflows a micro card', (t) => {
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  const calls: unknown[][] = []
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'test'
+
+  try {
+    const { lastFrame } = render(
+      <CustomCard
+        id="overflow-micro"
+        size="micro"
+        title="Long Title"
+        typeLine="Creature"
+        description="Some long description text that will not fit."
+        footerLeft="3/4"
+        footerRight="R"
+        symbols={[{ char: '♠', position: 'top-left' }]}
+      />
+    )
+
+    // Only innerHeight=1 line is available — the header (highest priority) wins.
+    // The folded top-left symbol shares the header row's width, leaving only
+    // 2 characters for the title.
+    t.true(lastFrame()!.includes('Lo'))
+    t.false(lastFrame()!.includes('Creature'))
+
+    t.true(calls.length > 0)
+    const [message] = calls[0] as [string]
+    t.true(message.includes('overflow-micro') || message.includes('Long Title'))
+    t.true(message.includes('typeLine'))
+    t.true(message.includes('footer'))
+    t.true(message.includes('description'))
+    // The top-left symbol folds into the header row for free (no separate
+    // budget line), so it survives here rather than being reported dropped.
+  } finally {
+    console.warn = originalWarn
+    process.env['NODE_ENV'] = originalNodeEnv
+  }
+})
+
+test('does not warn when all regions fit', (t) => {
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  const calls: unknown[][] = []
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'test'
+
+  try {
+    render(
+      <CustomCard
+        id="fits-large"
+        size="large"
+        title="Radiant Guardian"
+        cost="{3}{W}{W}"
+        typeLine="Creature — Angel"
+        description="Flying, vigilance."
+        footerLeft="4/4"
+        footerRight="R"
+        symbols={[{ char: '♠', position: 'top-left' }]}
+      />
+    )
+
+    t.is(calls.length, 0)
+  } finally {
+    console.warn = originalWarn
+    process.env['NODE_ENV'] = originalNodeEnv
+  }
 })

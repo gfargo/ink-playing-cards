@@ -4,12 +4,14 @@ import {
   type TCardValue,
   type TSuit,
   generateCardId,
+  isStandardCard,
 } from '../../types/index.js'
 
 /**
  * Creates a standard deck of 52 playing cards, each with a unique ID.
+ * Optionally appends jokers (excluded by default to preserve the standard 52-card count).
  */
-export function createStandardDeck(): TCard[] {
+export function createStandardDeck(options?: { jokers?: number }): TCard[] {
   const suits: TSuit[] = ['hearts', 'diamonds', 'clubs', 'spades']
   const values: TCardValue[] = [
     '2',
@@ -34,6 +36,12 @@ export function createStandardDeck(): TCard[] {
     }
   }
 
+  const jokerSuits: TSuit[] = ['hearts', 'spades']
+  for (let i = 0; i < (options?.jokers ?? 0); i++) {
+    const suit = jokerSuits[i % jokerSuits.length]!
+    deck.push({ id: generateCardId(suit, 'JOKER'), suit, value: 'JOKER' })
+  }
+
   return deck
 }
 
@@ -48,7 +56,7 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
   // eslint-disable-next-line unicorn/no-array-reduce
   const groupedByValue = standardDeck.reduce<Map<TCardValue, CardProps[]>>(
     (acc, card) => {
-      if ('value' in card && 'suit' in card) {
+      if (isStandardCard(card)) {
         const { value } = card
         const cards = acc.get(value) ?? []
         cards.push({

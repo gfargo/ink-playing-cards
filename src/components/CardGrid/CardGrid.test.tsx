@@ -1,3 +1,4 @@
+import process from 'node:process'
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
@@ -245,6 +246,41 @@ test('render grid with custom cards', (t) => {
   }
 })
 
+test('warns in development when cards overflow grid capacity', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(<CardGrid rows={1} cols={2} cards={sampleCards} />)
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.true(calls.length > 0)
+  t.true(String(calls[0]?.[0]).includes('4 cards but the 1x2 grid'))
+})
+
+test('does not warn when cards fit within grid capacity', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(<CardGrid rows={2} cols={2} cards={sampleCards} />)
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.is(calls.length, 0)
+})
+
 test('render grid with mixed standard and custom cards', (t) => {
   const { lastFrame } = render(
     <CardGrid
@@ -269,5 +305,57 @@ test('render grid with mixed standard and custom cards', (t) => {
     t.true(gridFrame.includes('♠'))
     t.true(gridFrame.includes('Wild'))
     t.true(gridFrame.includes('♥'))
+  }
+})
+
+test('render tarot-only grid', (t) => {
+  const { lastFrame } = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={2}
+      cards={[
+        { id: 'fool', arcana: 'major' as const, majorIndex: 0 as const },
+        {
+          id: 'ace-cups',
+          arcana: 'minor' as const,
+          suit: 'cups' as const,
+          value: 'Ace' as const,
+        },
+      ]}
+    />
+  )
+  const gridFrame = lastFrame()
+  t.snapshot(gridFrame)
+  if (gridFrame) {
+    t.true(gridFrame.includes('The Fool'))
+    t.true(gridFrame.includes('Ace of Cups'))
+  }
+})
+
+test('render grid with mixed standard, custom, and tarot cards', (t) => {
+  const { lastFrame } = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={3}
+      cards={[
+        { id: 'ace-spades', suit: 'spades' as const, value: 'A' as const },
+        {
+          id: 'custom-1',
+          title: 'Wild',
+          size: 'small' as const,
+          borderColor: 'yellow',
+        },
+        { id: 'fool', arcana: 'major' as const, majorIndex: 0 as const },
+      ]}
+    />
+  )
+  const gridFrame = lastFrame()
+  t.snapshot(gridFrame)
+  if (gridFrame) {
+    t.true(gridFrame.includes('♠'))
+    t.true(gridFrame.includes('Wild'))
+    t.true(gridFrame.includes('The Fool'))
   }
 })

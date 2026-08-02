@@ -139,3 +139,59 @@ test('custom card variant prop is ignored (CustomCard renders by size)', (t) => 
   if (ascii) t.true(ascii.includes('Frost'))
   t.pass()
 })
+
+// AnyCard — tarot card branch
+
+test('major arcana tarot card renders title', (t) => {
+  const { lastFrame } = render(
+    <AnyCard
+      faceUp
+      card={{ id: 'fool', arcana: 'major' as const, majorIndex: 0 as const }}
+      variant="simple"
+    />
+  )
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    t.true(frame.includes('The Fool'))
+  }
+})
+
+test('minor arcana tarot card renders title', (t) => {
+  const { lastFrame } = render(
+    <AnyCard
+      faceUp
+      card={{
+        id: 'ace-cups',
+        arcana: 'minor' as const,
+        suit: 'cups' as const,
+        value: 'Ace' as const,
+      }}
+      variant="simple"
+    />
+  )
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    t.true(frame.includes('Ace of Cups'))
+  }
+})
+
+test('tarot card face down renders card back', (t) => {
+  const { lastFrame } = render(
+    <AnyCard
+      card={{
+        id: 'fool-down',
+        arcana: 'major' as const,
+        majorIndex: 0 as const,
+      }}
+      variant="simple"
+      faceUp={false}
+    />
+  )
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    t.false(frame.includes('The Fool'))
+  }
+})

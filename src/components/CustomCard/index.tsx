@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { Box, type BoxProps, Text } from 'ink'
 import React, { useContext } from 'react'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
@@ -7,9 +8,24 @@ import {
   type CustomCardSize,
   type CustomCardSymbol,
 } from '../../types/index.js'
+import { displayWidth } from '../../utils/text.js'
 
 /**
  * Size presets: [width, height]
+ *
+ * Region budget per size (inner content height, after the 1-cell border on
+ * each side):
+ *
+ * | size   | width×height | innerHeight |
+ * |--------|--------------|-------------|
+ * | micro  | 5×3          | 1           |
+ * | mini   | 8×5          | 3           |
+ * | small  | 12×7         | 5           |
+ * | medium | 18×11        | 9           |
+ * | large  | 24×15        | 13          |
+ *
+ * When structured regions need more lines than `innerHeight` provides, they
+ * are allocated via `REGION_PRIORITY` — see `allocateRegions` below.
  */
 const SIZE_PRESETS: Record<CustomCardSize, [number, number]> = {
   micro: [5, 3],
@@ -20,24 +36,141 @@ const SIZE_PRESETS: Record<CustomCardSize, [number, number]> = {
 }
 
 /**
- * Wraps text to fit within a given width, breaking on word boundaries.
+ * Region priority, highest first. When structured regions need more lines
+ * than `innerHeight` provides, regions are allocated in this order and
+ * whatever doesn't fit is dropped — textual identity (header/typeLine/footer)
+ * outranks decorative regions (description body, art). This is a deliberate,
+ * documented contract: keep it stable so card authors can predict what
+ * survives at small sizes.
+ *
+ * Corner symbols are folded into the header/footer rows (see
+ * `StructuredLayout`) and only need their own budgeted row — counted under
+ * `header`/`footer` — when there is no header/footer content to merge into.
  */
-function wrapText(text: string, maxWidth: number): string[] {
-  const words = text.split(' ')
-  const lines: string[] = []
-  let current = ''
-  for (const word of words) {
-    if (current.length === 0) {
-      current = word
-    } else if (current.length + 1 + word.length <= maxWidth) {
-      current += ' ' + word
+const REGION_PRIORITY = [
+  'header',
+  'typeLine',
+  'footer',
+  'description',
+  'art',
+] as const
+
+type RegionName = (typeof REGION_PRIORITY)[number]
+
+type RegionDescriptor = {
+  readonly present: boolean
+  readonly lineCost: number
+  /** Variable-length regions (art/description) are truncated to fit rather than dropped outright. */
+  readonly variable?: boolean
+}
+
+type RegionAllocation = {
+  readonly included: ReadonlySet<RegionName>
+  readonly dropped: readonly RegionName[]
+  readonly artLines: number
+  readonly descriptionLines: number
+}
+
+/**
+ * Allocates `innerHeight` lines across regions in `REGION_PRIORITY` order.
+ * Fixed-cost regions (header/typeLine/footer) are all-or-nothing.
+ * Variable-cost regions (art/description) are truncated to whatever remains
+ * and are only reported as "dropped" if truncated all the way to zero lines.
+ */
+function allocateRegions(
+  regions: Readonly<Record<RegionName, RegionDescriptor>>,
+  innerHeight: number
+): RegionAllocation {
+  const included = new Set<RegionName>()
+  const dropped: RegionName[] = []
+  let artLines = 0
+  let descriptionLines = 0
+  let remaining = innerHeight
+
+  for (const name of REGION_PRIORITY) {
+    const region = regions[name]
+    if (!region.present) continue
+
+    if (region.variable) {
+      const allotted = Math.min(region.lineCost, remaining)
+      if (allotted > 0) {
+        included.add(name)
+        remaining -= allotted
+        if (name === 'art') artLines = allotted
+        if (name === 'description') descriptionLines = allotted
+      } else {
+        dropped.push(name)
+      }
+
+      continue
+    }
+
+    if (region.lineCost <= remaining) {
+      included.add(name)
+      remaining -= region.lineCost
     } else {
-      lines.push(current)
-      current = word
+      dropped.push(name)
     }
   }
 
-  if (current) {
+  return { included, dropped, artLines, descriptionLines }
+}
+
+const warnedSignatures = new Set<string>()
+
+/**
+ * Warns once (in development) per distinct card+size+dropped-region
+ * combination, so re-renders don't spam the console.
+ */
+function warnDroppedRegions(
+  cardLabel: string,
+  size: CustomCardSize,
+  innerHeight: number,
+  dropped: readonly RegionName[]
+): void {
+  if (process.env['NODE_ENV'] === 'production' || dropped.length === 0) return
+
+  const signature = `${cardLabel}|${size}|${dropped.join(',')}`
+  if (warnedSignatures.has(signature)) return
+  warnedSignatures.add(signature)
+
+  console.warn(
+    `[CustomCard] "${cardLabel}" (size="${size}", innerHeight=${innerHeight}) doesn't fit all content — dropped region(s): ${dropped.join(', ')}.`
+  )
+}
+
+/**
+ * Wraps text to fit within a given width, breaking on word boundaries.
+ * Respects embedded newlines as hard line breaks, and hard-breaks any
+ * single word longer than `maxWidth` so no content is silently dropped.
+ */
+function wrapText(text: string, maxWidth: number): string[] {
+  const lines: string[] = []
+  for (const paragraph of text.split('\n')) {
+    const words = paragraph.split(' ')
+    let current = ''
+    for (const word of words) {
+      let remaining = word
+      while (remaining.length > maxWidth) {
+        if (current.length > 0) {
+          lines.push(current)
+          current = ''
+        }
+
+        lines.push(remaining.slice(0, maxWidth))
+        remaining = remaining.slice(maxWidth)
+      }
+
+      if (current.length === 0) {
+        current = remaining
+      } else if (current.length + 1 + remaining.length <= maxWidth) {
+        current += ' ' + remaining
+      } else {
+        lines.push(current)
+        current = remaining
+      }
+    }
+
     lines.push(current)
   }
 
@@ -111,35 +244,16 @@ function CardBackFace({
 }
 
 /**
- * Renders corner symbols onto the card by overlaying them on the first/last lines.
- */
-function CornerSymbols({
-  symbols,
-  position,
-  innerWidth,
-  textColor,
-}: {
-  readonly symbols: CustomCardSymbol[]
-  readonly position: 'top' | 'bottom'
-  readonly innerWidth: number
-  readonly textColor: string
-}) {
-  const left = symbols.find((s) => s.position === `${position}-left`)
-  const right = symbols.find((s) => s.position === `${position}-right`)
-  if (!left && !right) return null
-
-  return (
-    <Box width={innerWidth} justifyContent="space-between">
-      <Text color={left?.color ?? textColor}>{left?.char ?? ' '}</Text>
-      <Text color={right?.color ?? textColor}>{right?.char ?? ' '}</Text>
-    </Box>
-  )
-}
-
-/**
  * Renders the structured card layout with header, art, typeLine, body, footer regions.
+ *
+ * Corner symbols (top-left/top-right/bottom-left/bottom-right) are folded into
+ * the header and footer rows rather than rendered on their own dedicated lines.
+ * The body region uses flexGrow={1} so the footer is always pushed to the bottom
+ * of the fixed-height card, eliminating blank rows below it.
  */
 function StructuredLayout({
+  cardLabel,
+  size,
   title,
   cost,
   asciiArt,
@@ -153,6 +267,8 @@ function StructuredLayout({
   textColor,
   artColor,
 }: {
+  readonly cardLabel: string
+  readonly size: CustomCardSize
   readonly title?: string
   readonly cost?: string
   readonly asciiArt?: string
@@ -166,85 +282,186 @@ function StructuredLayout({
   readonly textColor: string
   readonly artColor: string
 }) {
-  const hasSymbols = symbols.length > 0
   const hasHeader = Boolean(title ?? cost)
   const hasFooter = Boolean(footerLeft ?? footerRight)
   const hasTypeLine = Boolean(typeLine)
 
-  // Calculate how many lines are available for art + description
-  let usedLines = 0
-  if (hasSymbols) usedLines += 1 // Top symbols
-  if (hasHeader) usedLines += 1
-  if (hasTypeLine) usedLines += 1
-  if (hasFooter) usedLines += 1
-  if (hasSymbols) usedLines += 1 // Bottom symbols
+  // Corner symbols to overlay on header/footer rows
+  const topLeft = symbols.find((s) => s.position === 'top-left')
+  const topRight = symbols.find((s) => s.position === 'top-right')
+  const bottomLeft = symbols.find((s) => s.position === 'bottom-left')
+  const bottomRight = symbols.find((s) => s.position === 'bottom-right')
 
-  const availableLines = Math.max(0, innerHeight - usedLines)
+  const hasTopSymbols = Boolean(topLeft ?? topRight)
+  const hasBottomSymbols = Boolean(bottomLeft ?? bottomRight)
 
-  // Split available space between art and description
+  // Symbols are folded into header/footer rows for free — they only need
+  // their own row when there is no header/footer to merge into.
+  const symbolOnlyTopRow = hasTopSymbols && !hasHeader
+  const symbolOnlyBottomRow = hasBottomSymbols && !hasFooter
+
   const artLines = asciiArt ? asciiArt.split('\n') : []
-  const artLineCount = Math.min(artLines.length, availableLines)
   const descLines = description ? wrapText(description, innerWidth) : []
-  const remainingForDesc = Math.max(0, availableLines - artLineCount)
-  const descLineCount = Math.min(descLines.length, remainingForDesc)
+
+  const {
+    included,
+    dropped,
+    artLines: artBudget,
+    descriptionLines: descBudget,
+  } = allocateRegions(
+    {
+      header: { present: hasHeader || symbolOnlyTopRow, lineCost: 1 },
+      typeLine: { present: hasTypeLine, lineCost: 1 },
+      footer: { present: hasFooter || symbolOnlyBottomRow, lineCost: 1 },
+      description: {
+        present: descLines.length > 0,
+        lineCost: descLines.length,
+        variable: true,
+      },
+      art: {
+        present: artLines.length > 0,
+        lineCost: artLines.length,
+        variable: true,
+      },
+    },
+    innerHeight
+  )
+
+  warnDroppedRegions(cardLabel, size, innerHeight, dropped)
+
+  const showHeader = included.has('header')
+  const showTypeLine = included.has('typeLine')
+  const showFooter = included.has('footer')
+
+  // Build the header row, merging corner symbols if present.
+  // Layout: [topLeft?][title…][cost?][topRight?]
+  // The title is fitted into the remaining horizontal space.
+  function renderHeaderRow() {
+    if (!showHeader) return null
+
+    if (!hasHeader && hasTopSymbols) {
+      // Symbol-only fallback: no title/cost, just the present corner chars.
+      // Absent corners render nothing (not a literal space) so the row stays clean.
+      return (
+        <Box width={innerWidth} justifyContent="space-between">
+          {topLeft ? (
+            <Text color={topLeft.color ?? textColor}>{topLeft.char}</Text>
+          ) : null}
+          {topRight ? (
+            <Text color={topRight.color ?? textColor}>{topRight.char}</Text>
+          ) : null}
+        </Box>
+      )
+    }
+
+    // Width of corner symbols: counted as code points, not UTF-16 units, so
+    // surrogate-pair glyphs like 🜂 (U+1F702) measure as 1 column correctly.
+    const topLeftW = topLeft ? displayWidth(topLeft.char) : 0
+    const topRightW = topRight ? displayWidth(topRight.char) : 0
+
+    // Width reserved on the right: cost + separator (if any) + topRight symbol (if any)
+    const rightReserved =
+      (cost ? cost.length + 1 : 0) + (topRight ? topRightW : 0)
+    // Width reserved on the left: topLeft symbol (if any)
+    const leftReserved = topLeft ? topLeftW : 0
+    const titleWidth = Math.max(0, innerWidth - leftReserved - rightReserved)
+
+    return (
+      <Box width={innerWidth} justifyContent="space-between">
+        <Box>
+          {topLeft ? (
+            <Text color={topLeft.color ?? textColor}>{topLeft.char}</Text>
+          ) : null}
+          <Text bold color={textColor}>
+            {fit(title ?? '', titleWidth)}
+          </Text>
+        </Box>
+        <Box>
+          {cost ? <Text color={textColor}>{cost}</Text> : null}
+          {topRight ? (
+            <Text color={topRight.color ?? textColor}>{topRight.char}</Text>
+          ) : null}
+        </Box>
+      </Box>
+    )
+  }
+
+  // Build the footer row, merging corner symbols if present.
+  // Layout: [bottomLeft?][footerLeft?]…[footerRight?][bottomRight?]
+  function renderFooterRow() {
+    if (!showFooter) return null
+
+    if (!hasFooter && hasBottomSymbols) {
+      // Symbol-only fallback: no footerLeft/Right, just the present corner chars.
+      // Absent corners render nothing (not a literal space).
+      return (
+        <Box width={innerWidth} justifyContent="space-between">
+          {bottomLeft ? (
+            <Text color={bottomLeft.color ?? textColor}>{bottomLeft.char}</Text>
+          ) : null}
+          {bottomRight ? (
+            <Text color={bottomRight.color ?? textColor}>
+              {bottomRight.char}
+            </Text>
+          ) : null}
+        </Box>
+      )
+    }
+
+    return (
+      <Box width={innerWidth} justifyContent="space-between">
+        <Box>
+          {bottomLeft ? (
+            <Text color={bottomLeft.color ?? textColor}>{bottomLeft.char}</Text>
+          ) : null}
+          {footerLeft ? (
+            <Text bold color={textColor}>
+              {footerLeft}
+            </Text>
+          ) : null}
+        </Box>
+        <Box>
+          {footerRight ? (
+            <Text dimColor color={textColor}>
+              {footerRight}
+            </Text>
+          ) : null}
+          {bottomRight ? (
+            <Text color={bottomRight.color ?? textColor}>
+              {bottomRight.char}
+            </Text>
+          ) : null}
+        </Box>
+      </Box>
+    )
+  }
 
   return (
     <>
-      {hasSymbols ? (
-        <CornerSymbols
-          symbols={symbols}
-          position="top"
-          innerWidth={innerWidth}
-          textColor={textColor}
-        />
-      ) : null}
+      {renderHeaderRow()}
 
-      {hasHeader ? (
-        <Box width={innerWidth} justifyContent="space-between">
-          <Text bold color={textColor}>
-            {fit(title ?? '', cost ? innerWidth - cost.length - 1 : innerWidth)}
+      {/* Body grows to fill remaining vertical space, pushing footer to bottom */}
+      <Box flexDirection="column" flexGrow={1}>
+        {artLines.slice(0, artBudget).map((line, i) => (
+          <Text key={`art-${i}`} color={artColor}>
+            {fit(line, innerWidth)}
           </Text>
-          {cost ? <Text color={textColor}>{cost}</Text> : null}
-        </Box>
-      ) : null}
+        ))}
 
-      {artLines.slice(0, artLineCount).map((line, i) => (
-        <Text key={`art-${i}`} color={artColor}>
-          {fit(line, innerWidth)}
-        </Text>
-      ))}
-
-      {hasTypeLine ? (
-        <Text dimColor color={textColor}>
-          {fit(typeLine!, innerWidth)}
-        </Text>
-      ) : null}
-
-      {descLines.slice(0, descLineCount).map((line, i) => (
-        <Text key={`desc-${i}`} color={textColor}>
-          {fit(line, innerWidth)}
-        </Text>
-      ))}
-
-      {hasFooter ? (
-        <Box width={innerWidth} justifyContent="space-between">
-          <Text bold color={textColor}>
-            {footerLeft ?? ''}
-          </Text>
+        {showTypeLine ? (
           <Text dimColor color={textColor}>
-            {footerRight ?? ''}
+            {fit(typeLine!, innerWidth)}
           </Text>
-        </Box>
-      ) : null}
+        ) : null}
 
-      {hasSymbols ? (
-        <CornerSymbols
-          symbols={symbols}
-          position="bottom"
-          innerWidth={innerWidth}
-          textColor={textColor}
-        />
-      ) : null}
+        {descLines.slice(0, descBudget).map((line, i) => (
+          <Text key={`desc-${i}`} color={textColor}>
+            {fit(line, innerWidth)}
+          </Text>
+        ))}
+      </Box>
+
+      {renderFooterRow()}
     </>
   )
 }
@@ -263,6 +480,7 @@ function StructuredLayout({
  * Override with explicit `width`/`height`.
  */
 export function CustomCard({
+  id,
   size = 'medium',
   width,
   height,
@@ -326,6 +544,8 @@ export function CustomCard({
   return (
     <Box {...cardStyle}>
       <StructuredLayout
+        cardLabel={title ?? id}
+        size={size}
         title={title}
         cost={cost}
         asciiArt={asciiArt}

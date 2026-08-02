@@ -48,6 +48,25 @@ test('createStandardDeck has no duplicate ids', (t) => {
   t.is(new Set(ids).size, ids.length)
 })
 
+test('createStandardDeck({ jokers: 0 }) returns 52 cards', (t) => {
+  t.is(createStandardDeck({ jokers: 0 }).length, 52)
+})
+
+test('createStandardDeck({ jokers: 2 }) returns 54 cards, 2 of which are jokers', (t) => {
+  const deck = createStandardDeck({ jokers: 2 })
+  t.is(deck.length, 54)
+  const jokers = deck.filter(
+    (c): c is CardProps => isCardProps(c) && c.value === 'JOKER'
+  )
+  t.is(jokers.length, 2)
+})
+
+test('createStandardDeck({ jokers: n }) has no duplicate ids', (t) => {
+  const deck = createStandardDeck({ jokers: 3 })
+  const ids = deck.map((c) => c.id)
+  t.is(new Set(ids).size, ids.length)
+})
+
 // ---- createPairedDeck ----
 
 test('createPairedDeck returns 52 cards (13 values × 4 suits → 2 pairs each = 26 pairs)', (t) => {

@@ -123,3 +123,41 @@ test('render ace of spades face down', (t) => {
     t.false(aceSpacesLastFrame.includes('♠'))
   }
 })
+
+const ASCII_THEMES = [
+  'original',
+  'geometric',
+  'animal',
+  'robot',
+  'pixel',
+  'medieval',
+] as const
+
+for (const theme of ASCII_THEMES) {
+  test(`render joker of hearts face up in ${theme} theme`, (t) => {
+    const { lastFrame } = render(
+      <Card
+        id={`joker-hearts-${theme}`}
+        suit="hearts"
+        value="JOKER"
+        variant="ascii"
+        theme={theme}
+      />
+    )
+    const frame = lastFrame()
+    t.snapshot(frame)
+    t.truthy(frame)
+
+    if (frame) {
+      t.true(frame.includes('JOKER'))
+
+      // The label rows alone account for two suit glyphs (top and bottom
+      // labels); a non-blank body must contribute at least one more.
+      const suitGlyphCount = frame.split('♥').length - 1
+      t.true(
+        suitGlyphCount >= 3,
+        `expected joker body to be non-blank in ${theme} theme, found only ${suitGlyphCount} suit glyphs`
+      )
+    }
+  })
+}
