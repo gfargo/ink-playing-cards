@@ -40,8 +40,7 @@ export function CardGrid({
   fillEmpty = false,
   alignment = { horizontal: 'center', vertical: 'middle' },
 }: CardGridProps) {
-  // Split cards into rows
-  const grid = React.useMemo(() => {
+  React.useEffect(() => {
     const capacity = rows * cols
     if (process.env['NODE_ENV'] !== 'production' && cards.length > capacity) {
       console.warn(
@@ -49,7 +48,10 @@ export function CardGrid({
           `${cards.length - capacity} card(s) will not be rendered.`
       )
     }
+  }, [cards, rows, cols])
 
+  // Split cards into rows
+  const grid = React.useMemo(() => {
     const result: Array<Array<TCard | undefined>> = []
     for (let i = 0; i < rows; i++) {
       result.push(cards.slice(i * cols, (i + 1) * cols))
