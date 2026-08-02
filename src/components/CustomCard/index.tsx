@@ -54,7 +54,6 @@ const REGION_PRIORITY = [
 type RegionName = (typeof REGION_PRIORITY)[number]
 
 type RegionDescriptor = {
-  readonly name: RegionName
   readonly present: boolean
   readonly lineCost: number
   /** Variable-length regions (art/description) are truncated to fit rather than dropped outright. */
@@ -69,13 +68,13 @@ type RegionAllocation = {
 }
 
 /**
- * Allocates `innerHeight` lines across regions in priority order. Fixed-cost
- * regions (header/typeLine/footer/symbols) are all-or-nothing. Variable-cost
- * regions (art/description) are truncated to whatever remains and are only
- * reported as "dropped" if truncated all the way to zero lines.
+ * Allocates `innerHeight` lines across regions in `REGION_PRIORITY` order.
+ * Fixed-cost regions (header/typeLine/footer/symbols) are all-or-nothing.
+ * Variable-cost regions (art/description) are truncated to whatever remains
+ * and are only reported as "dropped" if truncated all the way to zero lines.
  */
 function allocateRegions(
-  regions: readonly RegionDescriptor[],
+  regions: Readonly<Record<RegionName, RegionDescriptor>>,
   innerHeight: number
 ): RegionAllocation {
   const included = new Set<RegionName>()
@@ -84,28 +83,29 @@ function allocateRegions(
   let descriptionLines = 0
   let remaining = innerHeight
 
-  for (const region of regions) {
+  for (const name of REGION_PRIORITY) {
+    const region = regions[name]
     if (!region.present) continue
 
     if (region.variable) {
       const allotted = Math.min(region.lineCost, remaining)
       if (allotted > 0) {
-        included.add(region.name)
+        included.add(name)
         remaining -= allotted
-        if (region.name === 'art') artLines = allotted
-        if (region.name === 'description') descriptionLines = allotted
+        if (name === 'art') artLines = allotted
+        if (name === 'description') descriptionLines = allotted
       } else {
-        dropped.push(region.name)
+        dropped.push(name)
       }
 
       continue
     }
 
     if (region.lineCost <= remaining) {
-      included.add(region.name)
+      included.add(name)
       remaining -= region.lineCost
     } else {
-      dropped.push(region.name)
+      dropped.push(name)
     }
   }
 
@@ -120,7 +120,7 @@ const warnedSignatures = new Set<string>()
  */
 function warnDroppedRegions(
   cardLabel: string,
-  size: string,
+  size: CustomCardSize,
   innerHeight: number,
   dropped: readonly RegionName[]
 ): void {
@@ -272,7 +272,7 @@ function StructuredLayout({
   artColor,
 }: {
   readonly cardLabel: string
-  readonly size: string
+  readonly size: CustomCardSize
   readonly title?: string
   readonly cost?: string
   readonly asciiArt?: string
@@ -300,24 +300,22 @@ function StructuredLayout({
     artLines: artBudget,
     descriptionLines: descBudget,
   } = allocateRegions(
-    [
-      { name: 'header', present: hasHeader, lineCost: 1 },
-      { name: 'typeLine', present: hasTypeLine, lineCost: 1 },
-      { name: 'footer', present: hasFooter, lineCost: 1 },
-      {
-        name: 'description',
+    {
+      header: { present: hasHeader, lineCost: 1 },
+      typeLine: { present: hasTypeLine, lineCost: 1 },
+      footer: { present: hasFooter, lineCost: 1 },
+      description: {
         present: descLines.length > 0,
         lineCost: descLines.length,
         variable: true,
       },
-      {
-        name: 'art',
+      art: {
         present: artLines.length > 0,
         lineCost: artLines.length,
         variable: true,
       },
-      { name: 'symbols', present: hasSymbols, lineCost: 2 },
-    ],
+      symbols: { present: hasSymbols, lineCost: 2 },
+    },
     innerHeight
   )
 
