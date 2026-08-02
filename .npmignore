@@ -1,7 +1,5 @@
-**.test.**
-**.spec.**
-**.test.js
-**.spec.js
+**/*.test.*
+**/*.spec.*
 tests/
 examples/
 prompts/

@@ -138,14 +138,107 @@ export type CustomCardProps = BaseCardProps & {
   value?: TCardValue | string
   /** Card type for game logic (e.g. "Creature", "Action", "Wild") */
   type?: string
-  /** Callback when card is activated/played */
-  onClick?: () => void
 }
+
+/**
+ * Tarot suits for Minor Arcana cards.
+ */
+export type TarotSuit = 'wands' | 'cups' | 'swords' | 'pentacles'
+
+/**
+ * Minor Arcana values: Ace–10 plus court cards.
+ */
+export type TarotMinorValue =
+  | 'Ace'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  | '10'
+  | 'Page'
+  | 'Knight'
+  | 'Queen'
+  | 'King'
+
+/**
+ * Major Arcana index (0–21).
+ */
+export type MajorArcanaIndex =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20
+  | 21
+
+/**
+ * Props for a Major Arcana tarot card.
+ */
+export type TarotMajorProps = BaseCardProps & {
+  arcana: 'major'
+  /** Index 0–21 corresponding to The Fool through The World */
+  majorIndex: MajorArcanaIndex
+  /** Whether the card is reversed (upside-down reading) */
+  reversed?: boolean
+  /** Override the default ASCII art */
+  asciiArt?: string
+  /** Border color */
+  borderColor?: string
+  /** Text color */
+  textColor?: string
+  /** Art region color */
+  artColor?: string
+  /** Custom card back */
+  back?: CustomCardBack
+}
+
+/**
+ * Props for a Minor Arcana tarot card.
+ */
+export type TarotMinorProps = BaseCardProps & {
+  arcana: 'minor'
+  suit: TarotSuit
+  value: TarotMinorValue
+  /** Whether the card is reversed (upside-down reading) */
+  reversed?: boolean
+  /** Override the default ASCII art */
+  asciiArt?: string
+  /** Border color */
+  borderColor?: string
+  /** Text color */
+  textColor?: string
+  /** Art region color */
+  artColor?: string
+  /** Custom card back */
+  back?: CustomCardBack
+}
+
+export type TarotCardProps = TarotMajorProps | TarotMinorProps
 
 /**
  * Union type for all cards. Every card has a guaranteed `id`.
  */
-export type TCard = CardProps | CustomCardProps
+export type TCard = CardProps | CustomCardProps | TarotCardProps
 
 /**
  * Type guard to check if a card is a standard playing card.
@@ -160,10 +253,17 @@ export function isStandardCard(card: TCard): card is CardProps {
 }
 
 /**
+ * Type guard to check if a card is a tarot card (Major or Minor Arcana).
+ */
+export function isTarotCard(card: TCard): card is TarotCardProps {
+  return 'arcana' in card
+}
+
+/**
  * Type guard to check if a card is a custom card.
  */
 export function isCustomCard(card: TCard): card is CustomCardProps {
-  return !isStandardCard(card)
+  return !isStandardCard(card) && !isTarotCard(card)
 }
 
 /**

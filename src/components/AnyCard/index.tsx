@@ -1,8 +1,14 @@
 import React from 'react'
-import { isCustomCard, isStandardCard, type TCard } from '../../types/index.js'
+import {
+  isCustomCard,
+  isStandardCard,
+  isTarotCard,
+  type TCard,
+} from '../../types/index.js'
 import Card from '../Card/index.js'
 import { CustomCard } from '../CustomCard/index.js'
 import { MiniCard } from '../MiniCard/index.js'
+import { TarotCard } from '../TarotCard/index.js'
 
 type AnyCardProps = {
   readonly card: TCard
@@ -16,14 +22,13 @@ type AnyCardProps = {
  * Dispatch rules:
  * - Standard card + mini/micro variant → MiniCard
  * - Standard card + other variant    → Card
+ * - Tarot card                        → TarotCard (variant is ignored, fixed size)
  * - Custom card                       → CustomCard (variant is ignored, as CustomCard
  *                                       manages its own size via the `size` prop)
  * - Otherwise                         → null
  *
  * This component does NOT include any wrapper Box — the caller is responsible for
  * positioning/spacing, so snapshots of existing consumers are unaffected.
- *
- * TODO(B18/F2): add a tarot branch here once TarotCardProps is merged into TCard.
  */
 export function AnyCard({
   card,
@@ -52,6 +57,10 @@ export function AnyCard({
         variant={variant}
       />
     )
+  }
+
+  if (isTarotCard(card)) {
+    return <TarotCard {...card} faceUp={faceUp} />
   }
 
   if (isCustomCard(card)) {

@@ -250,3 +250,55 @@ test('render grid with mixed standard and custom cards', (t) => {
     t.true(gridFrame.includes('♥'))
   }
 })
+
+test('render tarot-only grid', (t) => {
+  const { lastFrame } = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={2}
+      cards={[
+        { id: 'fool', arcana: 'major' as const, majorIndex: 0 as const },
+        {
+          id: 'ace-cups',
+          arcana: 'minor' as const,
+          suit: 'cups' as const,
+          value: 'Ace' as const,
+        },
+      ]}
+    />
+  )
+  const gridFrame = lastFrame()
+  t.snapshot(gridFrame)
+  if (gridFrame) {
+    t.true(gridFrame.includes('The Fool'))
+    t.true(gridFrame.includes('Ace of Cups'))
+  }
+})
+
+test('render grid with mixed standard, custom, and tarot cards', (t) => {
+  const { lastFrame } = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={3}
+      cards={[
+        { id: 'ace-spades', suit: 'spades' as const, value: 'A' as const },
+        {
+          id: 'custom-1',
+          title: 'Wild',
+          size: 'small' as const,
+          borderColor: 'yellow',
+        },
+        { id: 'fool', arcana: 'major' as const, majorIndex: 0 as const },
+      ]}
+    />
+  )
+  const gridFrame = lastFrame()
+  t.snapshot(gridFrame)
+  if (gridFrame) {
+    t.true(gridFrame.includes('♠'))
+    t.true(gridFrame.includes('Wild'))
+    t.true(gridFrame.includes('The Fool'))
+  }
+})

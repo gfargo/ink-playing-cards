@@ -337,8 +337,8 @@ export function createSpecialArt(
   // Simple variant
   const art = SIMPLE_CARD_ART[rank]?.map((line) => {
     const processedLine = line.replaceAll('{suit}', suit)
-    // For Ace, center the art
-    if (rank === 'A') {
+    // For Ace and Joker, center the art
+    if (rank === 'A' || rank === 'JOKER') {
       return center(processedLine, w - 2)
     }
 
@@ -368,11 +368,14 @@ export function createCardContent(
   // Minimal cards need explicit space-filled rows so overlapped stacks repaint
   // the cells from cards underneath them.
   if (variant === 'minimal') {
-    return centerLabelBlock(`${rank}${suit}`, width - 2, height - 2)
+    // 'JOKER' + suit doesn't fit the minimal variant's narrow inner width, so
+    // abbreviate it the same way other multi-char ranks (e.g. '10') stay short.
+    const label = rank === 'JOKER' ? `JK${suit}` : `${rank}${suit}`
+    return centerLabelBlock(label, width - 2, height - 2)
   }
 
   const lines: string[] = []
-  const isSpecialCard = ['A', 'J', 'Q', 'K'].includes(rank)
+  const isSpecialCard = ['A', 'J', 'Q', 'K', 'JOKER'].includes(rank)
 
   // Add top border line
   lines.push(createTopLine(rank, suit, width, variant))

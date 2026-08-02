@@ -170,4 +170,33 @@ export const ROBOT_THEME: CardArtTheme = {
       core: '{core}',
     },
   },
+
+  JOKER: {
+    sections: [
+      {
+        type: 'frame',
+        content: '{eyes}',
+        frame: FRAMES.rounded,
+        padding: 1,
+      },
+      {
+        type: 'body',
+        content: ['╬{circuit}╬', '║{suit}║', '╬{data}╬'],
+        padding: 1,
+      },
+      {
+        type: 'frame',
+        content: '{core}',
+        frame: FRAMES.rounded,
+        padding: 1,
+      },
+    ],
+    replacements: {
+      eyes: '{eyes}',
+      circuit: '{circuit}',
+      suit: '{suit}',
+      data: '{data}',
+      core: '{core}',
+    },
+  },
 }

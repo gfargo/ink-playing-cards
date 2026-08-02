@@ -91,3 +91,38 @@ test('render ace of spades face down', (t) => {
     t.false(aceSpacesLastFrame.includes('♠'))
   }
 })
+
+test('render joker of hearts face up (simple variant)', (t) => {
+  const { lastFrame } = render(
+    <Card id="joker-hearts" suit="hearts" value="JOKER" variant="simple" />
+  )
+  const frame = lastFrame()
+  t.snapshot(frame)
+  t.truthy(frame)
+
+  if (frame) {
+    t.true(frame.includes('JOKER'))
+
+    // The simple variant's top/bottom labels show only the rank (no suit),
+    // so any suit glyph at all proves the body art rendered.
+    const suitGlyphCount = frame.split('♥').length - 1
+    t.true(
+      suitGlyphCount >= 1,
+      `expected joker body to be non-blank, found ${suitGlyphCount} suit glyphs`
+    )
+  }
+})
+
+test('render joker of hearts face up (minimal variant, regression guard)', (t) => {
+  const { lastFrame } = render(
+    <Card id="joker-hearts" suit="hearts" value="JOKER" variant="minimal" />
+  )
+  const frame = lastFrame()
+  t.snapshot(frame)
+  // 'JOKER' doesn't fit the minimal variant's narrow width, so it renders
+  // abbreviated as 'JK' alongside the suit glyph.
+  if (frame) {
+    t.true(frame.includes('JK'))
+    t.true(frame.includes('♥'))
+  }
+})

@@ -1,9 +1,11 @@
 import React from 'react'
 import { CustomCard } from '../CustomCard/index.js'
 import {
-  type BaseCardProps,
   type CustomCardBack,
   type CustomCardSymbol,
+  type TarotCardProps,
+  type TarotMajorProps,
+  type TarotMinorProps,
 } from '../../types/index.js'
 import {
   MAJOR_ARCANA,
@@ -13,100 +15,14 @@ import {
   TAROT_SUIT_ICONS,
 } from './constants.js'
 
-/**
- * Tarot suits for Minor Arcana cards.
- */
-export type TarotSuit = 'wands' | 'cups' | 'swords' | 'pentacles'
-
-/**
- * Minor Arcana values: Ace–10 plus court cards.
- */
-export type TarotMinorValue =
-  | 'Ace'
-  | '2'
-  | '3'
-  | '4'
-  | '5'
-  | '6'
-  | '7'
-  | '8'
-  | '9'
-  | '10'
-  | 'Page'
-  | 'Knight'
-  | 'Queen'
-  | 'King'
-
-/**
- * Major Arcana index (0–21).
- */
-export type MajorArcanaIndex =
-  | 0
-  | 1
-  | 2
-  | 3
-  | 4
-  | 5
-  | 6
-  | 7
-  | 8
-  | 9
-  | 10
-  | 11
-  | 12
-  | 13
-  | 14
-  | 15
-  | 16
-  | 17
-  | 18
-  | 19
-  | 20
-  | 21
-
-/**
- * Props for a Major Arcana tarot card.
- */
-export type TarotMajorProps = BaseCardProps & {
-  arcana: 'major'
-  /** Index 0–21 corresponding to The Fool through The World */
-  majorIndex: MajorArcanaIndex
-  /** Whether the card is reversed (upside-down reading) */
-  reversed?: boolean
-  /** Override the default ASCII art */
-  asciiArt?: string
-  /** Border color */
-  borderColor?: string
-  /** Text color */
-  textColor?: string
-  /** Art region color */
-  artColor?: string
-  /** Custom card back */
-  back?: CustomCardBack
-}
-
-/**
- * Props for a Minor Arcana tarot card.
- */
-export type TarotMinorProps = BaseCardProps & {
-  arcana: 'minor'
-  suit: TarotSuit
-  value: TarotMinorValue
-  /** Whether the card is reversed (upside-down reading) */
-  reversed?: boolean
-  /** Override the default ASCII art */
-  asciiArt?: string
-  /** Border color */
-  borderColor?: string
-  /** Text color */
-  textColor?: string
-  /** Art region color */
-  artColor?: string
-  /** Custom card back */
-  back?: CustomCardBack
-}
-
-export type TarotCardProps = TarotMajorProps | TarotMinorProps
+export {
+  type MajorArcanaIndex,
+  type TarotCardProps,
+  type TarotMajorProps,
+  type TarotMinorProps,
+  type TarotMinorValue,
+  type TarotSuit,
+} from '../../types/index.js'
 
 /** Default tarot card back design. */
 const TAROT_BACK: CustomCardBack = {
@@ -123,36 +39,42 @@ const TAROT_BACK: CustomCardBack = {
 }
 
 /**
+ * Shared shape for the layout props returned by both builder functions.
+ * footerLeft/footerRight are optional — Major Arcana omits them.
+ */
+type TarotLayoutProps = {
+  title: string
+  typeLine: string
+  asciiArt: string
+  symbols: CustomCardSymbol[]
+  footerLeft?: string
+  footerRight?: string
+}
+
+/**
  * Builds the title and layout props for a Major Arcana card.
  */
-function buildMajorProps(props: TarotMajorProps) {
+function buildMajorProps(props: TarotMajorProps): TarotLayoutProps {
   const entry = MAJOR_ARCANA[props.majorIndex]
   const { name } = entry
   const { numeral } = entry
   const art = props.asciiArt ?? MAJOR_ARCANA_ART[name] ?? ''
 
-  const symbols: CustomCardSymbol[] = [
-    { char: numeral, position: 'top-left', color: props.textColor ?? 'yellow' },
-    {
-      char: numeral,
-      position: 'bottom-right',
-      color: props.textColor ?? 'yellow',
-    },
-  ]
-
+  // Route the numeral to footerLeft so it appears once, bottom-anchored.
+  // No corner symbols: avoids duplication and the dedicated full-width symbol row.
   return {
     title: name,
     typeLine: props.reversed ? '⟳ Reversed' : 'Major Arcana',
     asciiArt: art,
     footerLeft: numeral,
-    symbols,
+    symbols: [],
   }
 }
 
 /**
  * Builds the title and layout props for a Minor Arcana card.
  */
-function buildMinorProps(props: TarotMinorProps) {
+function buildMinorProps(props: TarotMinorProps): TarotLayoutProps {
   const icon = TAROT_SUIT_ICONS[props.suit] ?? '?'
   const isCourt = (MINOR_COURT as readonly string[]).includes(props.value)
   const isPip = (MINOR_PIPS as readonly string[]).includes(props.value)
@@ -235,7 +157,7 @@ export function TarotCard(props: TarotCardProps) {
       typeLine={layout.typeLine}
       asciiArt={layout.asciiArt}
       footerLeft={layout.footerLeft}
-      footerRight={'footerRight' in layout ? layout.footerRight : undefined}
+      footerRight={layout.footerRight}
       symbols={layout.symbols}
       borderColor={props.borderColor ?? defaultBorder}
       textColor={props.textColor ?? defaultText}

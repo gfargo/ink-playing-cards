@@ -5,33 +5,51 @@ import { DeckProvider } from '../../contexts/DeckContext.js'
 import { Deck } from './index.js'
 
 test('render deck with defaults', (t) => {
-  const { lastFrame } = render(<Deck />)
+  const { lastFrame } = render(
+    <DeckProvider>
+      <Deck />
+    </DeckProvider>
+  )
   const deckLastFrame = lastFrame()
   t.snapshot(deckLastFrame)
 })
 
 test('render deck with top card visible', (t) => {
-  const { lastFrame } = render(<Deck showTopCard />)
+  const { lastFrame } = render(
+    <DeckProvider>
+      <Deck showTopCard />
+    </DeckProvider>
+  )
   const deckLastFrame = lastFrame()
   t.snapshot(deckLastFrame)
 })
 
 test('render deck with custom placeholder card', (t) => {
   const { lastFrame } = render(
-    <Deck placeholderCard={{ suit: 'clubs', value: '8' }} />
+    <DeckProvider>
+      <Deck placeholderCard={{ suit: 'clubs', value: '8' }} />
+    </DeckProvider>
   )
   const deckLastFrame = lastFrame()
   t.snapshot(deckLastFrame)
 })
 
 test('render deck with minimal variant', (t) => {
-  const { lastFrame } = render(<Deck variant="minimal" />)
+  const { lastFrame } = render(
+    <DeckProvider>
+      <Deck variant="minimal" />
+    </DeckProvider>
+  )
   const deckLastFrame = lastFrame()
   t.snapshot(deckLastFrame)
 })
 
 test('render deck with ascii variant', (t) => {
-  const { lastFrame } = render(<Deck variant="ascii" />)
+  const { lastFrame } = render(
+    <DeckProvider>
+      <Deck variant="ascii" />
+    </DeckProvider>
+  )
   const deckLastFrame = lastFrame()
   t.snapshot(deckLastFrame)
 })
