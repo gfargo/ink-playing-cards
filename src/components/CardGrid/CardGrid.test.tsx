@@ -12,6 +12,11 @@ const sampleCards: GridCard[] = [
   { id: 'four-clubs', suit: 'clubs' as TSuit, value: '4' as TCardValue },
 ]
 
+// Strip ANSI SGR escape sequences so spacing assertions are colour-agnostic.
+const stripAnsi = (line: string) =>
+  // eslint-disable-next-line no-control-regex
+  line.replaceAll(/\u001B\[[\d;]*m/g, '')
+
 test('render 2x2 grid face up', (t) => {
   const { lastFrame } = render(
     <CardGrid isFaceUp rows={2} cols={2} cards={sampleCards} />
@@ -76,6 +81,22 @@ test('render grid with custom spacing', (t) => {
   )
   const gridFrame = lastFrame()
   t.snapshot(gridFrame)
+
+  // Spacing.row=2 should produce exactly 2 blank lines between card rows,
+  // not the doubled 4 that adjacent marginY/row used to produce.
+  if (gridFrame) {
+    const lines = gridFrame.split('\n').map((line) => stripAnsi(line))
+    const blankLines = lines.filter((line) => line.trim() === '').length
+    t.is(blankLines, 2)
+
+    // Spacing.col=3 should produce exactly 3 spaces between cell borders,
+    // not the doubled 6 that adjacent marginX/col used to produce.
+    const rowWithGap = lines.find(
+      (line) => line.includes('╮') && line.includes('╭')
+    )
+    const gap = /╮(\s+)╭/.exec(rowWithGap ?? '')
+    t.is(gap?.[1]?.length, 3)
+  }
 })
 
 test('render grid with left alignment', (t) => {
