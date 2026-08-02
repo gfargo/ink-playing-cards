@@ -1,6 +1,6 @@
 # Zone System
 
-The zone system manages different areas of a card game — Deck, Hand, Discard Pile, and Play Area. All zones are immutable `TCard[]` arrays managed by the `DeckProvider` reducer. The `useDeck` hook provides convenient functions for moving cards between zones.
+The zone system manages different areas of a card game — Deck, Hand, Discard Pile, and Play Area — plus any number of custom named zones (tableau columns, foundations, a stock/waste pile, etc). All zones are immutable `TCard[]` arrays managed by the `DeckProvider` reducer. The `useDeck` hook provides convenient functions for moving cards between zones.
 
 ## Basic Usage
 
@@ -62,10 +62,11 @@ Zones are plain arrays stored in the `DeckProvider` context:
 
 ```ts
 zones: {
-  deck: TCard[]                    // draw pile
-  hands: Record<string, TCard[]>   // player hands keyed by ID
-  discardPile: TCard[]             // discarded cards
-  playArea: TCard[]                // cards in play
+  deck: TCard[]                       // draw pile
+  hands: Record<string, TCard[]>      // player hands keyed by ID
+  discardPile: TCard[]                // discarded cards
+  playArea: TCard[]                   // cards in play
+  custom: Record<string, TCard[]>     // arbitrary named zones, keyed by name
 }
 ```
 
@@ -84,6 +85,38 @@ All zone mutations go through dispatch actions. The reducer returns new arrays �
 | `cutDeck(index)` | Splits deck at index and reorders |
 | `addPlayer(id)` | Registers player with empty hand |
 | `removePlayer(id)` | Removes player and their hand |
+| `moveCard(cardId, from, to, position?)` | Moves a card between any two zones (built-in or custom) |
+| `setZone(name, cards)` | Seeds/overwrites a custom zone (e.g. to deal out a tableau column) |
+| `clearZone(name)` | Removes a custom zone |
+| `getZone(name)` | Reads the current cards in any zone by name |
+
+## Custom Named Zones
+
+Games with more structure than deck/hand/discard/play — solitaire tableaus, foundations, a stock/waste pile — can use `custom` zones instead of local `useState`. Custom zones are created on first write and addressed by name:
+
+```tsx
+const { deck, customZones, moveCard, setZone, getZone } = useDeck()
+
+// Deal four tableau columns from the deck
+React.useEffect(() => {
+  setZone('tableau-0', deck.slice(0, 3))
+  setZone('tableau-1', deck.slice(3, 6))
+}, [])
+
+// Move the top card of a tableau column to a foundation pile
+const tableau = getZone('tableau-0')
+const top = tableau.at(-1)
+if (top) {
+  moveCard(top.id, 'tableau-0', 'foundation-hearts')
+}
+
+// Read all custom zones (e.g. to render every tableau column)
+Object.entries(customZones).map(([name, cards]) => (/* ... */))
+```
+
+`moveCard`'s `position` argument controls where the card lands in the destination zone: `'top'` (append, default), `'bottom'` (prepend), or a numeric index. `moveCard` is a no-op if the card isn't found in the source zone. Built-in zone names (`deck`, `discardPile`, `playArea`) can be used as either `from` or `to` alongside custom zone names — `setZone`/`clearZone` are custom-zones-only and are no-ops when passed a built-in name.
+
+A `CARD_MOVED` event (`{ type: 'CARD_MOVED', card, from, to }`) fires on every successful `moveCard` — see [Event System](./event-system.md).
 
 ## Zone Utility Functions
 

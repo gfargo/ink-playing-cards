@@ -8,6 +8,7 @@ import {
   removeCard,
   findCard,
   cutDeck,
+  moveCard,
   Deck,
   Hand,
   DiscardPile,
@@ -136,6 +137,49 @@ test('cutDeck at 0 returns same order', (t) => {
   t.deepEqual(
     result.map((c) => c.id),
     cards.map((c) => c.id)
+  )
+})
+
+test('moveCard moves a card from one zone to another', (t) => {
+  const from = makeDeck(3)
+  const to = makeDeck(1)
+  const [newFrom, newTo] = moveCard(from, to, 'card-1')
+  t.is(newFrom.length, 2)
+  t.is(newTo.length, 2)
+  t.false(newFrom.some((c) => c.id === 'card-1'))
+  t.is(newTo.at(-1)!.id, 'card-1')
+})
+
+test('moveCard is a no-op when the card is not in the source zone', (t) => {
+  const from = makeDeck(2)
+  const to = makeDeck(1)
+  const [newFrom, newTo] = moveCard(from, to, 'nonexistent')
+  t.is(newFrom, from)
+  t.is(newTo, to)
+})
+
+test('moveCard with position "bottom" inserts at the start', (t) => {
+  const from = makeDeck(2)
+  const to = makeDeck(2)
+  const [, newTo] = moveCard(from, to, 'card-1', 'bottom')
+  t.is(newTo[0]!.id, 'card-1')
+})
+
+test('moveCard with numeric position inserts at that index', (t) => {
+  const from = makeDeck(2)
+  const to = makeDeck(3)
+  const [, newTo] = moveCard(from, to, 'card-1', 1)
+  t.is(newTo[1]!.id, 'card-1')
+  t.is(newTo.length, 4)
+})
+
+test('moveCard within the same zone reorders without duplicating', (t) => {
+  const zone = makeDeck(3)
+  const [, newTo] = moveCard(zone, zone, 'card-0', 'bottom')
+  t.is(newTo.length, 3)
+  t.deepEqual(
+    newTo.map((c) => c.id),
+    ['card-0', 'card-1', 'card-2']
   )
 })
 

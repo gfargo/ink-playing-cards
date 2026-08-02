@@ -4,6 +4,7 @@ import {
   type BackArtwork,
   type CustomCardProps,
   type TCard,
+  type ZoneName,
 } from '../types/index.js'
 
 export const useDeck = () => {
@@ -58,11 +59,36 @@ export const useDeck = () => {
   const getPlayerHand = (playerId: string): TCard[] =>
     zones.hands[playerId] ?? []
 
+  const moveCard = (
+    cardId: string,
+    from: ZoneName,
+    to: ZoneName,
+    position?: 'top' | 'bottom' | number
+  ) => {
+    dispatch({ type: 'MOVE_CARD', payload: { cardId, from, to, position } })
+  }
+
+  const setZone = (name: string, cards: TCard[]) => {
+    dispatch({ type: 'SET_ZONE', payload: { name, cards } })
+  }
+
+  const clearZone = (name: string) => {
+    dispatch({ type: 'CLEAR_ZONE', payload: { name } })
+  }
+
+  const getZone = (name: string): TCard[] => {
+    if (name === 'deck') return zones.deck
+    if (name === 'discardPile') return zones.discardPile
+    if (name === 'playArea') return zones.playArea
+    return zones.custom[name] ?? []
+  }
+
   return {
     deck: zones.deck,
     hands: zones.hands,
     discardPile: zones.discardPile,
     playArea: zones.playArea,
+    customZones: zones.custom,
     players,
     backArtwork,
     eventManager,
@@ -78,5 +104,9 @@ export const useDeck = () => {
     addPlayer,
     removePlayer,
     getPlayerHand,
+    moveCard,
+    setZone,
+    clearZone,
+    getZone,
   }
 }

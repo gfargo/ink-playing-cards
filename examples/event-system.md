@@ -95,6 +95,7 @@ eventManager.removeEventListener('CARDS_DRAWN', listener)
 | `CARDS_DEALT` | `deal()` distributes cards (fires per player) |
 | `CARD_PLAYED` | A card moves from hand to play area |
 | `CARD_DISCARDED` | A card moves from hand to discard pile |
+| `CARD_MOVED` | `moveCard()` moves a card between any two zones |
 | `DECK_RESET` | `reset()` restores the deck |
 | `DECK_CUT` | `cutDeck()` reorders the deck |
 

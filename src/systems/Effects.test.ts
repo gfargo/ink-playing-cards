@@ -23,7 +23,7 @@ function makeGameState(overrides: Partial<GameState> = {}): GameState {
     players: [],
     turn: 1,
     phase: 'main',
-    zones: { deck: [], hands: {}, discardPile: [], playArea: [] },
+    zones: { deck: [], hands: {}, discardPile: [], playArea: [], custom: {} },
     ...overrides,
   }
 }
@@ -177,6 +177,7 @@ test('DrawCardEffect moves cards from deck to hand', (t) => {
       hands: { p1: [] },
       discardPile: [],
       playArea: [],
+      custom: {},
     },
   })
   effect.apply(gs, makeEvent('X'))
@@ -192,6 +193,7 @@ test('DrawCardEffect uses playerId from event data', (t) => {
       hands: { p2: [] },
       discardPile: [],
       playArea: [],
+      custom: {},
     },
   })
   effect.apply(gs, makeEvent('X', { playerId: 'p2' }))
@@ -206,6 +208,7 @@ test('DrawCardEffect clamps to available cards', (t) => {
       hands: { p1: [] },
       discardPile: [],
       playArea: [],
+      custom: {},
     },
   })
   effect.apply(gs, makeEvent('X'))
