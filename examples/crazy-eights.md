@@ -4,7 +4,7 @@ A two-player Crazy Eights implementation using `ink-playing-cards` and Ink — m
 
 _Mechanics highlighted: suit/value matching against a shared discard pile, wild cards that redirect play._
 
-> Uses the library's real `discardPile` zone (via `useHand(...).discard`) as the shared table pile — no local simulation needed here, since "play a card face-up onto a shared pile" is exactly what `discard` already does.
+> Uses the library's real `discardPile` zone (via `useHand(...).discard`) as the shared table pile — no local simulation needed here, since "play a card face-up onto a shared pile" is exactly what `discard` already does. Simplification: the shared reducer has no action to move discard-pile cards back into the stock, so there's no reshuffle-when-empty — if the stock runs dry and neither side has a legal card, the hand ends in a stalemate instead of looping forever.
 
 ## Full Implementation
 
@@ -100,13 +100,16 @@ const CrazyEightsGame: React.FC = () => {
       } else if (deck.length > 0) {
         draw(1, CPU)
         setMessage('CPU draws a card...')
+      } else if (!playerHand.some((c) => cardMatches(c, topCard, activeSuit))) {
+        setMessage('Stock is empty and neither side has a legal card — stalemate!')
+        setPhase('done')
       } else {
         setMessage('CPU has no move and the deck is empty — your turn.')
         setTurn('player')
       }
     }, 600)
     return () => clearTimeout(timer)
-  }, [phase, turn, cpuHand, topCard, activeSuit, deck.length])
+  }, [phase, turn, cpuHand, topCard, activeSuit, deck.length, playerHand])
 
   useEffect(() => {
     if (phase === 'playing' && (playerHand.length === 0 || cpuHand.length === 0)) setPhase('done')
@@ -136,6 +139,11 @@ const CrazyEightsGame: React.FC = () => {
         setMessage('You draw a card.')
       }
     } else if (input === 'x') {
+      if (deck.length === 0 && !cpuHand.some((c) => cardMatches(c, topCard, activeSuit))) {
+        setMessage('Stock is empty and neither side has a legal card — stalemate!')
+        setPhase('done')
+        return
+      }
       setMessage('You pass.')
       setTurn('cpu')
     } else if (key.return) {
@@ -202,7 +210,9 @@ const CrazyEightsGame: React.FC = () => {
       )}
       {chooseSuitMode && <Text dimColor>Name the suit: h=hearts d=diamonds c=clubs s=spades</Text>}
       {phase === 'done' && (
-        <Text bold>{playerHand.length === 0 ? 'You win!' : 'CPU wins!'}</Text>
+        <Text bold>
+          {playerHand.length === 0 ? 'You win!' : cpuHand.length === 0 ? 'CPU wins!' : message}
+        </Text>
       )}
     </Box>
   )

@@ -124,7 +124,8 @@ const DurakGame: React.FC = () => {
         setMessage(`${defender === 'player' ? 'You take' : 'CPU takes'} the cards — same attacker again.`)
       }
 
-      const { hands, talon: nextTalon } = refill({ player: nextPlayerHand, cpu: nextCpuHand }, talon, nextAttacker)
+      // Refill order is always bout-attacker-first, regardless of whether roles swap for the next round.
+      const { hands, talon: nextTalon } = refill({ player: nextPlayerHand, cpu: nextCpuHand }, talon, attacker)
 
       setPlayerHand(hands.player)
       setCpuHand(hands.cpu)

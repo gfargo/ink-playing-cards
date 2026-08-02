@@ -4,7 +4,7 @@ A four-player Spades implementation using `ink-playing-cards` and Ink — you ag
 
 _Mechanics highlighted: bidding, trump-suit trick-taking, bid-vs-tricks-won scoring._
 
-> Simplifications: bids are capped at 0–9 (adjusted with ↑/↓ for keyboard simplicity — real Spades allows bids up to 13), and there are no partnerships (each of the 4 players scores individually instead of as two teams). Suit-following, spades-always-trump resolution, and bid-based scoring (10×bid + overtricks, or a penalty for missing bid) are real.
+> Simplifications: bids are capped at 0–9 (adjusted with ↑/↓ for keyboard simplicity — real Spades allows bids up to 13), and there are no partnerships (each of the 4 players scores individually instead of as two teams). Suit-following, spade-breaking (spades can't lead a trick until broken, unless that's all a player holds), spades-always-trump resolution, and bid-based scoring (10×bid + overtricks, a penalty for missing bid, or a flat ±50 for a nil bid) are real.
 
 ## Full Implementation
 
@@ -75,6 +75,7 @@ const SpadesGame: React.FC = () => {
 
   const [trick, setTrick] = useState<Played[]>([])
   const [leaderIndex, setLeaderIndex] = useState(0)
+  const [spadesBroken, setSpadesBroken] = useState(false)
   const [tricksWon, setTricksWon] = useState<Record<string, number>>({ player: 0, west: 0, north: 0, east: 0 })
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [message, setMessage] = useState('Dealing...')
@@ -117,7 +118,13 @@ const SpadesGame: React.FC = () => {
 
   const validCards = (playerId: string): TCard[] => {
     const hand = hands[playerId]
-    if (!leadSuit) return hand
+    if (!leadSuit) {
+      if (!spadesBroken) {
+        const nonSpades = hand.filter((c) => suitOf(c) !== TRUMP)
+        if (nonSpades.length > 0) return nonSpades
+      }
+      return hand
+    }
     const followers = hand.filter((c) => suitOf(c) === leadSuit)
     return followers.length > 0 ? followers : hand
   }
@@ -125,6 +132,7 @@ const SpadesGame: React.FC = () => {
   const play = (playerId: string, card: TCard) => {
     playFns[playerId](card.id)
     setTrick((t) => [...t, { playerId, card }])
+    if (suitOf(card) === TRUMP) setSpadesBroken(true)
   }
 
   useEffect(() => {
@@ -172,6 +180,7 @@ const SpadesGame: React.FC = () => {
     else if (key.return) {
       const card = playerHand[selectedIndex]
       if (legal.some((c) => c.id === card.id)) play(PLAYER, card)
+      else if (!leadSuit) setMessage('Spades are not broken yet — lead a different suit.')
       else setMessage(`Must follow suit (${leadSuit}) if you can.`)
     }
   })
@@ -183,6 +192,7 @@ const SpadesGame: React.FC = () => {
   const finalScore = (id: string) => {
     const bid = bids[id] ?? 0
     const won = tricksWon[id]
+    if (bid === 0) return won === 0 ? 50 : -50
     return won >= bid ? 10 * bid + (won - bid) : -10 * bid
   }
 

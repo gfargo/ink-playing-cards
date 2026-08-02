@@ -154,6 +154,11 @@ const RummyGame: React.FC = () => {
       const worst = remaining.reduce((w, c) => (cardPoints(getValue(c)!) > cardPoints(getValue(w)!) ? c : w))
       setTimeout(() => {
         cpuDiscard(worst.id)
+        if (remaining.length - 1 === 0) {
+          setMessage(`CPU melded ${melds.length} group(s), discarded ${getValue(worst)}, and went out — CPU wins!`)
+          setPhase('done')
+          return
+        }
         setMessage(`CPU melded ${melds.length} group(s) and discarded ${getValue(worst)}.`)
         setTurn('player')
         setHasDrawn(false)
@@ -189,6 +194,11 @@ const RummyGame: React.FC = () => {
 
   const discardAndPass = (card: TCard) => {
     playerDiscard(card.id)
+    if (playerHand.length - 1 === 0) {
+      setMessage(`You discarded ${getValue(card)} and went out — you win!`)
+      setPhase('done')
+      return
+    }
     setMessage(`You discarded ${getValue(card)}. CPU's turn.`)
     setTurn('cpu')
     setHasDrawn(false)

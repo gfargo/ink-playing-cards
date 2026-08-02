@@ -4,7 +4,7 @@ A two-player Cribbage implementation using `ink-playing-cards` and Ink, focused 
 
 _Mechanics highlighted: pegging, combinatorial hand scoring (fifteens, pairs, runs)._
 
-> Simplifications: the crib/discard phase is skipped (each player keeps a 4-card hand instead of cutting 6 down to 4), and run-scoring doesn't multiply for duplicate-rank "double runs" the way full Cribbage rules do. The pegging and hand-scoring math itself is real.
+> Simplifications: the crib/discard phase is skipped (each player keeps a 4-card hand instead of cutting 6 down to 4), and run-scoring doesn't multiply for duplicate-rank "double runs" the way full Cribbage rules do. The pegging and hand-scoring math itself is real, including fifteens, pairs, runs, flushes (4 in hand, 5 if the starter matches), and "his nobs" (holding the jack of the starter's suit).
 
 ## Full Implementation
 
@@ -72,8 +72,31 @@ const scoreRuns = (values: TCardValue[]): number => {
   return Math.max(best, run) >= 3 ? Math.max(best, run) : 0
 }
 
-const scoreHand = (values: TCardValue[]): number =>
-  scoreFifteens(values) + scorePairs(values) + scoreRuns(values)
+// 4 points if all hand cards share a suit, 5 if the starter matches it too.
+const scoreFlush = (handCards: TCard[], starter: TCard): number => {
+  if (!handCards.every((c) => isStandardCard(c))) return 0
+  const suits = handCards.map((c) => (isStandardCard(c) ? c.suit : undefined))
+  if (!suits.every((s) => s === suits[0])) return 0
+  return isStandardCard(starter) && starter.suit === suits[0] ? 5 : 4
+}
+
+// "His nobs": 1 point for holding the jack matching the starter's suit.
+const scoreNobs = (handCards: TCard[], starter: TCard): number => {
+  if (!isStandardCard(starter)) return 0
+  const hasNobs = handCards.some((c) => isStandardCard(c) && c.value === 'J' && c.suit === starter.suit)
+  return hasNobs ? 1 : 0
+}
+
+const scoreHand = (handCards: TCard[], starter: TCard): number => {
+  const values = [...handCards.map((c) => getValue(c)!), getValue(starter)!]
+  return (
+    scoreFifteens(values) +
+    scorePairs(values) +
+    scoreRuns(values) +
+    scoreFlush(handCards, starter) +
+    scoreNobs(handCards, starter)
+  )
+}
 
 // Points earned by the card that was JUST added to the current pegging run.
 const scorePeg = (played: TCardValue[], count: number) => {
@@ -249,11 +272,12 @@ const CribbageGame: React.FC = () => {
   // Score both hands against the starter once pegging ends.
   useEffect(() => {
     if (phase !== 'scoring') return
-    const starterValue = starterHand[0] ? getValue(starterHand[0]) : undefined
-    if (!starterValue) return
-    const playerValues = [...handSnapshot.player.map((c) => getValue(c)!), starterValue]
-    const cpuValues = [...handSnapshot.cpu.map((c) => getValue(c)!), starterValue]
-    setHandPoints({ player: scoreHand(playerValues), cpu: scoreHand(cpuValues) })
+    const starter = starterHand[0]
+    if (!starter) return
+    setHandPoints({
+      player: scoreHand(handSnapshot.player, starter),
+      cpu: scoreHand(handSnapshot.cpu, starter),
+    })
     setPhase('done')
   }, [phase, starterHand, handSnapshot])
 

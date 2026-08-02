@@ -4,7 +4,7 @@ A four-player Hearts implementation using `ink-playing-cards` and Ink — you ag
 
 _Mechanics highlighted: multi-player trick-taking, suit-following, penalty-point avoidance scoring._
 
-> Simplifications: the pre-play card-passing phase is skipped, the player always leads the first trick (instead of whoever holds the 2♣), and hearts may be led at any time (no "hearts broken" restriction). Suit-following, trick resolution, and penalty scoring (1 per heart, 13 for Q♠) are real.
+> Simplifications: the pre-play card-passing phase is skipped, the player always leads the first trick (instead of whoever holds the 2♣), and hearts may be led at any time (no "hearts broken" restriction). Suit-following, trick resolution, penalty scoring (1 per heart, 13 for Q♠), and shooting the moon (taking all 26 penalty points flips the score — the shooter gets 0, everyone else takes 26) are real.
 
 ## Full Implementation
 
@@ -65,6 +65,7 @@ const HeartsGame: React.FC = () => {
   const [message, setMessage] = useState('Dealing...')
   const [resolving, setResolving] = useState(false)
   const [done, setDone] = useState(false)
+  const [moonChecked, setMoonChecked] = useState(false)
 
   useEffect(() => {
     shuffle()
@@ -119,6 +120,24 @@ const HeartsGame: React.FC = () => {
     }, 700)
     return () => clearTimeout(timer)
   }, [trick, resolving, leadSuit])
+
+  // Shooting the moon: taking all 26 penalty points flips the scoring —
+  // the shooter takes 0 and everyone else takes 26.
+  useEffect(() => {
+    if (!done || moonChecked) return
+    setMoonChecked(true)
+    const shooter = ORDER.find(
+      (id) => scores[id] === 26 && ORDER.every((other) => other === id || scores[other] === 0)
+    )
+    if (shooter) {
+      setScores(() => {
+        const next: Record<string, number> = {}
+        for (const id of ORDER) next[id] = id === shooter ? 0 : 26
+        return next
+      })
+      setMessage(`${NAMES[shooter]} shot the moon!`)
+    }
+  }, [done, moonChecked, scores])
 
   useInput((input, key) => {
     if (!dealt || done || currentPlayer !== PLAYER || trick.length === 4) return
