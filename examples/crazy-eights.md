@@ -139,7 +139,11 @@ const CrazyEightsGame: React.FC = () => {
         setMessage('You draw a card.')
       }
     } else if (input === 'x') {
-      if (deck.length === 0 && !cpuHand.some((c) => cardMatches(c, topCard, activeSuit))) {
+      if (
+        deck.length === 0 &&
+        !cpuHand.some((c) => cardMatches(c, topCard, activeSuit)) &&
+        !playerHand.some((c) => cardMatches(c, topCard, activeSuit))
+      ) {
         setMessage('Stock is empty and neither side has a legal card — stalemate!')
         setPhase('done')
         return
