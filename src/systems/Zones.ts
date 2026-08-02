@@ -64,6 +64,40 @@ export function cutDeck(cards: TCard[], index: number): TCard[] {
   return [...cards.slice(index), ...cards.slice(0, index)]
 }
 
+/**
+ * Move a card by ID from one zone to another. Returns [newFrom, newTo].
+ * Returns the original arrays unchanged if the card isn't found in `from`.
+ * `position` controls where the card lands in `to`: 'top' (end, default),
+ * 'bottom' (start), or a numeric splice index.
+ */
+export function moveCard(
+  from: TCard[],
+  to: TCard[],
+  cardId: string,
+  position: 'top' | 'bottom' | number = 'top'
+): [TCard[], TCard[]] {
+  const card = findCard(from, cardId)
+  if (!card) return [from, to]
+
+  const newFrom = removeCard(from, cardId)
+  // When `to` is the same zone as `from`, insert relative to the
+  // post-removal array so the card isn't duplicated by inserting into a
+  // stale pre-removal snapshot.
+  const insertBase = to === from ? newFrom : to
+  const newTo =
+    position === 'top'
+      ? [...insertBase, card]
+      : position === 'bottom'
+        ? [card, ...insertBase]
+        : [
+            ...insertBase.slice(0, position),
+            card,
+            ...insertBase.slice(position),
+          ]
+
+  return [newFrom, newTo]
+}
+
 // ---- Legacy class-based API for backwards compatibility ----
 
 export type Zone = {

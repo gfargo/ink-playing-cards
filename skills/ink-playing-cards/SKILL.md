@@ -22,10 +22,13 @@ DeckProvider
 ├── zones.hands: Record<string, TCard[]>
 ├── zones.discardPile: TCard[]
 ├── zones.playArea: TCard[]
+├── zones.custom: Record<string, TCard[]>   // arbitrary named zones (tableau, foundation, ...)
 ├── players: string[]
 ├── eventManager / effectManager
 └── dispatch(DeckAction)
 ```
+
+Custom zones are addressed by name via `moveCard`/`setZone`/`clearZone`/`getZone` — useful for games (solitaire, etc.) that need more structure than deck/hand/discard/play. See `MOVE_CARD`/`SET_ZONE`/`CLEAR_ZONE` below.
 
 ## Quick Start
 
@@ -98,6 +101,7 @@ const {
   hands,         // Record<string, TCard[]>
   discardPile,   // TCard[]
   playArea,      // TCard[]
+  customZones,   // Record<string, TCard[]> — named zones, keyed by name
   players,       // string[]
   backArtwork,   // { ascii, simple, minimal }
   eventManager,  // EventManager
@@ -114,6 +118,10 @@ const {
   addCustomCard,    // (card: CustomCardProps) => void
   removeCustomCard, // (cardId) => void
   setBackArtwork,   // (Partial<BackArtwork>) => void
+  moveCard,         // (cardId, from, to, position?) => void — move between any two zones
+  setZone,          // (name, cards) => void — seed/overwrite a custom zone
+  clearZone,        // (name) => void — remove a custom zone
+  getZone,          // (name) => TCard[] — read any zone (built-in or custom) by name
 } = useDeck()
 ```
 
@@ -275,7 +283,7 @@ eventManager.dispatchEvent({ type: 'CUSTOM_EVENT', playerId: 'p1' })  // custom 
 eventManager.removeAllListeners()
 ```
 
-Built-in events: `DECK_SHUFFLED`, `CARDS_DRAWN` (playerId, cards), `CARDS_DEALT` (playerId, cards, count — per player), `CARD_PLAYED` (playerId, card), `CARD_DISCARDED` (playerId, card), `DECK_RESET`, `DECK_CUT`.
+Built-in events: `DECK_SHUFFLED`, `CARDS_DRAWN` (playerId, cards), `CARDS_DEALT` (playerId, cards, count — per player), `CARD_PLAYED` (playerId, card), `CARD_DISCARDED` (playerId, card), `CARD_MOVED` (card, from, to), `DECK_RESET`, `DECK_CUT`.
 
 ## Effect System
 
@@ -337,6 +345,9 @@ type DeckAction =
   | { type: 'ADD_CUSTOM_CARD'; payload: CustomCardProps }
   | { type: 'REMOVE_CUSTOM_CARD'; payload: { cardId: string } }
   | { type: 'SET_BACK_ARTWORK'; payload: Partial<BackArtwork> }
+  | { type: 'MOVE_CARD'; payload: { cardId: string; from: ZoneName; to: ZoneName; position?: 'top' | 'bottom' | number } }
+  | { type: 'SET_ZONE'; payload: { name: string; cards: TCard[] } }
+  | { type: 'CLEAR_ZONE'; payload: { name: string } }
 
 type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: string }

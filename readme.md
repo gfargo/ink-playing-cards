@@ -244,6 +244,7 @@ const {
   hands,          // Record<string, TCard[]> — player hands by ID
   discardPile,    // TCard[] — discard pile
   playArea,       // TCard[] — play area
+  customZones,    // Record<string, TCard[]> — custom named zones by name
   players,        // string[] — registered player IDs
   backArtwork,    // BackArtwork — card back art per variant
   eventManager,   // EventManager — subscribe to game events
@@ -259,6 +260,10 @@ const {
   addCustomCard,  // (card: CustomCardProps) => void
   removeCustomCard, // (cardId) => void
   setBackArtwork, // (artwork: Partial<BackArtwork>) => void
+  moveCard,       // (cardId, from, to, position?) => void — move between any two zones
+  setZone,        // (name, cards) => void — seed/overwrite a custom zone
+  clearZone,      // (name) => void — remove a custom zone
+  getZone,        // (name) => TCard[] — read any zone by name
 } = useDeck()
 ```
 

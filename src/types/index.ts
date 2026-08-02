@@ -281,6 +281,7 @@ export type GameEventType =
   | 'CARDS_DEALT'
   | 'CARD_PLAYED'
   | 'CARD_DISCARDED'
+  | 'CARD_MOVED'
   | 'DECK_SHUFFLED'
   | 'DECK_RESET'
   | 'DECK_CUT'
@@ -301,6 +302,13 @@ export type GameEventData = {
 }
 
 /**
+ * Name of a zone that `MOVE_CARD`/`SET_ZONE`/`CLEAR_ZONE` can address.
+ * Built-in zone names resolve to their dedicated field; any other string
+ * resolves to `zones.custom[name]`.
+ */
+export type ZoneName = 'deck' | 'discardPile' | 'playArea' | string
+
+/**
  * Game state passed to effects for evaluation.
  */
 export type GameState = {
@@ -313,6 +321,7 @@ export type GameState = {
     hands: Record<string, TCard[]>
     discardPile: TCard[]
     playArea: TCard[]
+    custom: Record<string, TCard[]>
   }
 }
 
@@ -337,6 +346,7 @@ export type DeckContextType = {
     hands: Record<string, TCard[]>
     discardPile: TCard[]
     playArea: TCard[]
+    custom: Record<string, TCard[]>
   }
   players: string[]
   backArtwork: BackArtwork
@@ -393,6 +403,17 @@ export type DeckAction =
   | { type: 'ADD_PLAYER'; payload: string }
   | { type: 'REMOVE_PLAYER'; payload: string }
   | { type: 'FLUSH_EVENTS'; payload: { count: number } }
+  | {
+      type: 'MOVE_CARD'
+      payload: {
+        cardId: string
+        from: ZoneName
+        to: ZoneName
+        position?: 'top' | 'bottom' | number
+      }
+    }
+  | { type: 'SET_ZONE'; payload: { name: string; cards: TCard[] } }
+  | { type: 'CLEAR_ZONE'; payload: { name: string } }
 
 export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: string }

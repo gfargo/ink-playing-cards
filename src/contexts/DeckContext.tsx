@@ -11,6 +11,7 @@ import { EventManager } from '../systems/Events.js'
 import {
   addCard,
   drawCards,
+  moveCard as moveCardCards,
   removeCard,
   shuffleCards,
   cutDeck as cutDeckCards,
@@ -22,6 +23,80 @@ import {
   type GameEventData,
   type TCard,
 } from '../types/index.js'
+
+type Zones = DeckContextType['zones']
+
+const BUILT_IN_ZONE_NAMES = new Set(['deck', 'discardPile', 'playArea'])
+
+/**
+ * Resolve a zone name to its card array. Built-in names map to their
+ * dedicated field; any other name maps to `zones.custom[name]`.
+ */
+function resolveZone(zones: Zones, name: string): TCard[] {
+  if (name === 'deck') return zones.deck
+  if (name === 'discardPile') return zones.discardPile
+  if (name === 'playArea') return zones.playArea
+  return zones.custom[name] ?? []
+}
+
+/**
+ * Return a new `zones` object with `name` set to `cards`. Built-in names
+ * write to their dedicated field; any other name writes to `zones.custom`.
+ */
+function writeZone(zones: Zones, name: string, cards: TCard[]): Zones {
+  if (name === 'deck') return { ...zones, deck: cards }
+  if (name === 'discardPile') return { ...zones, discardPile: cards }
+  if (name === 'playArea') return { ...zones, playArea: cards }
+  return { ...zones, custom: { ...zones.custom, [name]: cards } }
+}
+
+function handleMoveCard(
+  state: DeckContextType,
+  payload: Extract<DeckAction, { type: 'MOVE_CARD' }>['payload']
+): DeckContextType {
+  const { cardId, from, to, position } = payload
+  const fromCards = resolveZone(state.zones, from)
+  const toCards = resolveZone(state.zones, to)
+  const card = fromCards.find((c: TCard) => c.id === cardId)
+  if (!card) return state
+  const [newFrom, newTo] = moveCardCards(fromCards, toCards, cardId, position)
+  const zonesAfterFrom = writeZone(state.zones, from, newFrom)
+  const zonesAfterTo = writeZone(zonesAfterFrom, to, newTo)
+  return {
+    ...state,
+    zones: zonesAfterTo,
+    pendingEvents: [
+      ...state.pendingEvents,
+      { type: 'CARD_MOVED', card, from, to },
+    ],
+  }
+}
+
+function handleSetZone(
+  state: DeckContextType,
+  payload: Extract<DeckAction, { type: 'SET_ZONE' }>['payload']
+): DeckContextType {
+  const { name, cards } = payload
+  if (BUILT_IN_ZONE_NAMES.has(name)) return state
+  return {
+    ...state,
+    zones: { ...state.zones, custom: { ...state.zones.custom, [name]: cards } },
+  }
+}
+
+function handleClearZone(
+  state: DeckContextType,
+  payload: Extract<DeckAction, { type: 'CLEAR_ZONE' }>['payload']
+): DeckContextType {
+  const { name } = payload
+  if (BUILT_IN_ZONE_NAMES.has(name)) return state
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const { [name]: _removed, ...remainingCustom } = state.zones.custom
+  return {
+    ...state,
+    zones: { ...state.zones, custom: remainingCustom },
+  }
+}
 
 const BACK_ART: Record<'simple' | 'ascii' | 'minimal', string> = {
   simple: ['? ? ? ?', ' ? ? ? ', '? ? ? ?', ' ? ? ? ', '? ? ? ?'].join('\n'),
@@ -46,7 +121,7 @@ export const defaultBackArtwork: BackArtwork = {
 }
 
 const createInitialState = (): DeckContextType => ({
-  zones: { deck: [], hands: {}, discardPile: [], playArea: [] },
+  zones: { deck: [], hands: {}, discardPile: [], playArea: [], custom: {} },
   players: [],
   backArtwork: defaultBackArtwork,
   eventManager: new EventManager(),
@@ -97,7 +172,13 @@ const deckReducer = (
       const newCards = action.payload?.cards ?? createStandardDeck()
       return {
         ...state,
-        zones: { deck: newCards, hands: {}, discardPile: [], playArea: [] },
+        zones: {
+          deck: newCards,
+          hands: {},
+          discardPile: [],
+          playArea: [],
+          custom: {},
+        },
         players: [],
         pendingEvents: [...state.pendingEvents, { type: 'DECK_RESET' }],
       }
@@ -205,6 +286,18 @@ const deckReducer = (
           { type: 'CARD_DISCARDED', playerId: dPid, card: dCard },
         ],
       }
+    }
+
+    case 'MOVE_CARD': {
+      return handleMoveCard(state, action.payload)
+    }
+
+    case 'SET_ZONE': {
+      return handleSetZone(state, action.payload)
+    }
+
+    case 'CLEAR_ZONE': {
+      return handleClearZone(state, action.payload)
     }
 
     case 'ADD_PLAYER': {

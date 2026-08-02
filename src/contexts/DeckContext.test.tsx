@@ -253,3 +253,148 @@ test('DISCARD is no-op when card not in hand', (t) => {
   t.is(state.zones.hands['p1']!.length, 2)
   t.is(state.zones.discardPile.length, 0)
 })
+
+test('SET_ZONE creates a custom zone with given cards', (t) => {
+  const cards = makeCards(3)
+  const tableau = makeCards(2)
+  const results = renderWithProvider(
+    [{ type: 'SET_ZONE', payload: { name: 'tableau-1', cards: tableau } }],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.custom['tableau-1']!.length, 2)
+})
+
+test('SET_ZONE is a no-op for built-in zone names', (t) => {
+  const cards = makeCards(3)
+  const results = renderWithProvider(
+    [{ type: 'SET_ZONE', payload: { name: 'deck', cards: [] } }],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 3)
+})
+
+test('MOVE_CARD moves a card from deck to a custom zone', (t) => {
+  const cards = makeCards(5)
+  const results = renderWithProvider(
+    [
+      {
+        type: 'MOVE_CARD',
+        payload: { cardId: 'card-4', from: 'deck', to: 'foundation' },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 4)
+  t.is(state.zones.custom['foundation']!.length, 1)
+  t.is(state.zones.custom['foundation']![0]!.id, 'card-4')
+})
+
+test('MOVE_CARD moves a card between two custom zones', (t) => {
+  const cards = makeCards(5)
+  const tableau = makeCards(3)
+  const results = renderWithProvider(
+    [
+      { type: 'SET_ZONE', payload: { name: 'tableau', cards: tableau } },
+      {
+        type: 'MOVE_CARD',
+        payload: {
+          cardId: 'card-0',
+          from: 'tableau',
+          to: 'foundation',
+          position: 'top',
+        },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.custom['tableau']!.length, 2)
+  t.is(state.zones.custom['foundation']!.length, 1)
+  t.is(state.zones.custom['foundation']![0]!.id, 'card-0')
+})
+
+test('MOVE_CARD with a numeric position inserts at that index', (t) => {
+  const cards = makeCards(5)
+  const foundation = makeCards(3)
+  const results = renderWithProvider(
+    [
+      { type: 'SET_ZONE', payload: { name: 'foundation', cards: foundation } },
+      {
+        type: 'MOVE_CARD',
+        payload: {
+          cardId: 'card-4',
+          from: 'deck',
+          to: 'foundation',
+          position: 1,
+        },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.custom['foundation']![1]!.id, 'card-4')
+})
+
+test('MOVE_CARD is a no-op when the card is not in the source zone', (t) => {
+  const cards = makeCards(3)
+  const results = renderWithProvider(
+    [
+      {
+        type: 'MOVE_CARD',
+        payload: { cardId: 'nonexistent', from: 'deck', to: 'foundation' },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 3)
+  t.is(state.zones.custom['foundation'], undefined)
+})
+
+test('MOVE_CARD moves a card between built-in zones', (t) => {
+  const cards = makeCards(5)
+  const results = renderWithProvider(
+    [
+      {
+        type: 'MOVE_CARD',
+        payload: { cardId: 'card-4', from: 'deck', to: 'discardPile' },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 4)
+  t.is(state.zones.discardPile.length, 1)
+  t.is(state.zones.discardPile[0]!.id, 'card-4')
+})
+
+test('CLEAR_ZONE removes a custom zone', (t) => {
+  const cards = makeCards(3)
+  const tableau = makeCards(2)
+  const results = renderWithProvider(
+    [
+      { type: 'SET_ZONE', payload: { name: 'tableau', cards: tableau } },
+      { type: 'CLEAR_ZONE', payload: { name: 'tableau' } },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.custom['tableau'], undefined)
+})
+
+test('RESET clears custom zones', (t) => {
+  const cards = makeCards(3)
+  const tableau = makeCards(2)
+  const results = renderWithProvider(
+    [
+      { type: 'SET_ZONE', payload: { name: 'tableau', cards: tableau } },
+      { type: 'RESET' },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.zones.custom, {})
+})
