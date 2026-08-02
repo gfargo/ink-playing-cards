@@ -366,7 +366,9 @@ test('warns and prioritises regions when content overflows a micro card', (t) =>
     )
 
     // Only innerHeight=1 line is available — the header (highest priority) wins.
-    t.true(lastFrame()!.includes('Lon'))
+    // The folded top-left symbol shares the header row's width, leaving only
+    // 2 characters for the title.
+    t.true(lastFrame()!.includes('Lo'))
     t.false(lastFrame()!.includes('Creature'))
 
     t.true(calls.length > 0)
@@ -375,7 +377,8 @@ test('warns and prioritises regions when content overflows a micro card', (t) =>
     t.true(message.includes('typeLine'))
     t.true(message.includes('footer'))
     t.true(message.includes('description'))
-    t.true(message.includes('symbols'))
+    // The top-left symbol folds into the header row for free (no separate
+    // budget line), so it survives here rather than being reported dropped.
   } finally {
     console.warn = originalWarn
     process.env['NODE_ENV'] = originalNodeEnv
