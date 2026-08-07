@@ -55,6 +55,9 @@ export function ThemeProvider({
   monochrome,
   theme,
 }: ThemeProviderProps) {
+  // Keyed on serialized content rather than `theme`'s object identity, so an
+  // inline `theme={{...}}` prop doesn't invalidate the memo every render.
+  const themeKey = JSON.stringify(theme)
   const value = useMemo<CardTheme>(
     () => ({
       ...defaultTheme,
@@ -63,7 +66,8 @@ export function ThemeProvider({
       suitGlyphs: { ...defaultTheme.suitGlyphs, ...theme?.suitGlyphs },
       monochrome: monochrome ?? theme?.monochrome ?? defaultTheme.monochrome,
     }),
-    [monochrome, theme]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [monochrome, themeKey]
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

@@ -158,3 +158,28 @@ test('borderStyle override changes the border characters', (t) => {
   t.not(roundFrame(), singleFrame())
   t.true(singleFrame()?.includes('┌'))
 })
+
+test('selectedBorderStyle override changes the border on a selected Card', (t) => {
+  const { lastFrame: defaultSelectedFrame } = render(
+    <Card selected id="c1" suit="hearts" value="A" variant="minimal" />
+  )
+  const { lastFrame: overriddenFrame } = render(
+    <ThemeProvider theme={{ selectedBorderStyle: 'single' }}>
+      <Card selected id="c1" suit="hearts" value="A" variant="minimal" />
+    </ThemeProvider>
+  )
+  t.not(defaultSelectedFrame(), overriddenFrame())
+  t.true(overriddenFrame()?.includes('┌'))
+})
+
+test('selectedColor override changes the border color on a selected Card', (t) => {
+  const { lastFrame: defaultSelectedFrame } = render(
+    <Card selected id="c1" suit="hearts" value="A" variant="minimal" />
+  )
+  const { lastFrame: overriddenFrame } = render(
+    <ThemeProvider theme={{ selectedColor: 'blue' }}>
+      <Card selected id="c1" suit="hearts" value="A" variant="minimal" />
+    </ThemeProvider>
+  )
+  t.not(defaultSelectedFrame(), overriddenFrame())
+})
