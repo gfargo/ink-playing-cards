@@ -67,3 +67,98 @@ test('useDeck exposes moveCard/setZone/clearZone/getZone/customZones', (t) => {
   )
   t.is(final.customZones['tableau']!.length, 1)
 })
+
+test('useDeck undo/redo reverse and replay a draw when history is enabled', (t) => {
+  const snapshots: Array<ReturnType<typeof useDeck>> = []
+
+  function Capture() {
+    const deck = useDeck()
+    const step = useRef(0)
+    if (step.current === 0) {
+      step.current = 1
+      deck.draw(2, 'p1')
+    } else if (step.current === 1 && deck.hands['p1']?.length === 2) {
+      step.current = 2
+      deck.undo()
+    } else if (step.current === 2 && deck.hands['p1'] === undefined) {
+      step.current = 3
+      deck.redo()
+    }
+
+    snapshots.push(deck)
+    return null
+  }
+
+  render(
+    <DeckProvider enableHistory initialCards={makeCards(5)}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  const final = snapshots.at(-1)!
+  t.is(final.hands['p1']!.length, 2)
+  t.is(final.deck.length, 3)
+})
+
+test('useDeck canUndo/canRedo reflect history state', (t) => {
+  const snapshots: Array<ReturnType<typeof useDeck>> = []
+
+  function Capture() {
+    const deck = useDeck()
+    const step = useRef(0)
+    if (step.current === 0) {
+      step.current = 1
+      deck.draw(1, 'p1')
+    } else if (step.current === 1 && deck.canUndo) {
+      step.current = 2
+      deck.undo()
+    }
+
+    snapshots.push(deck)
+    return null
+  }
+
+  render(
+    <DeckProvider enableHistory initialCards={makeCards(5)}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  const beforeUndo = snapshots.find((s) => s.hands['p1']?.length === 1)!
+  t.true(beforeUndo.canUndo)
+  t.false(beforeUndo.canRedo)
+
+  const final = snapshots.at(-1)!
+  t.false(final.canUndo)
+  t.true(final.canRedo)
+})
+
+test('useDeck undo/redo are no-ops when history is disabled', (t) => {
+  const snapshots: Array<ReturnType<typeof useDeck>> = []
+
+  function Capture() {
+    const deck = useDeck()
+    const step = useRef(0)
+    if (step.current === 0) {
+      step.current = 1
+      deck.draw(1, 'p1')
+    } else if (step.current === 1) {
+      step.current = 2
+      deck.undo()
+    }
+
+    snapshots.push(deck)
+    return null
+  }
+
+  render(
+    <DeckProvider initialCards={makeCards(5)}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  const final = snapshots.at(-1)!
+  t.false(final.canUndo)
+  t.false(final.canRedo)
+  t.is(final.hands['p1']!.length, 1)
+})

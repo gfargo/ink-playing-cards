@@ -60,6 +60,23 @@ export type DeckContextType = {
   effectManager: EffectManagerInterface
   pendingEvents: GameEventData[]
   dispatch: React.Dispatch<DeckAction>
+  history?: HistoryState
+}
+
+/**
+ * The portion of `DeckContextType` that undo/redo captures and restores.
+ */
+export type HistorySnapshot = Pick<
+  DeckContextType,
+  'zones' | 'players' | 'backArtwork'
+>
+
+/**
+ * Undo/redo stacks tracked by the `withHistory` reducer wrapper.
+ */
+export type HistoryState = {
+  past: HistorySnapshot[]
+  future: HistorySnapshot[]
 }
 
 export type GameContextType = {
@@ -95,6 +112,9 @@ export type DeckAction =
     }
   | { type: 'SET_ZONE'; payload: { name: string; cards: TCard[] } }
   | { type: 'CLEAR_ZONE'; payload: { name: string } }
+  | { type: 'UNDO' }
+  | { type: 'REDO' }
+  | { type: 'CLEAR_HISTORY' }
 
 export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: string }

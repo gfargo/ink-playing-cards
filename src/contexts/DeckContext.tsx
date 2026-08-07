@@ -8,6 +8,7 @@ import React, {
 import { createStandardDeck } from '../components/Deck/utils.js'
 import { EffectManager } from '../systems/Effects.js'
 import { EventManager } from '../systems/Events.js'
+import { withHistory } from '../systems/History.js'
 import {
   addCard,
   drawCards,
@@ -361,7 +362,6 @@ const deckReducer = (
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
     default: {
       return state
     }
@@ -375,15 +375,19 @@ type DeckProviderProperties = {
     state: DeckContextType,
     action: DeckAction
   ) => DeckContextType
+  readonly enableHistory?: boolean
+  readonly maxHistory?: number
 }
 
 export function DeckProvider({
   children,
   initialCards,
   customReducer,
+  enableHistory,
+  maxHistory,
 }: DeckProviderProperties) {
   const [state, dispatch] = useReducer(
-    customReducer ?? deckReducer,
+    withHistory(customReducer ?? deckReducer, { limit: maxHistory }),
     initialCards,
     (cards) => {
       const base = createInitialState()
@@ -393,6 +397,7 @@ export function DeckProvider({
           ...base.zones,
           deck: cards ?? createStandardDeck(),
         },
+        history: enableHistory ? { past: [], future: [] } : undefined,
       }
     }
   )

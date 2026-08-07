@@ -13,8 +13,15 @@ export const useDeck = () => {
     throw new Error('useDeck must be used within a DeckProvider')
   }
 
-  const { zones, players, backArtwork, eventManager, effectManager, dispatch } =
-    context
+  const {
+    zones,
+    players,
+    backArtwork,
+    eventManager,
+    effectManager,
+    dispatch,
+    history,
+  } = context
 
   const shuffle = () => {
     dispatch({ type: 'SHUFFLE' })
@@ -83,6 +90,21 @@ export const useDeck = () => {
     return zones.custom[name] ?? []
   }
 
+  const undo = () => {
+    dispatch({ type: 'UNDO' })
+  }
+
+  const redo = () => {
+    dispatch({ type: 'REDO' })
+  }
+
+  const clearHistory = () => {
+    dispatch({ type: 'CLEAR_HISTORY' })
+  }
+
+  const canUndo = (history?.past.length ?? 0) > 0
+  const canRedo = (history?.future.length ?? 0) > 0
+
   return {
     deck: zones.deck,
     hands: zones.hands,
@@ -108,5 +130,10 @@ export const useDeck = () => {
     setZone,
     clearZone,
     getZone,
+    undo,
+    redo,
+    clearHistory,
+    canUndo,
+    canRedo,
   }
 }
