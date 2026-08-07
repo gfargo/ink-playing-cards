@@ -26,6 +26,7 @@ function getPublishedFiles(): string[] {
     execFileSync(
       'npx',
       [
+        '--loglevel=error',
         'tsc',
         '-p',
         'tsconfig.build.json',
@@ -46,7 +47,7 @@ function getPublishedFiles(): string[] {
 
     const output = execFileSync(
       'npm',
-      ['pack', '--dry-run', '--json', '--ignore-scripts'],
+      ['pack', '--dry-run', '--json', '--ignore-scripts', '--loglevel=error'],
       { cwd: stagingDir, encoding: 'utf8' }
     )
     const results = JSON.parse(output) as PackResult[]
@@ -61,21 +62,26 @@ function getPublishedFiles(): string[] {
   }
 }
 
-test('npm pack includes the built entry point and skills', (t) => {
-  const files = getPublishedFiles()
+// Built once in `before` and shared by every test below: the build + pack
+// takes tens of seconds, and both tests only ever read the same file list.
+let publishedFiles: string[]
 
-  t.true(files.includes('dist/index.js'))
-  t.true(files.some((file) => file.startsWith('skills/')))
-  t.true(files.includes('package.json'))
-  t.true(files.includes('readme.md'))
-  t.true(files.includes('LICENSE'))
+test.before((t) => {
+  t.timeout(120_000)
+  publishedFiles = getPublishedFiles()
+})
+
+test('npm pack includes the built entry point and skills', (t) => {
+  t.true(publishedFiles.includes('dist/index.js'))
+  t.true(publishedFiles.some((file) => file.startsWith('skills/')))
+  t.true(publishedFiles.includes('package.json'))
+  t.true(publishedFiles.includes('readme.md'))
+  t.true(publishedFiles.includes('LICENSE'))
 })
 
 test('npm pack excludes tests, storybook, and examples', (t) => {
-  const files = getPublishedFiles()
-
-  t.false(files.some((file) => file.includes('.test.')))
-  t.false(files.some((file) => file.includes('.spec.')))
-  t.false(files.some((file) => file.includes('storybook')))
-  t.false(files.some((file) => file.startsWith('examples/')))
+  t.false(publishedFiles.some((file) => file.includes('.test.')))
+  t.false(publishedFiles.some((file) => file.includes('.spec.')))
+  t.false(publishedFiles.some((file) => file.includes('storybook')))
+  t.false(publishedFiles.some((file) => file.startsWith('examples/')))
 })
