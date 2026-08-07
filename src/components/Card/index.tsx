@@ -89,7 +89,14 @@ export function Card({
 
   const color = getSuitColor(suit, cardTheme)
   const symbol = cardTheme.suitGlyphs[suit]
-  const cardContent = createCardContent(value, symbol, variant, config, theme)
+  const cardContent = createCardContent(
+    value,
+    symbol,
+    variant,
+    config,
+    theme,
+    suit
+  )
 
   return (
     <Box {...cardStyle}>

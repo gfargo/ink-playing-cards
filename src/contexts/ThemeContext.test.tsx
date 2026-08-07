@@ -120,6 +120,32 @@ test('custom suitGlyphs change the glyph rendered by MiniCard', (t) => {
   t.false(frame?.includes('♠'))
 })
 
+test('custom suitGlyphs do not corrupt ASCII art themes (robot)', (t) => {
+  const { lastFrame } = render(
+    <ThemeProvider theme={{ suitGlyphs: { hearts: 'H' } }}>
+      <Card id="c1" suit="hearts" value="A" variant="ascii" theme="robot" />
+    </ThemeProvider>
+  )
+  const frame = lastFrame()
+  t.truthy(frame)
+  t.false(frame?.includes('{data}'))
+  t.false(frame?.includes('{core}'))
+  t.false(frame?.includes('{eyes}'))
+  t.false(frame?.includes('undefined'))
+})
+
+test('custom suitGlyphs do not corrupt ASCII art themes (geometric)', (t) => {
+  const { lastFrame } = render(
+    <ThemeProvider theme={{ suitGlyphs: { spades: 'S' } }}>
+      <Card id="c1" suit="spades" value="K" variant="ascii" theme="geometric" />
+    </ThemeProvider>
+  )
+  const frame = lastFrame()
+  t.truthy(frame)
+  t.false(frame?.includes('{outline}'))
+  t.false(frame?.includes('{filled}'))
+})
+
 test('borderStyle override changes the border characters', (t) => {
   const { lastFrame: roundFrame } = render(
     <Card id="c1" suit="hearts" value="A" variant="minimal" />

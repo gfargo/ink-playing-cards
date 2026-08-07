@@ -207,15 +207,21 @@ export function createPipLayout(
 
 /**
  * Creates robot theme card art using the new renderer
+ *
+ * `canonicalSuit` drives the feature lookup (ROBOT_FEATURES is keyed by
+ * TSuit); `suit` is only the display glyph substituted into `{suit}`. They
+ * diverge when a theme overrides `suitGlyphs`, so callers must not rely on
+ * reverse-mapping `suit` back to a TSuit via SYMBOL_SUIT_MAP.
  */
 function createRobotArt(
   rank: TCardValue,
   suit: string,
-  width: number
+  width: number,
+  canonicalSuit: TSuit
 ): string[] {
   if (rank in ROBOT_THEME) {
     const artDefinition = ROBOT_THEME[rank]!
-    const features = ROBOT_FEATURES[SYMBOL_SUIT_MAP[suit as TSuitIcon]]
+    const features = ROBOT_FEATURES[canonicalSuit]
     return renderCardArt(artDefinition, width, {
       ...features,
       suit,
@@ -228,10 +234,13 @@ function createRobotArt(
 /**
  * Creates special card art for face cards and aces
  * @param rank - The card rank (A, 2-10, J, Q, K)
- * @param suit - The card suit symbol
+ * @param suit - The card suit symbol (display glyph, possibly theme-customized)
  * @param width - The width of the card
  * @param variant - The card variant (ascii or simple)
  * @param theme - The ASCII art theme to use
+ * @param canonicalSuit - The underlying TSuit used for feature-table lookups;
+ *   falls back to reverse-mapping `suit` via SYMBOL_SUIT_MAP when omitted, which
+ *   only works for the canonical ♥♦♣♠ glyphs.
  * @returns An array of strings representing the card art
  */
 export function createSpecialArt(
@@ -239,7 +248,8 @@ export function createSpecialArt(
   suit: string,
   width: number,
   variant: 'ascii' | 'simple',
-  theme: AsciiTheme = 'original'
+  theme: AsciiTheme = 'original',
+  canonicalSuit: TSuit = SYMBOL_SUIT_MAP[suit as TSuitIcon]
 ): string[] {
   const w = width
 
@@ -250,14 +260,11 @@ export function createSpecialArt(
     // than the full card width (which would produce a jagged right edge when
     // the surrounding spacer lines are width - 2).
     if (theme === 'robot') {
-      return createRobotArt(rank, suit, w - 2)
+      return createRobotArt(rank, suit, w - 2, canonicalSuit)
     }
 
     const themeArt = THEME_MAP[theme]
-    const replacements = getThemeReplacements(
-      theme,
-      SYMBOL_SUIT_MAP[suit as TSuitIcon]
-    )
+    const replacements = getThemeReplacements(theme, canonicalSuit)
 
     const art = themeArt[rank]?.map((line) => {
       // First replace the suit
@@ -299,7 +306,8 @@ export function createCardContent(
     pip?: { left: number; center: number; right: number }
     padding: number
   },
-  theme: AsciiTheme = 'original'
+  theme: AsciiTheme = 'original',
+  canonicalSuit: TSuit = SYMBOL_SUIT_MAP[suit as TSuitIcon]
 ): string {
   const { width, height } = config
 
@@ -320,7 +328,14 @@ export function createCardContent(
 
   // Add middle content
   if (isSpecialCard) {
-    const art = createSpecialArt(rank, suit, width, variant, theme)
+    const art = createSpecialArt(
+      rank,
+      suit,
+      width,
+      variant,
+      theme,
+      canonicalSuit
+    )
 
     while (lines.length < Math.ceil((height - art.length) / 2) - 2) {
       lines.push(spaces(width - 2))
