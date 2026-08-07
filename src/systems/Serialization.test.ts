@@ -1,10 +1,10 @@
 import test from 'ava'
 import {
-  isStandardCard,
   type BackArtwork,
   type CardEffect,
   type TCard,
 } from '../types/index.js'
+import { isStandardCard } from '../utils/cards.js'
 import { hydrate, serialize, stripCard } from './Serialization.js'
 
 function makeCard(
