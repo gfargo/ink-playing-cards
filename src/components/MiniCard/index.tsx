@@ -28,6 +28,8 @@ export function MiniCard({
       overflow="hidden"
       width={variant === 'mini' ? 5 : 4}
       height={variant === 'mini' ? 4 : 4}
+      // `rounded={false}` always renders a square 'single' border, even
+      // under a theme with a custom `borderStyle` — see BaseCardProps['rounded'] docs.
       borderStyle={
         selected
           ? cardTheme.selectedBorderStyle

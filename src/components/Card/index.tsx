@@ -54,6 +54,8 @@ export function Card({
   const cardStyle: BoxProps = {
     flexDirection: 'column',
     paddingX: config.padding,
+    // `rounded={false}` always renders a square 'single' border, even under
+    // a theme with a custom `borderStyle` — see BaseCardProps['rounded'] docs.
     borderStyle: selected
       ? cardTheme.selectedBorderStyle
       : rounded

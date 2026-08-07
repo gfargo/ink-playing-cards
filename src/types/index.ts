@@ -30,6 +30,12 @@ export type BaseCardProps = {
   effects?: CardEffect[]
   faceUp?: boolean
   selected?: boolean
+  /**
+   * Whether to use the theme's `borderStyle` (default `round`) for the
+   * unselected border. When `false`, the border is always `single`
+   * regardless of `theme.borderStyle` — a per-instance request for square
+   * corners, independent of the active theme.
+   */
   rounded?: boolean
 }
 

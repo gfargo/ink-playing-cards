@@ -172,6 +172,19 @@ test('selectedBorderStyle override changes the border on a selected Card', (t) =
   t.true(overriddenFrame()?.includes('┌'))
 })
 
+test('rounded=false ignores a custom theme borderStyle and stays square', (t) => {
+  const { lastFrame: unthemedFrame } = render(
+    <Card id="c1" suit="hearts" value="A" variant="minimal" rounded={false} />
+  )
+  const { lastFrame: themedFrame } = render(
+    <ThemeProvider theme={{ borderStyle: 'bold' }}>
+      <Card id="c1" suit="hearts" value="A" variant="minimal" rounded={false} />
+    </ThemeProvider>
+  )
+  t.is(unthemedFrame(), themedFrame())
+  t.true(themedFrame()?.includes('┌'))
+})
+
 test('selectedColor override changes the border color on a selected Card', (t) => {
   const { lastFrame: defaultSelectedFrame } = render(
     <Card selected id="c1" suit="hearts" value="A" variant="minimal" />

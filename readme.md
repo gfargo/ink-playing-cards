@@ -342,6 +342,8 @@ const theme = useCardTheme()
 
 **Known limitation:** `UnicodeCard` renders precomposed Unicode card codepoints, so it honors `suitColors` and `monochrome` but not `suitGlyphs`.
 
+**Note:** the `rounded` prop on `Card`, `MiniCard`, and `UnicodeCard` is a per-instance override, not a theme setting. `rounded={false}` always renders a square `single` border, even when `theme.borderStyle` is customized.
+
 ## Core Systems
 
 ### Zones

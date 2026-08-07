@@ -22,7 +22,10 @@ export type UnicodeCardProps = {
   readonly size?: number
   /** Whether to show a border around the card */
   readonly bordered?: boolean
-  /** Whether to use rounded borders when bordered is true */
+  /**
+   * Whether to use the theme's `borderStyle` when bordered is true. When
+   * `false`, the border is always `single` regardless of `theme.borderStyle`.
+   */
   readonly rounded?: boolean
 }
 
@@ -74,6 +77,8 @@ export function UnicodeCard({
     <Box
       paddingX={padding}
       paddingY={Math.floor(padding / 2)}
+      // `rounded={false}` always renders a square 'single' border, even
+      // under a theme with a custom `borderStyle` — see the `rounded` prop docs above.
       borderStyle={
         selected
           ? cardTheme.selectedBorderStyle
