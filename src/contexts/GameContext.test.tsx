@@ -16,7 +16,7 @@ function renderWithProvider(
   const results: CapturedState[] = []
 
   function Capture() {
-    const ctx = useContext(GameContext)
+    const ctx = useContext(GameContext)!
     const dispatched = useRef(false)
     if (!dispatched.current) {
       dispatched.current = true

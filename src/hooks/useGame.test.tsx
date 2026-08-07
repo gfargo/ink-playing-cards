@@ -31,6 +31,25 @@ function renderWithProvider(
   return snapshots
 }
 
+test('useGame throws when used outside a GameProvider', (t) => {
+  let caught: unknown
+
+  function Probe() {
+    try {
+      useGame()
+    } catch (error) {
+      caught = error
+    }
+
+    return null
+  }
+
+  render(<Probe />)
+
+  t.true(caught instanceof Error)
+  t.is((caught as Error).message, 'useGame must be used within a GameProvider')
+})
+
 test('useGame exposes default state', (t) => {
   const snapshots = renderWithProvider(() => null)
   const state = snapshots.at(-1)!

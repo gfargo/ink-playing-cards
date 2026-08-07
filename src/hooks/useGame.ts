@@ -2,8 +2,12 @@ import { useContext } from 'react'
 import { GameContext } from '../contexts/GameContext.js'
 
 export const useGame = () => {
-  const { currentPlayerId, players, turn, phase, dispatch } =
-    useContext(GameContext)
+  const context = useContext(GameContext)
+  if (!context) {
+    throw new Error('useGame must be used within a GameProvider')
+  }
+
+  const { currentPlayerId, players, turn, phase, dispatch } = context
 
   const setCurrentPlayer = (playerId: string) => {
     dispatch({ type: 'SET_CURRENT_PLAYER', payload: playerId })
@@ -13,8 +17,8 @@ export const useGame = () => {
     dispatch({ type: 'NEXT_TURN' })
   }
 
-  const setPhase = (phase: string) => {
-    dispatch({ type: 'SET_PHASE', payload: phase })
+  const setPhase = (nextPhase: string) => {
+    dispatch({ type: 'SET_PHASE', payload: nextPhase })
   }
 
   return {
