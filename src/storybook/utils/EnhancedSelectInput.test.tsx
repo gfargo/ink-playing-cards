@@ -1,3 +1,4 @@
+import process from 'node:process'
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
@@ -54,4 +55,79 @@ test('navigation hotkeys do not also trigger selection', async (t) => {
   })
 
   t.deepEqual(selected, [])
+})
+
+test('limit scrolls the window one row at a time instead of jumping by pages', async (t) => {
+  const { lastFrame, stdin } = render(
+    <EnhancedSelectInput items={items} limit={2} />
+  )
+
+  // Starting window is [One, Two].
+  t.true(lastFrame()?.includes('One'))
+  t.true(lastFrame()?.includes('Two'))
+
+  stdin.write('j')
+  await new Promise((resolve) => {
+    setTimeout(resolve, 100)
+  })
+
+  // Selection moved to "Two" which is still within the window, so it
+  // should not have scrolled yet.
+  t.true(lastFrame()?.includes('One'))
+  t.true(lastFrame()?.includes('Two'))
+
+  stdin.write('j')
+  await new Promise((resolve) => {
+    setTimeout(resolve, 100)
+  })
+
+  // Selection moved to "Three", past the window edge, so it scrolls by a
+  // single row to [Two, Three] rather than jumping to the next full page.
+  const frame = lastFrame()
+  t.false(frame?.includes('One'))
+  t.true(frame?.includes('Two'))
+  t.true(frame?.includes('Three'))
+})
+
+test('warns in development when a hotkey collides with the active navigation keys', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(
+    <EnhancedSelectInput
+      items={[{ label: 'Jump', value: 'jump', hotkey: 'j' }]}
+    />
+  )
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.true(calls.length > 0)
+  t.true(String(calls[0]?.[0]).includes('"j"'))
+})
+
+test('does not warn when no hotkey collides with the active navigation keys', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(
+    <EnhancedSelectInput
+      items={[{ label: 'Select', value: 'select', hotkey: 's' }]}
+    />
+  )
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.is(calls.length, 0)
 })

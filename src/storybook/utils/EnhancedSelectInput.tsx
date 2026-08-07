@@ -1,5 +1,6 @@
+import process from 'node:process'
 import { Box, Text, useInput } from 'ink'
-import React, { type FC, useEffect, useState } from 'react'
+import React, { type FC, useEffect, useMemo, useState } from 'react'
 
 export type Item<V> = {
   key?: string
@@ -70,21 +71,34 @@ export function EnhancedSelectInput<V>({
   onHighlight,
   orientation = 'vertical',
 }: Properties<V>) {
-  // Ensure initialIndex is within bounds
-  const safeInitialIndex =
-    items.length > 0 ? Math.min(initialIndex, items.length - 1) : 0
-  const [selectedIndex, setSelectedIndex] = useState(safeInitialIndex)
-
   const filteredItems = items
   const itemCount = filteredItems.length
+
+  // Ensure initialIndex is within bounds
+  const safeInitialIndex =
+    itemCount > 0 ? Math.min(initialIndex, itemCount - 1) : 0
+  const [selectedIndex, setSelectedIndex] = useState(safeInitialIndex)
+
   const hasItems = itemCount > 0
 
-  // Window the list around selectedIndex so navigation can scroll past `limit`
-  // instead of truncating the list to its first `limit` entries.
-  const rotateIndex = limit ? Math.floor(selectedIndex / limit) * limit : 0
+  // Window the list around the selection so navigation can scroll past
+  // `limit` instead of truncating the list to its first `limit` entries.
+  // The window scrolls one row at a time as the selection reaches either
+  // edge, rather than jumping by whole `limit`-sized pages.
+  const [rotateIndex, setRotateIndex] = useState(() => {
+    if (!limit) return 0
+    const maxStart = Math.max(0, itemCount - limit)
+    return Math.max(0, Math.min(safeInitialIndex - limit + 1, maxStart))
+  })
+
   const visibleItems = limit
     ? filteredItems.slice(rotateIndex, rotateIndex + limit)
     : filteredItems
+
+  const navigationInputs = useMemo(
+    () => (orientation === 'vertical' ? ['j', 'k'] : ['h', 'l']),
+    [orientation]
+  )
 
   useEffect(() => {
     if (hasItems) {
@@ -94,6 +108,20 @@ export function EnhancedSelectInput<V>({
       }
     }
   }, [filteredItems, selectedIndex, onHighlight, hasItems])
+
+  useEffect(() => {
+    if (process.env['NODE_ENV'] === 'production') return
+
+    const conflicting = filteredItems
+      .filter((item) => item.hotkey && navigationInputs.includes(item.hotkey))
+      .map((item) => item.hotkey)
+
+    if (conflicting.length > 0) {
+      console.warn(
+        `EnhancedSelectInput: hotkey(s) "${conflicting.join('", "')}" collide with the ${orientation} navigation keys (${navigationInputs.join('/')}) and will be unreachable via hotkey.`
+      )
+    }
+  }, [filteredItems, navigationInputs, orientation])
 
   // Helper function to find next valid index
   const findNextValidIndex = (currentIndex: number, step: number): number => {
@@ -141,6 +169,16 @@ export function EnhancedSelectInput<V>({
 
       if (nextIndex !== selectedIndex) {
         setSelectedIndex(nextIndex)
+        if (limit) {
+          setRotateIndex((previousRotateIndex) => {
+            if (nextIndex < previousRotateIndex) return nextIndex
+            if (nextIndex >= previousRotateIndex + limit) {
+              return nextIndex - limit + 1
+            }
+
+            return previousRotateIndex
+          })
+        }
       }
 
       if (key.return) {
@@ -153,8 +191,6 @@ export function EnhancedSelectInput<V>({
       // Handle hotkey selection. Skip when the input is one of the active
       // navigation keys for the current orientation so a hotkey like `h`,
       // `j`, `k`, or `l` doesn't also move the selection.
-      const navigationInputs =
-        orientation === 'vertical' ? ['j', 'k'] : ['h', 'l']
       if (!navigationInputs.includes(input)) {
         const hotkeyItem = filteredItems.find(
           (item) => item.hotkey === input && !item.disabled
