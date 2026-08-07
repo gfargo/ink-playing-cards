@@ -14,7 +14,7 @@ const initialState: GameContextType = {
   dispatch: () => null,
 }
 
-export const GameContext = createContext<GameContextType>(initialState)
+export const GameContext = createContext<GameContextType | undefined>(undefined)
 
 const gameReducer = (
   state: GameContextType,

@@ -39,6 +39,7 @@ export {
 } from './components/UnicodeCard/index.js'
 export { GameContext, GameProvider } from './contexts/GameContext.js'
 export { useDeck } from './hooks/useDeck.js'
+export { useGame } from './hooks/useGame.js'
 export { useHand } from './hooks/useHand.js'
 export * as Effects from './systems/Effects.js'
 export * as Events from './systems/Events.js'
