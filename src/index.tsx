@@ -34,9 +34,15 @@ export {
 export { GameContext, GameProvider } from './contexts/GameContext.js'
 export { useDeck } from './hooks/useDeck.js'
 export { useHand } from './hooks/useHand.js'
+export { useResponsiveVariant } from './hooks/useResponsiveVariant.js'
 export * as Effects from './systems/Effects.js'
 export * as Events from './systems/Events.js'
 export * as Zones from './systems/Zones.js'
+export {
+  selectCardVariant,
+  VARIANT_BREAKPOINTS,
+  type CardVariant,
+} from './utils/responsive.js'
 
 export {
   DeckContext,

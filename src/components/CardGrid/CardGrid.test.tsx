@@ -359,3 +359,55 @@ test('render grid with mixed standard, custom, and tarot cards', (t) => {
     t.true(gridFrame.includes('The Fool'))
   }
 })
+
+// CardGrid — variant="responsive" dispatch
+//
+// ink-testing-library hard-codes stdout.columns to 100, which resolves to
+// the `ascii` variant (>= 80 cols). See src/utils/responsive.test.ts for
+// full breakpoint coverage.
+
+test('render grid with responsive variant matches an explicit ascii render at 100 cols', (t) => {
+  const responsive = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={2}
+      cards={sampleCards.slice(0, 2)}
+      variant="responsive"
+    />
+  ).lastFrame()
+  const explicitAscii = render(
+    <CardGrid
+      isFaceUp
+      rows={1}
+      cols={2}
+      cards={sampleCards.slice(0, 2)}
+      variant="ascii"
+    />
+  ).lastFrame()
+  t.is(responsive, explicitAscii)
+})
+
+test('render grid with responsive variant sizes empty-cell placeholders to match', (t) => {
+  const responsive = render(
+    <CardGrid
+      isFaceUp
+      fillEmpty
+      rows={1}
+      cols={2}
+      cards={[sampleCards[0]]}
+      variant="responsive"
+    />
+  ).lastFrame()
+  const explicitAscii = render(
+    <CardGrid
+      isFaceUp
+      fillEmpty
+      rows={1}
+      cols={2}
+      cards={[sampleCards[0]]}
+      variant="ascii"
+    />
+  ).lastFrame()
+  t.is(responsive, explicitAscii)
+})
