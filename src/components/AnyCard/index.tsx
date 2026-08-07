@@ -1,10 +1,6 @@
 import React from 'react'
-import {
-  isCustomCard,
-  isStandardCard,
-  isTarotCard,
-  type TCard,
-} from '../../types/index.js'
+import { type TCard } from '../../types/index.js'
+import { isCustomCard, isStandardCard, isTarotCard } from '../../utils/cards.js'
 import Card from '../Card/index.js'
 import { CustomCard } from '../CustomCard/index.js'
 import { MiniCard } from '../MiniCard/index.js'

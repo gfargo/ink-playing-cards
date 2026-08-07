@@ -6,6 +6,12 @@ export {
   SYMBOL_SUIT_MAP,
   getSuitColor,
 } from './constants/card.js'
+export {
+  isStandardCard,
+  isTarotCard,
+  isCustomCard,
+  generateCardId,
+} from './utils/cards.js'
 export { AnyCard } from './components/AnyCard/index.js'
 export { Card } from './components/Card/index.js'
 export { CardGrid, type GridCard } from './components/CardGrid/index.js'
