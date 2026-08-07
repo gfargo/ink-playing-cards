@@ -94,7 +94,8 @@ export class DrawCardEffect implements CardEffect {
     const playerId = eventData.playerId ?? gameState.currentPlayerId
     const { deck } = gameState.zones
     const drawCount = Math.min(this.count, deck.length)
-    const drawn = deck.splice(deck.length - drawCount, drawCount)
+    const drawn = deck.slice(deck.length - drawCount)
+    gameState.zones.deck = deck.slice(0, deck.length - drawCount)
     const hand = gameState.zones.hands[playerId] ?? []
     gameState.zones.hands[playerId] = [...hand, ...drawn]
   }

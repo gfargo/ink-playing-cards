@@ -22,10 +22,37 @@ import {
   type DeckAction,
   type DeckContextType,
   type GameEventData,
+  type GameState,
   type TCard,
 } from '../types/index.js'
 
 type Zones = DeckContextType['zones']
+
+/**
+ * Build a mutable `GameState` working copy for effects to operate on.
+ * Zone collections are shallow-cloned so effect mutations can never reach
+ * the reducer's committed state. `turn`/`phase` aren't tracked by
+ * `DeckContext` (they live in `GameContext`), so they default here.
+ */
+function buildEffectGameState(
+  zones: Zones,
+  players: string[],
+  playerId: string
+): GameState {
+  return {
+    currentPlayerId: playerId,
+    players,
+    turn: 0,
+    phase: '',
+    zones: {
+      deck: [...zones.deck],
+      hands: { ...zones.hands },
+      discardPile: [...zones.discardPile],
+      playArea: [...zones.playArea],
+      custom: { ...zones.custom },
+    },
+  }
+}
 
 const BUILT_IN_ZONE_NAMES = new Set(['deck', 'discardPile', 'playArea'])
 
@@ -162,8 +189,21 @@ const deckReducer = (
     }
 
     case 'DRAW': {
-      const { playerId, count } = action.payload
-      const [drawn, remaining] = drawCards(state.zones.deck, count)
+      const { playerId, count, reshuffleWhenEmpty } = action.payload
+      let sourceDeck = state.zones.deck
+      let sourceDiscard = state.zones.discardPile
+      const drawEvents: GameEventData[] = []
+
+      if (count > sourceDeck.length) {
+        drawEvents.push({ type: 'DECK_EXHAUSTED' })
+        if (reshuffleWhenEmpty && sourceDiscard.length > 0) {
+          sourceDeck = [...sourceDeck, ...shuffleCards(sourceDiscard)]
+          sourceDiscard = []
+          drawEvents.push({ type: 'DECK_SHUFFLED' })
+        }
+      }
+
+      const [drawn, remaining] = drawCards(sourceDeck, count)
       const currentHand = state.zones.hands[playerId] ?? []
       const newHands = {
         ...state.zones.hands,
@@ -174,10 +214,16 @@ const deckReducer = (
         : [...state.players, playerId]
       return {
         ...state,
-        zones: { ...state.zones, deck: remaining, hands: newHands },
+        zones: {
+          ...state.zones,
+          deck: remaining,
+          discardPile: sourceDiscard,
+          hands: newHands,
+        },
         players: newPlayers,
         pendingEvents: [
           ...state.pendingEvents,
+          ...drawEvents,
           { type: 'CARDS_DRAWN', playerId, cards: drawn },
         ],
       }
@@ -194,7 +240,6 @@ const deckReducer = (
           playArea: [],
           custom: {},
         },
-        players: [],
         pendingEvents: [...state.pendingEvents, { type: 'DECK_RESET' }],
       }
     }
@@ -270,17 +315,22 @@ const deckReducer = (
       const pcHand = state.zones.hands[pcPid] ?? []
       const pcCard = pcHand.find((c: TCard) => c.id === pcCid)
       if (!pcCard) return state
+      const playedZones: Zones = {
+        ...state.zones,
+        hands: { ...state.zones.hands, [pcPid]: removeCard(pcHand, pcCid) },
+        playArea: addCard(state.zones.playArea, pcCard),
+      }
+      const eventData: GameEventData = {
+        type: 'CARD_PLAYED',
+        playerId: pcPid,
+        card: pcCard,
+      }
+      const working = buildEffectGameState(playedZones, state.players, pcPid)
+      state.effectManager.applyCardEffects(pcCard, working, eventData)
       return {
         ...state,
-        zones: {
-          ...state.zones,
-          hands: { ...state.zones.hands, [pcPid]: removeCard(pcHand, pcCid) },
-          playArea: addCard(state.zones.playArea, pcCard),
-        },
-        pendingEvents: [
-          ...state.pendingEvents,
-          { type: 'CARD_PLAYED', playerId: pcPid, card: pcCard },
-        ],
+        zones: working.zones,
+        pendingEvents: [...state.pendingEvents, eventData],
       }
     }
 

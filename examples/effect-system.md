@@ -87,7 +87,7 @@ const fireball = new Effects.DamageEffect(3)
 
 ### DrawCardEffect
 
-Moves cards from the deck to a player's hand (mutates `gameState.zones`):
+Moves cards from the deck to a player's hand (replaces `gameState.zones.deck`/`hands` with new arrays):
 
 ```ts
 const drawTwo = new Effects.DrawCardEffect(2)
@@ -187,5 +187,6 @@ const healEffect: CardEffect = {
 - `attachEffectToCard` adds to the card's `effects` array
 - `effectManager.applyCardEffects` iterates all effects on a card
 - Effects receive `GameState` (zones, turn, players) and `GameEventData` (event type, target, etc.)
-- `DrawCardEffect` mutates `gameState.zones` directly (it's designed for effect evaluation, not reducer use)
+- `DrawCardEffect` replaces `gameState.zones.deck`/`hands` with new arrays rather than mutating them in place, so it's safe to run against a reducer's working state
 - `DamageEffect` mutates `eventData.target` — pass an object with `life` or `health`
+- `deckReducer`'s `PLAY_CARD` action runs a played card's effects (via `effectManager.applyCardEffects`, with a `CARD_PLAYED` event) against a cloned `GameState` working copy, then commits the resulting zones — so attaching effects to a card is enough to have them run automatically when it's played
