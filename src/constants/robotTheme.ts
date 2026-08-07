@@ -77,11 +77,6 @@ export const ROBOT_THEME: CardArtTheme = {
         padding: 1,
       },
     ],
-    replacements: {
-      suit: '{suit}', // Will be replaced with actual suit
-      data: '{data}', // Will be replaced with suit-specific data
-      core: '{core}', // Will be replaced with suit-specific core
-    },
   },
 
   K: {
@@ -104,13 +99,6 @@ export const ROBOT_THEME: CardArtTheme = {
         padding: 1,
       },
     ],
-    replacements: {
-      eyes: '{eyes}',
-      circuit: '{circuit}',
-      suit: '{suit}',
-      data: '{data}',
-      core: '{core}',
-    },
   },
 
   Q: {
@@ -133,13 +121,6 @@ export const ROBOT_THEME: CardArtTheme = {
         padding: 1,
       },
     ],
-    replacements: {
-      eyes: '{eyes}',
-      circuit: '{circuit}',
-      suit: '{suit}',
-      data: '{data}',
-      core: '{core}',
-    },
   },
 
   J: {
@@ -162,13 +143,6 @@ export const ROBOT_THEME: CardArtTheme = {
         padding: 1,
       },
     ],
-    replacements: {
-      eyes: '{eyes}',
-      circuit: '{circuit}',
-      suit: '{suit}',
-      data: '{data}',
-      core: '{core}',
-    },
   },
 
   JOKER: {
@@ -191,12 +165,5 @@ export const ROBOT_THEME: CardArtTheme = {
         padding: 1,
       },
     ],
-    replacements: {
-      eyes: '{eyes}',
-      circuit: '{circuit}',
-      suit: '{suit}',
-      data: '{data}',
-      core: '{core}',
-    },
   },
 }

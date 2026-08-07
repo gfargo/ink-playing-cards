@@ -14,7 +14,7 @@ export type CardSection = {
 
 export type CardArtDefinition = {
   sections: CardSection[]
-  replacements: Record<string, string>
+  replacements?: Record<string, string>
 }
 
 export type CardArtTheme = Partial<Record<string, CardArtDefinition>>
