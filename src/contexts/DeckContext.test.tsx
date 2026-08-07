@@ -1,5 +1,5 @@
 import { render } from 'ink-testing-library'
-import React, { useContext, useRef } from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 import test from 'ava'
 import type {
   CustomCardProps,
@@ -7,6 +7,7 @@ import type {
   DeckContextType,
   TCard,
 } from '../types/index.js'
+import { DrawCardEffect } from '../systems/Effects.js'
 import { DeckContext, DeckProvider } from './DeckContext.js'
 
 type CapturedState = Pick<DeckContextType, 'zones' | 'players'>
@@ -383,6 +384,71 @@ test('CLEAR_ZONE removes a custom zone', (t) => {
   )
   const state = results.at(-1)!
   t.is(state.zones.custom['tableau'], undefined)
+})
+
+test('PLAY_CARD runs attached effects, drawing cards into the player hand', (t) => {
+  const cards = makeCards(10)
+  // DrawCards() draws from the end of the deck, so a DRAW of 3 from a
+  // 10-card deck lands card-7, card-8, card-9 in the hand.
+  cards[9]!.effects = [new DrawCardEffect(2)]
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 3, playerId: 'p1' } },
+      { type: 'PLAY_CARD', payload: { playerId: 'p1', cardId: 'card-9' } },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  // 3 drawn, 1 played, 2 drawn by the effect => 4 in hand
+  t.is(state.zones.hands['p1']!.length, 4)
+  t.is(state.zones.playArea.length, 1)
+  t.is(state.zones.playArea[0]!.id, 'card-9')
+  // 10 - 3 (initial draw) - 2 (effect draw) = 5
+  t.is(state.zones.deck.length, 5)
+})
+
+test('PLAY_CARD does not mutate the pre-action deck array', (t) => {
+  const cards = makeCards(10)
+  // DrawCards() draws from the end of the deck, so a DRAW of 3 from a
+  // 10-card deck lands card-7, card-8, card-9 in the hand.
+  cards[9]!.effects = [new DrawCardEffect(2)]
+  const deckBeforePlayRef: { current: TCard[] | undefined } = {
+    current: undefined,
+  }
+
+  function Capture() {
+    const ctx = useContext(DeckContext)!
+    const initialized = useRef(false)
+    if (!initialized.current) {
+      initialized.current = true
+      ctx.dispatch({ type: 'DRAW', payload: { count: 3, playerId: 'p1' } })
+    }
+
+    useEffect(() => {
+      if (ctx.zones.deck.length === 7 && !deckBeforePlayRef.current) {
+        // Snapshot the reference to the post-DRAW deck array, then play the
+        // effect-bearing card. If DrawCardEffect still mutated the deck
+        // array in place (the old splice-based bug), this same reference
+        // would shrink from 7 to 5 once the effect runs.
+        deckBeforePlayRef.current = ctx.zones.deck
+        ctx.dispatch({
+          type: 'PLAY_CARD',
+          payload: { playerId: 'p1', cardId: 'card-9' },
+        })
+      }
+    })
+
+    return null
+  }
+
+  render(
+    <DeckProvider initialCards={cards}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  t.truthy(deckBeforePlayRef.current)
+  t.is(deckBeforePlayRef.current!.length, 7)
 })
 
 test('RESET clears custom zones', (t) => {
