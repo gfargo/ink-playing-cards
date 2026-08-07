@@ -100,174 +100,109 @@ export function createBottomLine(
   return right(rightPart, width - 2)
 }
 
-/**
- * Creates the pip layout for ASCII variant cards
- */
-export function createAsciiPipLayout(
-  rank: TCardValue,
-  { left, center, right }: { left: number; center: number; right: number }
-): Array<[number, number]> {
-  const layouts: Partial<Record<TCardValue, Array<[number, number]>>> = {
-    '2': [
-      [2, center],
-      [6, center],
-    ],
-    '3': [
-      [2, center],
-      [4, center],
-      [6, center],
-    ],
-    '4': [
-      [2, left],
-      [2, right],
-      [6, left],
-      [6, right],
-    ],
-    '5': [
-      [2, left],
-      [2, right],
-      [4, center],
-      [6, left],
-      [6, right],
-    ],
-    '6': [
-      [2, left],
-      [2, right],
-      [4, left],
-      [4, right],
-      [6, left],
-      [6, right],
-    ],
-    '7': [
-      [2, left],
-      [2, right],
-      [4, left],
-      [4, right],
-      [5, center],
-      [6, left],
-      [6, right],
-    ],
-    '8': [
-      [2, left],
-      [2, right],
-      [3, center],
-      [4, left],
-      [4, right],
-      [5, center],
-      [6, left],
-      [6, right],
-    ],
-    '9': [
-      [2, left],
-      [2, center],
-      [2, right],
-      [4, left],
-      [4, center],
-      [4, right],
-      [6, left],
-      [6, center],
-      [6, right],
-    ],
-    '10': [
-      [2, left],
-      [2, center],
-      [2, right],
-      [3, center],
-      [4, left],
-      [4, right],
-      [5, center],
-      [6, left],
-      [6, center],
-      [6, right],
-    ],
-  }
+type PipColumn = 'left' | 'center' | 'right'
 
-  return layouts[rank] ?? []
+/**
+ * Normalised (0-based) pip row/column table shared by all pip-based variants.
+ * Row numbers are relative to the top of the pip area; each variant applies
+ * its own row offset via `PIP_ROW_OFFSET`.
+ */
+const PIP_LAYOUTS: Partial<Record<TCardValue, Array<[number, PipColumn]>>> = {
+  '2': [
+    [0, 'center'],
+    [4, 'center'],
+  ],
+  '3': [
+    [0, 'center'],
+    [2, 'center'],
+    [4, 'center'],
+  ],
+  '4': [
+    [0, 'left'],
+    [0, 'right'],
+    [4, 'left'],
+    [4, 'right'],
+  ],
+  '5': [
+    [0, 'left'],
+    [0, 'right'],
+    [2, 'center'],
+    [4, 'left'],
+    [4, 'right'],
+  ],
+  '6': [
+    [0, 'left'],
+    [0, 'right'],
+    [2, 'left'],
+    [2, 'right'],
+    [4, 'left'],
+    [4, 'right'],
+  ],
+  '7': [
+    [0, 'left'],
+    [0, 'right'],
+    [2, 'left'],
+    [2, 'right'],
+    [3, 'center'],
+    [4, 'left'],
+    [4, 'right'],
+  ],
+  '8': [
+    [0, 'left'],
+    [0, 'right'],
+    [1, 'center'],
+    [2, 'left'],
+    [2, 'right'],
+    [3, 'center'],
+    [4, 'left'],
+    [4, 'right'],
+  ],
+  '9': [
+    [0, 'left'],
+    [0, 'center'],
+    [0, 'right'],
+    [2, 'left'],
+    [2, 'center'],
+    [2, 'right'],
+    [4, 'left'],
+    [4, 'center'],
+    [4, 'right'],
+  ],
+  '10': [
+    [0, 'left'],
+    [0, 'center'],
+    [0, 'right'],
+    [1, 'center'],
+    [2, 'left'],
+    [2, 'right'],
+    [3, 'center'],
+    [4, 'left'],
+    [4, 'center'],
+    [4, 'right'],
+  ],
+}
+
+const PIP_ROW_OFFSET: Record<'ascii' | 'simple', number> = {
+  simple: 0,
+  ascii: 2,
 }
 
 /**
- * Creates the pip layout for simple variant cards
+ * Creates the pip layout for a given rank/variant by applying the variant's
+ * row offset to the shared normalised pip table.
  */
-export function createSimplePipLayout(
+export function createPipLayout(
   rank: TCardValue,
+  variant: 'ascii' | 'simple',
   { left, center, right }: { left: number; center: number; right: number }
 ): Array<[number, number]> {
-  const layouts: Partial<Record<TCardValue, Array<[number, number]>>> = {
-    '2': [
-      [0, center],
-      [4, center],
-    ],
-    '3': [
-      [0, center],
-      [2, center],
-      [4, center],
-    ],
-    '4': [
-      [0, left],
-      [0, right],
-      [4, left],
-      [4, right],
-    ],
-    '5': [
-      [0, left],
-      [0, right],
-      [2, center],
-      [4, left],
-      [4, right],
-    ],
-    '6': [
-      [0, left],
-      [0, right],
-      [2, left],
-      [2, right],
-      [4, left],
-      [4, right],
-    ],
-    '7': [
-      [0, left],
-      [0, right],
-      [2, left],
-      [2, right],
-      [3, center],
-      [4, left],
-      [4, right],
-    ],
-    '8': [
-      [0, left],
-      [0, right],
-      [1, center],
-      [2, left],
-      [2, right],
-      [3, center],
-      [4, left],
-      [4, right],
-    ],
-    '9': [
-      [0, left],
-      [0, center],
-      [0, right],
-      [2, left],
-      [2, center],
-      [2, right],
-      [4, left],
-      [4, center],
-      [4, right],
-    ],
-    '10': [
-      [0, left],
-      [0, center],
-      [0, right],
-      [1, center],
-      [2, left],
-      [2, right],
-      [3, center],
-      [4, left],
-      [4, center],
-      [4, right],
-    ],
-  }
+  const offset = PIP_ROW_OFFSET[variant]
+  const columns: Record<PipColumn, number> = { left, center, right }
 
-  return layouts[rank] ?? []
+  return (PIP_LAYOUTS[rank] ?? []).map(([row, column]) => [
+    row + offset,
+    columns[column],
+  ])
 }
 
 /**
@@ -396,10 +331,11 @@ export function createCardContent(
       lines.push(spaces(width - 2))
     }
   } else if (config.pip) {
-    const pipLayout =
-      variant === 'simple'
-        ? createSimplePipLayout(rank, config.pip)
-        : createAsciiPipLayout(rank, config.pip)
+    const pipLayout = createPipLayout(
+      rank,
+      variant === 'simple' ? 'simple' : 'ascii',
+      config.pip
+    )
     const middleLines = Array.from({ length: height - 4 }, () =>
       spaces(width - 2)
     )
