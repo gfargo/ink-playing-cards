@@ -95,6 +95,20 @@ export function EnhancedSelectInput<V>({
     ? filteredItems.slice(rotateIndex, rotateIndex + limit)
     : filteredItems
 
+  // Scroll the window by a single row so `index` becomes visible, used by
+  // both arrow-key navigation and hotkey selection.
+  const scrollWindowToIndex = (index: number) => {
+    if (!limit) return
+    setRotateIndex((previousRotateIndex) => {
+      if (index < previousRotateIndex) return index
+      if (index >= previousRotateIndex + limit) {
+        return index - limit + 1
+      }
+
+      return previousRotateIndex
+    })
+  }
+
   const navigationInputs = useMemo(
     () => (orientation === 'vertical' ? ['j', 'k'] : ['h', 'l']),
     [orientation]
@@ -169,16 +183,7 @@ export function EnhancedSelectInput<V>({
 
       if (nextIndex !== selectedIndex) {
         setSelectedIndex(nextIndex)
-        if (limit) {
-          setRotateIndex((previousRotateIndex) => {
-            if (nextIndex < previousRotateIndex) return nextIndex
-            if (nextIndex >= previousRotateIndex + limit) {
-              return nextIndex - limit + 1
-            }
-
-            return previousRotateIndex
-          })
-        }
+        scrollWindowToIndex(nextIndex)
       }
 
       if (key.return) {
@@ -198,6 +203,7 @@ export function EnhancedSelectInput<V>({
         if (hotkeyItem) {
           const hotkeyIndex = filteredItems.indexOf(hotkeyItem)
           setSelectedIndex(hotkeyIndex)
+          scrollWindowToIndex(hotkeyIndex)
           onSelect?.(hotkeyItem)
         }
       }

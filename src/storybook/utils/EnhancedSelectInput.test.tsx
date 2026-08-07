@@ -89,6 +89,37 @@ test('limit scrolls the window one row at a time instead of jumping by pages', a
   t.true(frame?.includes('Three'))
 })
 
+test('hotkey selection outside the visible window scrolls it into view', async (t) => {
+  const itemsWithHotkeys: Array<Item<string>> = [
+    { label: 'One', value: 'one' },
+    { label: 'Two', value: 'two' },
+    { label: 'Three', value: 'three' },
+    { label: 'Four', value: 'four' },
+    { label: 'Five', value: 'five', hotkey: 'f' },
+  ]
+
+  const { lastFrame, stdin } = render(
+    <EnhancedSelectInput items={itemsWithHotkeys} limit={2} />
+  )
+
+  // Starting window is [One, Two]; "Five" is well outside it.
+  t.true(lastFrame()?.includes('One'))
+  t.false(lastFrame()?.includes('Five'))
+
+  stdin.write('f')
+  await new Promise((resolve) => {
+    setTimeout(resolve, 100)
+  })
+
+  // The hotkey selection should have scrolled the window so "Five" is
+  // visible and rendered as the highlighted (indicator-marked) row.
+  // eslint-disable-next-line no-control-regex
+  const plainFrame = lastFrame()?.replace(/\u001B\[[\d;]*m/g, '')
+  t.true(plainFrame?.includes('Five'))
+  t.false(plainFrame?.includes('One'))
+  t.true(plainFrame?.includes('> Five'))
+})
+
 test('warns in development when a hotkey collides with the active navigation keys', (t) => {
   const calls: unknown[][] = []
   const originalWarn = console.warn
