@@ -20,6 +20,7 @@ export type GameEventType =
   | 'DECK_SHUFFLED'
   | 'DECK_RESET'
   | 'DECK_CUT'
+  | 'DECK_EXHAUSTED'
   | 'EFFECT_APPLIED'
   | string // Allow custom event types
 

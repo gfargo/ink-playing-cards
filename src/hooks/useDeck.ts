@@ -20,8 +20,19 @@ export const useDeck = () => {
     dispatch({ type: 'SHUFFLE' })
   }
 
-  const draw = (count: number, playerId: string) => {
-    dispatch({ type: 'DRAW', payload: { count, playerId } })
+  const draw = (
+    count: number,
+    playerId: string,
+    options?: { reshuffleWhenEmpty?: boolean }
+  ) => {
+    dispatch({
+      type: 'DRAW',
+      payload: {
+        count,
+        playerId,
+        reshuffleWhenEmpty: options?.reshuffleWhenEmpty,
+      },
+    })
   }
 
   const reset = (cards?: TCard[]) => {

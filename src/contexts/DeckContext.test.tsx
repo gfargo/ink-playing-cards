@@ -90,6 +90,54 @@ test('DRAW action auto-registers player', (t) => {
   t.true(state.players.includes('newPlayer'))
 })
 
+test('DRAW without reshuffleWhenEmpty caps at remaining deck size', (t) => {
+  const cards = makeCards(2)
+  const results = renderWithProvider(
+    [{ type: 'DRAW', payload: { count: 5, playerId: 'p1' } }],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 0)
+  t.is(state.zones.hands['p1']!.length, 2)
+})
+
+test('DRAW with reshuffleWhenEmpty reshuffles discard pile to satisfy the draw', (t) => {
+  const cards = makeCards(5)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 3, playerId: 'p1' } },
+      { type: 'DISCARD', payload: { playerId: 'p1', cardId: 'card-4' } },
+      { type: 'DISCARD', payload: { playerId: 'p1', cardId: 'card-3' } },
+      {
+        type: 'DRAW',
+        payload: { count: 4, playerId: 'p1', reshuffleWhenEmpty: true },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  // Hand: 3 drawn, 2 discarded (1 left), then 4 more drawn via reshuffle = 5
+  t.is(state.zones.hands['p1']!.length, 5)
+  t.is(state.zones.discardPile.length, 0)
+  t.is(state.zones.deck.length, 0)
+})
+
+test('DRAW with reshuffleWhenEmpty is a no-op reshuffle when discard is empty', (t) => {
+  const cards = makeCards(2)
+  const results = renderWithProvider(
+    [
+      {
+        type: 'DRAW',
+        payload: { count: 5, playerId: 'p1', reshuffleWhenEmpty: true },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.hands['p1']!.length, 2)
+  t.is(state.zones.deck.length, 0)
+})
+
 test('RESET action restores deck and clears hands', (t) => {
   const cards = makeCards(5)
   const results = renderWithProvider(
