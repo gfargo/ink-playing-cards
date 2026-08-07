@@ -115,7 +115,7 @@ test('DRAW with reshuffleWhenEmpty reshuffles discard pile to satisfy the draw',
     cards
   )
   const state = results.at(-1)!
-  // hand: 3 drawn, 2 discarded (1 left), then 4 more drawn via reshuffle = 5
+  // Hand: 3 drawn, 2 discarded (1 left), then 4 more drawn via reshuffle = 5
   t.is(state.zones.hands['p1']!.length, 5)
   t.is(state.zones.discardPile.length, 0)
   t.is(state.zones.deck.length, 0)
