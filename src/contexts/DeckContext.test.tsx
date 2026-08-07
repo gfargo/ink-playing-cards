@@ -103,6 +103,19 @@ test('RESET action restores deck and clears hands', (t) => {
   t.deepEqual(state.zones.hands, {})
 })
 
+test('RESET preserves the player roster', (t) => {
+  const cards = makeCards(5)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 2, playerId: 'p1' } },
+      { type: 'RESET' },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['p1'])
+})
+
 test('RESET with custom cards', (t) => {
   const initial = makeCards(10)
   const resetCards = makeCards(3)
