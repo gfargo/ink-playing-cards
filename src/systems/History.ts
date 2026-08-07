@@ -16,6 +16,11 @@ export function snapshot(state: DeckContextType): HistorySnapshot {
 }
 
 export type WithHistoryOptions = {
+  /**
+   * Maximum number of past snapshots to retain. `0` retains none (every
+   * state-changing action is still applied, but nothing is undoable).
+   * `undefined` (the default) means unlimited history.
+   */
   limit?: number
 }
 
@@ -26,6 +31,10 @@ export type WithHistoryOptions = {
  * so they never re-emit `pendingEvents` and are never themselves recorded as
  * history steps. `FLUSH_EVENTS` and no-op actions (reducer returns the same
  * state reference) are also excluded from history.
+ *
+ * Restoring a snapshot also clears `pendingEvents`: any events queued by an
+ * action since the last flush belong to state that UNDO/REDO is about to
+ * replace, so they must not fire.
  */
 export function withHistory(
   reducer: (state: DeckContextType, action: DeckAction) => DeckContextType,
@@ -44,6 +53,7 @@ export function withHistory(
       return {
         ...state,
         ...previous,
+        pendingEvents: [],
         history: {
           past: history.past.slice(0, -1),
           future: [snapshot(state), ...history.future],
@@ -57,6 +67,7 @@ export function withHistory(
       return {
         ...state,
         ...next,
+        pendingEvents: [],
         history: {
           past: [...history.past, snapshot(state)],
           future: history.future.slice(1),
@@ -75,7 +86,9 @@ export function withHistory(
 
     const past = [...history.past, snapshot(state)]
     const trimmedPast =
-      limit && limit > 0 && past.length > limit ? past.slice(-limit) : past
+      limit !== undefined && limit >= 0 && past.length > limit
+        ? past.slice(past.length - limit)
+        : past
 
     return {
       ...next,

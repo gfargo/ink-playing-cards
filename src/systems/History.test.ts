@@ -111,6 +111,48 @@ test('undo/redo do not replay pendingEvents', (t) => {
   t.deepEqual(afterRedo.pendingEvents, [])
 })
 
+test('undo drops events queued in the same commit (before FLUSH_EVENTS)', (t) => {
+  const reducer = withHistory(testReducer)
+  const initial = makeState(5)
+  const afterDraw = reducer(initial, {
+    type: 'DRAW',
+    payload: { count: 2, playerId: 'p1' },
+  })
+  t.true(afterDraw.pendingEvents.length > 0)
+
+  const afterUndo = reducer(afterDraw, { type: 'UNDO' })
+  t.deepEqual(afterUndo.pendingEvents, [])
+  t.is(afterUndo.zones.deck.length, 5)
+})
+
+test('redo drops events queued since the restored snapshot', (t) => {
+  const reducer = withHistory(testReducer)
+  const initial = makeState(5)
+  const afterDraw = reducer(initial, {
+    type: 'DRAW',
+    payload: { count: 2, playerId: 'p1' },
+  })
+  const afterUndo = reducer(afterDraw, { type: 'UNDO' })
+  const afterRedo = reducer(afterUndo, { type: 'REDO' })
+  t.deepEqual(afterRedo.pendingEvents, [])
+  t.is(afterRedo.zones.deck.length, 3)
+})
+
+test('maxHistory: 0 retains no past entries', (t) => {
+  const reducer = withHistory(testReducer, { limit: 0 })
+  let state = makeState(10)
+  state = reducer(state, {
+    type: 'DRAW',
+    payload: { count: 1, playerId: 'p1' },
+  })
+  state = reducer(state, {
+    type: 'DRAW',
+    payload: { count: 1, playerId: 'p1' },
+  })
+
+  t.is(state.history!.past.length, 0)
+})
+
 test('FLUSH_EVENTS is not recorded as a history step', (t) => {
   const reducer = withHistory(testReducer)
   const initial = makeState(5)

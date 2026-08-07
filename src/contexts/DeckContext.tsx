@@ -376,6 +376,10 @@ type DeckProviderProperties = {
     action: DeckAction
   ) => DeckContextType
   readonly enableHistory?: boolean
+  /**
+   * Maximum number of past snapshots to retain when `enableHistory` is set.
+   * `0` retains none (nothing is undoable). `undefined` means unlimited.
+   */
   readonly maxHistory?: number
 }
 
