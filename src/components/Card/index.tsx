@@ -1,11 +1,8 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React, { useContext } from 'react'
-import {
-  CARD_DIMENSIONS,
-  getSuitColor,
-  SUIT_SYMBOL_MAP,
-} from '../../constants/card.js'
+import { CARD_DIMENSIONS, getSuitColor } from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
+import { useCardTheme } from '../../contexts/ThemeContext.js'
 import { type AsciiTheme, type CardProps } from '../../types/index.js'
 import { centerLabelBlock } from '../../utils/text.js'
 import { createCardContent } from './utils.js'
@@ -40,6 +37,7 @@ export function Card({
 }) {
   const context = useContext(DeckContext)
   const backArtwork = context?.backArtwork ?? defaultBackArtwork
+  const cardTheme = useCardTheme()
 
   const config = {
     ...CARD_DIMENSIONS[variant],
@@ -56,8 +54,16 @@ export function Card({
   const cardStyle: BoxProps = {
     flexDirection: 'column',
     paddingX: config.padding,
-    borderStyle: selected ? 'double' : rounded ? 'round' : 'single',
-    borderColor: selected ? 'yellow' : 'white',
+    borderStyle: selected
+      ? cardTheme.selectedBorderStyle
+      : rounded
+        ? cardTheme.borderStyle
+        : 'single',
+    borderColor: cardTheme.monochrome
+      ? undefined
+      : selected
+        ? cardTheme.selectedColor
+        : 'white',
     height: config.height,
     width: config.width,
     overflow: 'hidden',
@@ -81,8 +87,8 @@ export function Card({
     )
   }
 
-  const color = getSuitColor(suit)
-  const symbol = SUIT_SYMBOL_MAP[suit]
+  const color = getSuitColor(suit, cardTheme)
+  const symbol = cardTheme.suitGlyphs[suit]
   const cardContent = createCardContent(value, symbol, variant, config, theme)
 
   return (

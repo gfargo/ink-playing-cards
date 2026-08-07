@@ -60,6 +60,7 @@ render(
 - Effect system supporting conditional, triggered, continuous, delayed, and targeted effects
 - Hooks (`useDeck`, `useHand`) for accessing game state and dispatching actions
 - `GameProvider` context for turn management and game phases
+- `ThemeProvider` context for global suit colors, suit glyphs, border style, and a monochrome/accessibility mode
 - Theming support for ASCII card art (original, geometric, animal, robot, pixel, medieval)
 - Custom card component with structured layout regions and freeform mode
 - `TarotCard` component with full 78-card tarot deck support (Major and Minor Arcana)
@@ -304,6 +305,42 @@ Manages turn order, current player, and game phases:
 ```
 
 Dispatches `SET_CURRENT_PLAYER`, `NEXT_TURN`, and `SET_PHASE` actions.
+
+### ThemeProvider
+
+Provides a global `CardTheme` — suit colors, suit glyphs, border style, and a monochrome (no-color) mode — to `Card`, `MiniCard`, and `UnicodeCard`. Opt-in and additive: components not wrapped in a `ThemeProvider` render exactly as before.
+
+```tsx
+import { ThemeProvider } from 'ink-playing-cards'
+
+<ThemeProvider
+  theme={{
+    suitColors: { hearts: 'magenta', diamonds: 'magenta' },
+    suitGlyphs: { spades: 'S', clubs: 'C' },
+    borderStyle: 'single',
+  }}
+>
+  <Game />
+</ThemeProvider>
+```
+
+For colorblind-safe palettes or dumb terminals that don't support ANSI color, use the `monochrome` shorthand to strip all suit and border colors (they render with the terminal's default foreground instead):
+
+```tsx
+<ThemeProvider monochrome>
+  <Game />
+</ThemeProvider>
+```
+
+Use `useCardTheme()` to read the active theme (falls back to the default theme outside a provider) in your own components:
+
+```tsx
+import { useCardTheme } from 'ink-playing-cards'
+
+const theme = useCardTheme()
+```
+
+**Known limitation:** `UnicodeCard` renders precomposed Unicode card codepoints, so it honors `suitColors` and `monochrome` but not `suitGlyphs`.
 
 ## Core Systems
 

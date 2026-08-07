@@ -1,5 +1,5 @@
 import type { TextProps } from 'ink'
-import type { TSuit, TSuitIcon } from '../types/index.js'
+import type { CardTheme, TSuit, TSuitIcon } from '../types/index.js'
 
 /**
  * Defines the dimensions and layout configuration for different card variants
@@ -49,12 +49,16 @@ const RED_SUITS = new Set<TSuit>(['hearts', 'diamonds'])
  * Red suits (hearts, diamonds) → 'red'.
  * Black suits (clubs, spades) → 'white' (white renders correctly on dark terminals).
  *
- * The optional `_theme` parameter is an intentional seam for future theming /
- * monochrome mode (F14). It is accepted but unused until that feature lands.
+ * When a `theme` is supplied, its `suitColors` map is used instead, and
+ * `monochrome` forces the terminal default (undefined) regardless of suit.
  */
 export function getSuitColor(
   suit: TSuit,
-  _theme?: unknown
+  theme?: Pick<CardTheme, 'suitColors' | 'monochrome'>
 ): TextProps['color'] {
+  if (theme) {
+    return theme.monochrome ? undefined : theme.suitColors[suit]
+  }
+
   return RED_SUITS.has(suit) ? 'red' : 'white'
 }

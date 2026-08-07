@@ -71,7 +71,7 @@ function getThemeReplacements(
  */
 export function createTopLine(
   rank: TCardValue,
-  suit: TSuitIcon,
+  suit: string,
   width: number,
   variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
@@ -88,7 +88,7 @@ export function createTopLine(
  */
 export function createBottomLine(
   rank: TCardValue,
-  suit: TSuitIcon,
+  suit: string,
   width: number,
   variant: 'ascii' | 'simple' | 'minimal' = 'simple'
 ): string {
@@ -210,12 +210,12 @@ export function createPipLayout(
  */
 function createRobotArt(
   rank: TCardValue,
-  suit: TSuitIcon,
+  suit: string,
   width: number
 ): string[] {
   if (rank in ROBOT_THEME) {
     const artDefinition = ROBOT_THEME[rank]!
-    const features = ROBOT_FEATURES[SYMBOL_SUIT_MAP[suit]]
+    const features = ROBOT_FEATURES[SYMBOL_SUIT_MAP[suit as TSuitIcon]]
     return renderCardArt(artDefinition, width, {
       ...features,
       suit,
@@ -236,7 +236,7 @@ function createRobotArt(
  */
 export function createSpecialArt(
   rank: TCardValue,
-  suit: TSuitIcon,
+  suit: string,
   width: number,
   variant: 'ascii' | 'simple',
   theme: AsciiTheme = 'original'
@@ -254,7 +254,10 @@ export function createSpecialArt(
     }
 
     const themeArt = THEME_MAP[theme]
-    const replacements = getThemeReplacements(theme, SYMBOL_SUIT_MAP[suit])
+    const replacements = getThemeReplacements(
+      theme,
+      SYMBOL_SUIT_MAP[suit as TSuitIcon]
+    )
 
     const art = themeArt[rank]?.map((line) => {
       // First replace the suit
@@ -288,7 +291,7 @@ export function createSpecialArt(
  */
 export function createCardContent(
   rank: TCardValue,
-  suit: TSuitIcon,
+  suit: string,
   variant: 'ascii' | 'simple' | 'minimal',
   config: {
     width: number

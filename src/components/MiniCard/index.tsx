@@ -1,6 +1,7 @@
 import { Box, Text } from 'ink'
 import React from 'react'
 import { getSuitColor } from '../../constants/card.js'
+import { useCardTheme } from '../../contexts/ThemeContext.js'
 import { type CardProps } from '../../types/index.js'
 
 type MiniCardProps = {
@@ -15,14 +16,10 @@ export function MiniCard({
   rounded = true,
   variant = 'mini',
 }: MiniCardProps) {
-  const suitSymbol = {
-    hearts: '♥',
-    diamonds: '♦',
-    clubs: '♣',
-    spades: '♠',
-  }[suit]
+  const cardTheme = useCardTheme()
+  const suitSymbol = cardTheme.suitGlyphs[suit]
 
-  const color = getSuitColor(suit)
+  const color = getSuitColor(suit, cardTheme)
 
   // Micro cards are 2x4, mini cards are 5x4
   return (
@@ -31,8 +28,20 @@ export function MiniCard({
       overflow="hidden"
       width={variant === 'mini' ? 5 : 4}
       height={variant === 'mini' ? 4 : 4}
-      borderStyle={selected ? 'double' : rounded ? 'round' : 'single'}
-      borderColor={selected ? 'yellow' : 'white'}
+      borderStyle={
+        selected
+          ? cardTheme.selectedBorderStyle
+          : rounded
+            ? cardTheme.borderStyle
+            : 'single'
+      }
+      borderColor={
+        cardTheme.monochrome
+          ? undefined
+          : selected
+            ? cardTheme.selectedColor
+            : 'white'
+      }
     >
       {faceUp ? (
         <>
