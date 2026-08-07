@@ -51,6 +51,11 @@ function renderWithEvents(
           events.push(event)
         },
       })
+      ctx.eventManager.addEventListener('DECK_EXHAUSTED', {
+        handleEvent(event) {
+          events.push(event)
+        },
+      })
       for (const action of actions) {
         ctx.dispatch(action)
       }
@@ -107,6 +112,43 @@ test('non-StrictMode: SHUFFLE + DRAW parity with StrictMode', (t) => {
   t.deepEqual(
     events.map((e) => e.type),
     ['DECK_SHUFFLED', 'CARDS_DRAWN']
+  )
+})
+
+test('DRAW past the deck size emits DECK_EXHAUSTED before CARDS_DRAWN', (t) => {
+  const cards = makeCards(2)
+  const events = renderWithEvents(
+    [{ type: 'DRAW', payload: { count: 5, playerId: 'p1' } }],
+    { strictMode: true, initialCards: cards }
+  )
+  t.deepEqual(
+    events.map((e) => e.type),
+    ['DECK_EXHAUSTED', 'CARDS_DRAWN']
+  )
+})
+
+test('DRAW with reshuffleWhenEmpty emits DECK_EXHAUSTED then DECK_SHUFFLED then CARDS_DRAWN', (t) => {
+  const cards = makeCards(3)
+  const events = renderWithEvents(
+    [
+      { type: 'DRAW', payload: { count: 3, playerId: 'p1' } },
+      { type: 'DISCARD', payload: { playerId: 'p1', cardId: 'card-2' } },
+      {
+        type: 'DRAW',
+        payload: { count: 1, playerId: 'p1', reshuffleWhenEmpty: true },
+      },
+    ],
+    { strictMode: true, initialCards: cards }
+  )
+  t.deepEqual(
+    events.map((e) => e.type),
+    [
+      'CARDS_DRAWN',
+      'CARD_DISCARDED',
+      'DECK_EXHAUSTED',
+      'DECK_SHUFFLED',
+      'CARDS_DRAWN',
+    ]
   )
 })
 

@@ -147,8 +147,21 @@ const deckReducer = (
     }
 
     case 'DRAW': {
-      const { playerId, count } = action.payload
-      const [drawn, remaining] = drawCards(state.zones.deck, count)
+      const { playerId, count, reshuffleWhenEmpty } = action.payload
+      let sourceDeck = state.zones.deck
+      let sourceDiscard = state.zones.discardPile
+      const drawEvents: GameEventData[] = []
+
+      if (count > sourceDeck.length) {
+        drawEvents.push({ type: 'DECK_EXHAUSTED' })
+        if (reshuffleWhenEmpty && sourceDiscard.length > 0) {
+          sourceDeck = [...sourceDeck, ...shuffleCards(sourceDiscard)]
+          sourceDiscard = []
+          drawEvents.push({ type: 'DECK_SHUFFLED' })
+        }
+      }
+
+      const [drawn, remaining] = drawCards(sourceDeck, count)
       const currentHand = state.zones.hands[playerId] ?? []
       const newHands = {
         ...state.zones.hands,
@@ -159,10 +172,16 @@ const deckReducer = (
         : [...state.players, playerId]
       return {
         ...state,
-        zones: { ...state.zones, deck: remaining, hands: newHands },
+        zones: {
+          ...state.zones,
+          deck: remaining,
+          discardPile: sourceDiscard,
+          hands: newHands,
+        },
         players: newPlayers,
         pendingEvents: [
           ...state.pendingEvents,
+          ...drawEvents,
           { type: 'CARDS_DRAWN', playerId, cards: drawn },
         ],
       }

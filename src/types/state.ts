@@ -72,7 +72,14 @@ export type GameContextType = {
 
 export type DeckAction =
   | { type: 'SHUFFLE' }
-  | { type: 'DRAW'; payload: { count: number; playerId: string } }
+  | {
+      type: 'DRAW'
+      payload: {
+        count: number
+        playerId: string
+        reshuffleWhenEmpty?: boolean
+      }
+    }
   | { type: 'RESET'; payload?: { cards?: TCard[] } }
   | { type: 'SET_BACK_ARTWORK'; payload: Partial<BackArtwork> }
   | { type: 'ADD_CUSTOM_CARD'; payload: CustomCardProps }

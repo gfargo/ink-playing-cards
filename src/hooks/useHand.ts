@@ -12,8 +12,15 @@ export const useHand = (playerId: string) => {
 
   const hand: TCard[] = zones.hands[playerId] ?? []
 
-  const drawCard = (count = 1) => {
-    dispatch({ type: 'DRAW', payload: { count, playerId } })
+  const drawCard = (count = 1, options?: { reshuffleWhenEmpty?: boolean }) => {
+    dispatch({
+      type: 'DRAW',
+      payload: {
+        count,
+        playerId,
+        reshuffleWhenEmpty: options?.reshuffleWhenEmpty,
+      },
+    })
   }
 
   const playCard = (cardId: string) => {
