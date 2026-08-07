@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useReducer,
 } from 'react'
+import { hydrate } from '../systems/Serialization.js'
 import { type GameAction, type GameContextType } from '../types/index.js'
 
 const initialState: GameContextType = {
@@ -46,6 +47,17 @@ const gameReducer = (
       return {
         ...state,
         phase: action.payload,
+      }
+    }
+
+    case 'HYDRATE': {
+      const { game } = hydrate(action.payload)
+      return {
+        ...state,
+        currentPlayerId: game.currentPlayerId,
+        players: game.players,
+        turn: game.turn,
+        phase: game.phase,
       }
     }
 

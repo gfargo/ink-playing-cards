@@ -398,3 +398,64 @@ test('RESET clears custom zones', (t) => {
   const state = results.at(-1)!
   t.deepEqual(state.zones.custom, {})
 })
+
+test('HYDRATE replaces zones/players/backArtwork, resets pendingEvents, and keeps manager identity', (t) => {
+  const cards = makeCards(3)
+  let eventManagerBefore: unknown
+  let effectManagerBefore: unknown
+  let eventManagerAfter: unknown
+  let effectManagerAfter: unknown
+  let stateAfter: DeckContextType | undefined
+
+  function Capture() {
+    const ctx = useContext(DeckContext)!
+    const dispatched = useRef(false)
+    if (!dispatched.current) {
+      dispatched.current = true
+      eventManagerBefore = ctx.eventManager
+      effectManagerBefore = ctx.effectManager
+      ctx.dispatch({
+        type: 'HYDRATE',
+        payload: {
+          version: 1,
+          zones: {
+            deck: [],
+            hands: {},
+            discardPile: [],
+            playArea: makeCards(2),
+            custom: { tableau: makeCards(1) },
+          },
+          players: ['remote-1'],
+          backArtwork: {
+            ascii: 'remote-ascii',
+            simple: 'remote-simple',
+            minimal: '#',
+          },
+        },
+      })
+    }
+
+    eventManagerAfter = ctx.eventManager
+    effectManagerAfter = ctx.effectManager
+    stateAfter = ctx
+    return null
+  }
+
+  render(
+    <DeckProvider initialCards={cards}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  t.is(eventManagerAfter, eventManagerBefore)
+  t.is(effectManagerAfter, effectManagerBefore)
+  t.deepEqual(stateAfter!.pendingEvents, [])
+  t.is(stateAfter!.zones.deck.length, 0)
+  t.is(stateAfter!.zones.playArea.length, 2)
+  t.deepEqual(
+    stateAfter!.zones.custom['tableau']!.map((c) => c.id),
+    ['card-0']
+  )
+  t.deepEqual(stateAfter!.players, ['remote-1'])
+  t.is(stateAfter!.backArtwork.ascii, 'remote-ascii')
+})
