@@ -29,6 +29,10 @@ const gameReducer = (
     }
 
     case 'NEXT_TURN': {
+      if (state.players.length === 0) {
+        return state
+      }
+
       const currentIndex = state.players.indexOf(state.currentPlayerId)
       const nextIndex = (currentIndex + 1) % state.players.length
       return {

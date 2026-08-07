@@ -87,6 +87,14 @@ test('NEXT_TURN wraps around to first player', (t) => {
   t.is(state.currentPlayerId, 'alice')
 })
 
+test('NEXT_TURN with an empty player roster leaves state unchanged', (t) => {
+  const results = renderWithProvider([{ type: 'NEXT_TURN' }], [])
+  const state = results.at(-1)!
+  t.is(state.currentPlayerId, '')
+  t.deepEqual(state.players, [])
+  t.is(state.turn, 0)
+})
+
 test('SET_PHASE changes game phase', (t) => {
   const results = renderWithProvider(
     [{ type: 'SET_PHASE', payload: 'playing' }],
