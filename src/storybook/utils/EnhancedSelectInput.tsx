@@ -70,38 +70,41 @@ export function EnhancedSelectInput<V>({
   onHighlight,
   orientation = 'vertical',
 }: Properties<V>) {
-  // eslint-disable-next-line react/hook-use-state
-  const [, setRotateIndex] = useState(initialIndex)
-
   // Ensure initialIndex is within bounds
   const safeInitialIndex =
     items.length > 0 ? Math.min(initialIndex, items.length - 1) : 0
   const [selectedIndex, setSelectedIndex] = useState(safeInitialIndex)
 
   const filteredItems = items
-  const visibleItems = limit ? filteredItems.slice(0, limit) : filteredItems
-  const hasItems = visibleItems.length > 0
+  const itemCount = filteredItems.length
+  const hasItems = itemCount > 0
+
+  // Window the list around selectedIndex so navigation can scroll past `limit`
+  // instead of truncating the list to its first `limit` entries.
+  const rotateIndex = limit ? Math.floor(selectedIndex / limit) * limit : 0
+  const visibleItems = limit
+    ? filteredItems.slice(rotateIndex, rotateIndex + limit)
+    : filteredItems
 
   useEffect(() => {
     if (hasItems) {
-      const highlightedItem = visibleItems[selectedIndex]
+      const highlightedItem = filteredItems[selectedIndex]
       if (highlightedItem) {
         onHighlight?.(highlightedItem)
       }
     }
-  }, [visibleItems, selectedIndex, onHighlight, hasItems])
+  }, [filteredItems, selectedIndex, onHighlight, hasItems])
 
   // Helper function to find next valid index
   const findNextValidIndex = (currentIndex: number, step: number): number => {
     if (!hasItems) return currentIndex
 
     let nextIndex = currentIndex
-    const itemCount = visibleItems.length
 
     // Keep trying indices until we find a non-disabled item or complete a full loop
     for (let i = 0; i < itemCount; i++) {
       nextIndex = (nextIndex + step + itemCount) % itemCount
-      if (!visibleItems[nextIndex]?.disabled) {
+      if (!filteredItems[nextIndex]?.disabled) {
         return nextIndex
       }
     }
@@ -138,26 +141,29 @@ export function EnhancedSelectInput<V>({
 
       if (nextIndex !== selectedIndex) {
         setSelectedIndex(nextIndex)
-        if (limit) {
-          setRotateIndex(Math.floor(nextIndex / limit) * limit)
-        }
       }
 
       if (key.return) {
-        const selectedItem = visibleItems[selectedIndex]
+        const selectedItem = filteredItems[selectedIndex]
         if (selectedItem && !selectedItem.disabled) {
           onSelect?.(selectedItem)
         }
       }
 
-      // Handle hotkey selection
-      const hotkeyItem = visibleItems.find(
-        (item) => item.hotkey === input && !item.disabled
-      )
-      if (hotkeyItem) {
-        const hotkeyIndex = visibleItems.indexOf(hotkeyItem)
-        setSelectedIndex(hotkeyIndex)
-        onSelect?.(hotkeyItem)
+      // Handle hotkey selection. Skip when the input is one of the active
+      // navigation keys for the current orientation so a hotkey like `h`,
+      // `j`, `k`, or `l` doesn't also move the selection.
+      const navigationInputs =
+        orientation === 'vertical' ? ['j', 'k'] : ['h', 'l']
+      if (!navigationInputs.includes(input)) {
+        const hotkeyItem = filteredItems.find(
+          (item) => item.hotkey === input && !item.disabled
+        )
+        if (hotkeyItem) {
+          const hotkeyIndex = filteredItems.indexOf(hotkeyItem)
+          setSelectedIndex(hotkeyIndex)
+          onSelect?.(hotkeyItem)
+        }
       }
     },
     { isActive: isFocused }
@@ -178,7 +184,7 @@ export function EnhancedSelectInput<V>({
         gap={orientation === 'vertical' ? 0 : 2}
       >
         {visibleItems.map((item, index) => {
-          const isSelected = index === selectedIndex
+          const isSelected = rotateIndex + index === selectedIndex
 
           return (
             <Box key={item.key ?? String(item.value)}>
