@@ -179,7 +179,6 @@ const deckReducer = (
           playArea: [],
           custom: {},
         },
-        players: [],
         pendingEvents: [...state.pendingEvents, { type: 'DECK_RESET' }],
       }
     }
