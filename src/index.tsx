@@ -65,3 +65,10 @@ export {
   DeckProvider,
   defaultBackArtwork,
 } from './contexts/DeckContext.js'
+export {
+  ThemeContext,
+  ThemeProvider,
+  defaultTheme,
+  useCardTheme,
+  type ThemeProviderProps,
+} from './contexts/ThemeContext.js'
