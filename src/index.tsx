@@ -43,6 +43,14 @@ export { useGame } from './hooks/useGame.js'
 export { useHand } from './hooks/useHand.js'
 export * as Effects from './systems/Effects.js'
 export * as Events from './systems/Events.js'
+export {
+  serialize,
+  hydrate,
+  stripCard,
+  type DeckStateSlice,
+  type GameStateSlice,
+  type SerializeInput,
+} from './systems/Serialization.js'
 export * as Zones from './systems/Zones.js'
 
 export {

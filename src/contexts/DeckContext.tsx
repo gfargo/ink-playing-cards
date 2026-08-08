@@ -8,6 +8,7 @@ import React, {
 import { createStandardDeck } from '../components/Deck/utils.js'
 import { EffectManager } from '../systems/Effects.js'
 import { EventManager } from '../systems/Events.js'
+import { hydrate } from '../systems/Serialization.js'
 import {
   addCard,
   drawCards,
@@ -122,6 +123,20 @@ function handleClearZone(
   return {
     ...state,
     zones: { ...state.zones, custom: remainingCustom },
+  }
+}
+
+function handleHydrate(
+  state: DeckContextType,
+  payload: Extract<DeckAction, { type: 'HYDRATE' }>['payload']
+): DeckContextType {
+  const { deck } = hydrate(payload)
+  return {
+    ...state,
+    zones: deck.zones,
+    players: deck.players,
+    backArtwork: deck.backArtwork,
+    pendingEvents: [],
   }
 }
 
@@ -378,6 +393,10 @@ const deckReducer = (
         ...state,
         pendingEvents: state.pendingEvents.slice(action.payload.count),
       }
+    }
+
+    case 'HYDRATE': {
+      return handleHydrate(state, action.payload)
     }
 
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check

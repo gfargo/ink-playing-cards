@@ -43,6 +43,38 @@ export type BackArtwork = {
 }
 
 /**
+ * A plain, `JSON.stringify`-safe snapshot of deck + game state, produced by
+ * `serialize()` and consumed by `hydrate()` (see `systems/Serialization.ts`)
+ * for save-resume and multiplayer (WebSocket/Supabase) sync. Per-card
+ * `effects` and runtime-only fields (`eventManager`, `effectManager`,
+ * `dispatch`, `pendingEvents`) are never included — hydrate reinstalls
+ * fresh managers around the restored data.
+ */
+export type GameSnapshot = {
+  /** Snapshot format version, for forward-compat. */
+  version: number
+  zones: {
+    deck: TCard[]
+    hands: Record<string, TCard[]>
+    discardPile: TCard[]
+    playArea: TCard[]
+    custom: Record<string, TCard[]>
+  }
+  players: string[]
+  backArtwork: BackArtwork
+  currentPlayerId?: string
+  turn?: number
+  phase?: string
+  /**
+   * Seed for a seeded RNG, if the app uses one. The shuffled deck *order*
+   * is already captured in `zones.deck`, so save-resume round-trips fine
+   * without this — the seed only enables reproducing *future* shuffles.
+   * Round-trips untouched when present.
+   */
+  rngSeed?: number
+}
+
+/**
  * The shape of the DeckContext value.
  * Zones use immutable arrays — the reducer returns new zone instances on every action.
  */
@@ -102,8 +134,10 @@ export type DeckAction =
     }
   | { type: 'SET_ZONE'; payload: { name: string; cards: TCard[] } }
   | { type: 'CLEAR_ZONE'; payload: { name: string } }
+  | { type: 'HYDRATE'; payload: GameSnapshot }
 
 export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: string }
   | { type: 'NEXT_TURN' }
   | { type: 'SET_PHASE'; payload: string }
+  | { type: 'HYDRATE'; payload: GameSnapshot }
