@@ -1,3 +1,4 @@
+import { type BoxProps, type TextProps } from 'ink'
 import { type ReactNode } from 'react'
 import type { CardEffect } from './events.js'
 
@@ -251,3 +252,16 @@ export type AsciiTheme =
   | 'robot'
   | 'pixel'
   | 'medieval'
+
+/**
+ * Global card theme: suit colors, suit glyphs, border styles, and a
+ * monochrome (no-color) mode for accessibility / dumb-terminal support.
+ */
+export type CardTheme = {
+  suitColors: Record<TSuit, TextProps['color']>
+  suitGlyphs: Record<TSuit, string>
+  borderStyle: BoxProps['borderStyle']
+  selectedBorderStyle: BoxProps['borderStyle']
+  selectedColor: TextProps['color']
+  monochrome: boolean
+}

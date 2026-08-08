@@ -1,6 +1,7 @@
 import { Box, Text, type TextProps } from 'ink'
 import React from 'react'
 import { getSuitColor } from '../../constants/card.js'
+import { useCardTheme } from '../../contexts/ThemeContext.js'
 import type { TSuit, TCardValue } from '../../types/index.js'
 import { getCardUnicode, SPECIAL_CARDS } from './constants.js'
 
@@ -21,7 +22,10 @@ export type UnicodeCardProps = {
   readonly size?: number
   /** Whether to show a border around the card */
   readonly bordered?: boolean
-  /** Whether to use rounded borders when bordered is true */
+  /**
+   * Whether to use the theme's `borderStyle` when bordered is true. When
+   * `false`, the border is always `single` regardless of `theme.borderStyle`.
+   */
   readonly rounded?: boolean
 }
 
@@ -40,6 +44,8 @@ export function UnicodeCard({
   bordered = false,
   rounded = true,
 }: UnicodeCardProps) {
+  const cardTheme = useCardTheme()
+
   // Calculate padding based on size
   const padding = Math.max(0, Math.floor(size - 1))
 
@@ -49,7 +55,7 @@ export function UnicodeCard({
     : SPECIAL_CARDS.CARD_BACK
 
   // Determine color based on suit if no custom color provided
-  const defaultColor = getSuitColor(suit)
+  const defaultColor = getSuitColor(suit, cardTheme)
   const baseColor = color ?? defaultColor
 
   // Apply dimming for face down cards if dimmed is true
@@ -71,8 +77,22 @@ export function UnicodeCard({
     <Box
       paddingX={padding}
       paddingY={Math.floor(padding / 2)}
-      borderStyle={selected ? 'double' : rounded ? 'round' : 'single'}
-      borderColor={selected ? 'yellow' : finalColor}
+      // `rounded={false}` always renders a square 'single' border, even
+      // under a theme with a custom `borderStyle` — see the `rounded` prop docs above.
+      borderStyle={
+        selected
+          ? cardTheme.selectedBorderStyle
+          : rounded
+            ? cardTheme.borderStyle
+            : 'single'
+      }
+      borderColor={
+        cardTheme.monochrome
+          ? undefined
+          : selected
+            ? cardTheme.selectedColor
+            : finalColor
+      }
     >
       {content}
     </Box>

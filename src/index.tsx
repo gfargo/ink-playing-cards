@@ -17,6 +17,7 @@ export { Card } from './components/Card/index.js'
 export { CardGrid, type GridCard } from './components/CardGrid/index.js'
 export { CardStack } from './components/CardStack/index.js'
 export { CustomCard } from './components/CustomCard/index.js'
+export { Hand, type HandProps } from './components/Hand/index.js'
 export {
   TarotCard,
   type TarotCardProps,
@@ -42,8 +43,14 @@ export { useDeck } from './hooks/useDeck.js'
 export { useGame } from './hooks/useGame.js'
 export { useHand } from './hooks/useHand.js'
 export { useResponsiveVariant } from './hooks/useResponsiveVariant.js'
+export {
+  useCardCursor,
+  type UseCardCursorOptions,
+  type UseCardCursorResult,
+} from './hooks/useCardCursor.js'
 export * as Effects from './systems/Effects.js'
 export * as Events from './systems/Events.js'
+export * as History from './systems/History.js'
 export {
   serialize,
   hydrate,
@@ -64,3 +71,10 @@ export {
   DeckProvider,
   defaultBackArtwork,
 } from './contexts/DeckContext.js'
+export {
+  ThemeContext,
+  ThemeProvider,
+  defaultTheme,
+  useCardTheme,
+  type ThemeProviderProps,
+} from './contexts/ThemeContext.js'
