@@ -172,6 +172,35 @@ test('onHighlight fires for the initial index on mount', async (t) => {
   t.deepEqual(highlighted, [{ id: 'card-0', index: 0 }])
 })
 
+test('onHighlight does not re-fire when cards is a new array reference with the same content', async (t) => {
+  const highlighted: Array<{ id: string; index: number }> = []
+  const { rerender } = render(
+    <Probe
+      cards={makeCards(3)}
+      options={{
+        onHighlight(card, index) {
+          highlighted.push({ id: card.id, index })
+        },
+      }}
+    />
+  )
+  await waitUntil(() => highlighted.length > 0)
+
+  rerender(
+    <Probe
+      cards={makeCards(3)}
+      options={{
+        onHighlight(card, index) {
+          highlighted.push({ id: card.id, index })
+        },
+      }}
+    />
+  )
+  await delay(20)
+
+  t.deepEqual(highlighted, [{ id: 'card-0', index: 0 }])
+})
+
 test('isFocused false makes keypresses a no-op', async (t) => {
   const snapshots: Array<UseCardCursorResult<TCard>> = []
   const selected: string[] = []

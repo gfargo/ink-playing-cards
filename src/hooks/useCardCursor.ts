@@ -68,7 +68,7 @@ export function useCardCursor<T extends { id: string }>(
       onHighlight?.(card, cursor)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cards, cursor])
+  }, [cursor, cards[cursor]?.id])
 
   useInput(
     (input, key) => {
