@@ -3,6 +3,8 @@ import { Box, type BoxProps } from 'ink'
 import React from 'react'
 import { CARD_DIMENSIONS } from '../../constants/card.js'
 import { type TCard, type TCardValue, type TSuit } from '../../types/index.js'
+import { useResponsiveVariant } from '../../hooks/useResponsiveVariant.js'
+import { type CardVariant } from '../../utils/responsive.js'
 import { AnyCard } from '../AnyCard/index.js'
 
 // Convenience alias for a standard playing card shape.
@@ -18,7 +20,7 @@ type CardGridProps = {
   readonly rows: number
   readonly cols: number
   readonly cards: Array<TCard | undefined> // Undefined for empty cells
-  readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
+  readonly variant?: CardVariant | 'responsive'
   readonly spacing?: {
     row?: number // Space between rows
     col?: number // Space between columns
@@ -42,6 +44,9 @@ export function CardGrid({
   fillEmpty = false,
   alignment = { horizontal: 'center', vertical: 'middle' },
 }: CardGridProps) {
+  const responsiveVariant = useResponsiveVariant()
+  const resolvedVariant = variant === 'responsive' ? responsiveVariant : variant
+
   React.useEffect(() => {
     const capacity = rows * cols
     if (process.env['NODE_ENV'] !== 'production' && cards.length > capacity) {
@@ -114,7 +119,7 @@ export function CardGrid({
 
   // Get placeholder dimensions based on variant
   const getPlaceholderSize = () => {
-    switch (variant) {
+    switch (resolvedVariant) {
       case 'mini': {
         return { width: 5, height: 4 }
       }
@@ -165,7 +170,11 @@ export function CardGrid({
               marginLeft={colIndex === 0 ? 0 : spacing.col}
             >
               {card ? (
-                <AnyCard card={card} variant={variant} faceUp={isFaceUp} />
+                <AnyCard
+                  card={card}
+                  variant={resolvedVariant}
+                  faceUp={isFaceUp}
+                />
               ) : fillEmpty ? (
                 // Render empty placeholder
                 <Box {...getPlaceholderSize()} borderStyle="single" />

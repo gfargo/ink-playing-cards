@@ -1,6 +1,8 @@
 import React from 'react'
 import { type TCard } from '../../types/index.js'
 import { isCustomCard, isStandardCard, isTarotCard } from '../../utils/cards.js'
+import { useResponsiveVariant } from '../../hooks/useResponsiveVariant.js'
+import { type CardVariant } from '../../utils/responsive.js'
 import Card from '../Card/index.js'
 import { CustomCard } from '../CustomCard/index.js'
 import { MiniCard } from '../MiniCard/index.js'
@@ -8,7 +10,7 @@ import { TarotCard } from '../TarotCard/index.js'
 
 type AnyCardProps = {
   readonly card: TCard
-  readonly variant?: 'simple' | 'ascii' | 'minimal' | 'mini' | 'micro'
+  readonly variant?: CardVariant | 'responsive'
   readonly faceUp?: boolean
 }
 
@@ -31,15 +33,18 @@ export function AnyCard({
   variant = 'simple',
   faceUp = false,
 }: AnyCardProps) {
+  const responsiveVariant = useResponsiveVariant()
+  const resolved = variant === 'responsive' ? responsiveVariant : variant
+
   if (isStandardCard(card)) {
-    if (variant === 'mini' || variant === 'micro') {
+    if (resolved === 'mini' || resolved === 'micro') {
       return (
         <MiniCard
           id={card.id}
           suit={card.suit}
           value={card.value}
           faceUp={faceUp}
-          variant={variant}
+          variant={resolved}
         />
       )
     }
@@ -50,7 +55,7 @@ export function AnyCard({
         suit={card.suit}
         value={card.value}
         faceUp={faceUp}
-        variant={variant}
+        variant={resolved}
       />
     )
   }
