@@ -9,6 +9,7 @@ import { createStandardDeck } from '../components/Deck/utils.js'
 import { EffectManager } from '../systems/Effects.js'
 import { EventManager } from '../systems/Events.js'
 import { withHistory } from '../systems/History.js'
+import { hydrate } from '../systems/Serialization.js'
 import {
   addCard,
   drawCards,
@@ -126,6 +127,20 @@ function handleClearZone(
   }
 }
 
+function handleHydrate(
+  state: DeckContextType,
+  payload: Extract<DeckAction, { type: 'HYDRATE' }>['payload']
+): DeckContextType {
+  const { deck } = hydrate(payload)
+  return {
+    ...state,
+    zones: deck.zones,
+    players: deck.players,
+    backArtwork: deck.backArtwork,
+    pendingEvents: [],
+  }
+}
+
 const BACK_ART: Record<'simple' | 'ascii' | 'minimal', string> = {
   simple: ['? ? ? ?', ' ? ? ? ', '? ? ? ?', ' ? ? ? ', '? ? ? ?'].join('\n'),
   ascii: [
@@ -175,8 +190,21 @@ const deckReducer = (
     }
 
     case 'DRAW': {
-      const { playerId, count } = action.payload
-      const [drawn, remaining] = drawCards(state.zones.deck, count)
+      const { playerId, count, reshuffleWhenEmpty } = action.payload
+      let sourceDeck = state.zones.deck
+      let sourceDiscard = state.zones.discardPile
+      const drawEvents: GameEventData[] = []
+
+      if (count > sourceDeck.length) {
+        drawEvents.push({ type: 'DECK_EXHAUSTED' })
+        if (reshuffleWhenEmpty && sourceDiscard.length > 0) {
+          sourceDeck = [...sourceDeck, ...shuffleCards(sourceDiscard)]
+          sourceDiscard = []
+          drawEvents.push({ type: 'DECK_SHUFFLED' })
+        }
+      }
+
+      const [drawn, remaining] = drawCards(sourceDeck, count)
       const currentHand = state.zones.hands[playerId] ?? []
       const newHands = {
         ...state.zones.hands,
@@ -187,10 +215,16 @@ const deckReducer = (
         : [...state.players, playerId]
       return {
         ...state,
-        zones: { ...state.zones, deck: remaining, hands: newHands },
+        zones: {
+          ...state.zones,
+          deck: remaining,
+          discardPile: sourceDiscard,
+          hands: newHands,
+        },
         players: newPlayers,
         pendingEvents: [
           ...state.pendingEvents,
+          ...drawEvents,
           { type: 'CARDS_DRAWN', playerId, cards: drawn },
         ],
       }
@@ -360,6 +394,10 @@ const deckReducer = (
         ...state,
         pendingEvents: state.pendingEvents.slice(action.payload.count),
       }
+    }
+
+    case 'HYDRATE': {
+      return handleHydrate(state, action.payload)
     }
 
     default: {

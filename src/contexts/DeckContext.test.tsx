@@ -97,6 +97,54 @@ test('DRAW action auto-registers player', (t) => {
   t.true(state.players.includes('newPlayer'))
 })
 
+test('DRAW without reshuffleWhenEmpty caps at remaining deck size', (t) => {
+  const cards = makeCards(2)
+  const results = renderWithProvider(
+    [{ type: 'DRAW', payload: { count: 5, playerId: 'p1' } }],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 0)
+  t.is(state.zones.hands['p1']!.length, 2)
+})
+
+test('DRAW with reshuffleWhenEmpty reshuffles discard pile to satisfy the draw', (t) => {
+  const cards = makeCards(5)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 3, playerId: 'p1' } },
+      { type: 'DISCARD', payload: { playerId: 'p1', cardId: 'card-4' } },
+      { type: 'DISCARD', payload: { playerId: 'p1', cardId: 'card-3' } },
+      {
+        type: 'DRAW',
+        payload: { count: 4, playerId: 'p1', reshuffleWhenEmpty: true },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  // Hand: 3 drawn, 2 discarded (1 left), then 4 more drawn via reshuffle = 5
+  t.is(state.zones.hands['p1']!.length, 5)
+  t.is(state.zones.discardPile.length, 0)
+  t.is(state.zones.deck.length, 0)
+})
+
+test('DRAW with reshuffleWhenEmpty is a no-op reshuffle when discard is empty', (t) => {
+  const cards = makeCards(2)
+  const results = renderWithProvider(
+    [
+      {
+        type: 'DRAW',
+        payload: { count: 5, playerId: 'p1', reshuffleWhenEmpty: true },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.hands['p1']!.length, 2)
+  t.is(state.zones.deck.length, 0)
+})
+
 test('RESET action restores deck and clears hands', (t) => {
   const cards = makeCards(5)
   const results = renderWithProvider(
@@ -522,4 +570,65 @@ test('RESET clears custom zones', (t) => {
   )
   const state = results.at(-1)!
   t.deepEqual(state.zones.custom, {})
+})
+
+test('HYDRATE replaces zones/players/backArtwork, resets pendingEvents, and keeps manager identity', (t) => {
+  const cards = makeCards(3)
+  let eventManagerBefore: unknown
+  let effectManagerBefore: unknown
+  let eventManagerAfter: unknown
+  let effectManagerAfter: unknown
+  let stateAfter: DeckContextType | undefined
+
+  function Capture() {
+    const ctx = useContext(DeckContext)!
+    const dispatched = useRef(false)
+    if (!dispatched.current) {
+      dispatched.current = true
+      eventManagerBefore = ctx.eventManager
+      effectManagerBefore = ctx.effectManager
+      ctx.dispatch({
+        type: 'HYDRATE',
+        payload: {
+          version: 1,
+          zones: {
+            deck: [],
+            hands: {},
+            discardPile: [],
+            playArea: makeCards(2),
+            custom: { tableau: makeCards(1) },
+          },
+          players: ['remote-1'],
+          backArtwork: {
+            ascii: 'remote-ascii',
+            simple: 'remote-simple',
+            minimal: '#',
+          },
+        },
+      })
+    }
+
+    eventManagerAfter = ctx.eventManager
+    effectManagerAfter = ctx.effectManager
+    stateAfter = ctx
+    return null
+  }
+
+  render(
+    <DeckProvider initialCards={cards}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  t.is(eventManagerAfter, eventManagerBefore)
+  t.is(effectManagerAfter, effectManagerBefore)
+  t.deepEqual(stateAfter!.pendingEvents, [])
+  t.is(stateAfter!.zones.deck.length, 0)
+  t.is(stateAfter!.zones.playArea.length, 2)
+  t.deepEqual(
+    stateAfter!.zones.custom['tableau']!.map((c) => c.id),
+    ['card-0']
+  )
+  t.deepEqual(stateAfter!.players, ['remote-1'])
+  t.is(stateAfter!.backArtwork.ascii, 'remote-ascii')
 })
