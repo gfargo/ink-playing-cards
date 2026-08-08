@@ -12,7 +12,11 @@ import { DeckContext, DeckProvider } from './DeckContext.js'
 
 type CapturedState = Pick<DeckContextType, 'zones' | 'players'>
 
-function renderWithProvider(actions: DeckAction[], initialCards?: TCard[]) {
+function renderWithProvider(
+  actions: DeckAction[],
+  initialCards?: TCard[],
+  options?: { enableHistory?: boolean }
+) {
   const results: CapturedState[] = []
 
   function Capture() {
@@ -33,7 +37,10 @@ function renderWithProvider(actions: DeckAction[], initialCards?: TCard[]) {
   }
 
   render(
-    <DeckProvider initialCards={initialCards}>
+    <DeckProvider
+      initialCards={initialCards}
+      enableHistory={options?.enableHistory}
+    >
       <Capture />
     </DeckProvider>
   )
@@ -510,6 +517,45 @@ test('PLAY_CARD does not mutate the pre-action deck array', (t) => {
 
   t.truthy(deckBeforePlayRef.current)
   t.is(deckBeforePlayRef.current!.length, 7)
+})
+
+test('UNDO reverses the last state-changing action when history is enabled', (t) => {
+  const cards = makeCards(10)
+  const results = renderWithProvider(
+    [{ type: 'DRAW', payload: { count: 3, playerId: 'p1' } }, { type: 'UNDO' }],
+    cards,
+    { enableHistory: true }
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 10)
+  t.is(state.zones.hands['p1'], undefined)
+})
+
+test('REDO re-applies an undone action when history is enabled', (t) => {
+  const cards = makeCards(10)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 3, playerId: 'p1' } },
+      { type: 'UNDO' },
+      { type: 'REDO' },
+    ],
+    cards,
+    { enableHistory: true }
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 7)
+  t.is(state.zones.hands['p1']!.length, 3)
+})
+
+test('UNDO/REDO are no-ops when history is disabled', (t) => {
+  const cards = makeCards(10)
+  const results = renderWithProvider(
+    [{ type: 'DRAW', payload: { count: 3, playerId: 'p1' } }, { type: 'UNDO' }],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 7)
+  t.is(state.zones.hands['p1']!.length, 3)
 })
 
 test('RESET clears custom zones', (t) => {

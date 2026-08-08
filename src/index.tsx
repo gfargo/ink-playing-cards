@@ -43,6 +43,7 @@ export { useGame } from './hooks/useGame.js'
 export { useHand } from './hooks/useHand.js'
 export * as Effects from './systems/Effects.js'
 export * as Events from './systems/Events.js'
+export * as History from './systems/History.js'
 export {
   serialize,
   hydrate,
