@@ -137,6 +137,17 @@ const { hand, drawCard, playCard, discard } = useHand('player1')
 // discard(cardId: string) — hand → discardPile
 ```
 
+### useGame — must be inside `<GameProvider>`
+
+```ts
+const {
+  currentPlayerId, players, turn, phase, dispatch,
+  setCurrentPlayer,   // (playerId: string) => void
+  nextTurn,           // () => void — next player, turn++
+  setPhase,           // (phase: string) => void
+} = useGame()
+```
+
 ## Components
 
 ### Card — standard playing card
@@ -261,11 +272,11 @@ Default deck: 52 cards via `createStandardDeck()`. Pass `customReducer` to exten
   <DeckProvider><Game /></DeckProvider>
 </GameProvider>
 
-// Access: React.useContext(GameContext)
-const { currentPlayerId, players, turn, phase, dispatch } = React.useContext(GameContext)
-dispatch({ type: 'NEXT_TURN' })          // next player, turn++
-dispatch({ type: 'SET_PHASE', payload: 'playing' })
-dispatch({ type: 'SET_CURRENT_PLAYER', payload: 'bob' })
+// Access: useGame()
+const { currentPlayerId, players, turn, phase, nextTurn, setPhase, setCurrentPlayer } = useGame()
+nextTurn()                       // next player, turn++
+setPhase('playing')
+setCurrentPlayer('bob')
 ```
 
 ## Event System

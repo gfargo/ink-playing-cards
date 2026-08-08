@@ -16,7 +16,7 @@ function renderWithProvider(
   const results: CapturedState[] = []
 
   function Capture() {
-    const ctx = useContext(GameContext)
+    const ctx = useContext(GameContext)!
     const dispatched = useRef(false)
     if (!dispatched.current) {
       dispatched.current = true
@@ -117,4 +117,63 @@ test('unknown action type preserves existing state', (t) => {
   t.is(state.currentPlayerId, 'alice')
   t.deepEqual(state.players, ['alice', 'bob'])
   t.is(state.turn, 0)
+})
+
+test('HYDRATE replaces currentPlayerId/players/turn/phase from a snapshot', (t) => {
+  const results = renderWithProvider(
+    [
+      {
+        type: 'HYDRATE',
+        payload: {
+          version: 1,
+          zones: {
+            deck: [],
+            hands: {},
+            discardPile: [],
+            playArea: [],
+            custom: {},
+          },
+          players: ['remote-1', 'remote-2'],
+          backArtwork: { ascii: '', simple: '', minimal: '' },
+          currentPlayerId: 'remote-2',
+          turn: 7,
+          phase: 'playing',
+        },
+      },
+    ],
+    ['alice', 'bob']
+  )
+  const state = results.at(-1)!
+  t.is(state.currentPlayerId, 'remote-2')
+  t.deepEqual(state.players, ['remote-1', 'remote-2'])
+  t.is(state.turn, 7)
+  t.is(state.phase, 'playing')
+})
+
+test('HYDRATE defaults turn/phase/currentPlayerId when the snapshot omits game fields', (t) => {
+  const results = renderWithProvider(
+    [
+      {
+        type: 'HYDRATE',
+        payload: {
+          version: 1,
+          zones: {
+            deck: [],
+            hands: {},
+            discardPile: [],
+            playArea: [],
+            custom: {},
+          },
+          players: ['remote-1'],
+          backArtwork: { ascii: '', simple: '', minimal: '' },
+        },
+      },
+    ],
+    ['alice', 'bob']
+  )
+  const state = results.at(-1)!
+  t.is(state.currentPlayerId, 'remote-1')
+  t.deepEqual(state.players, ['remote-1'])
+  t.is(state.turn, 0)
+  t.is(state.phase, 'setup')
 })

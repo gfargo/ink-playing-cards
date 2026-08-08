@@ -1,5 +1,5 @@
 import { render } from 'ink-testing-library'
-import React, { useContext, useRef } from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 import test from 'ava'
 import type {
   CustomCardProps,
@@ -7,6 +7,7 @@ import type {
   DeckContextType,
   TCard,
 } from '../types/index.js'
+import { DrawCardEffect } from '../systems/Effects.js'
 import { DeckContext, DeckProvider } from './DeckContext.js'
 
 type CapturedState = Pick<DeckContextType, 'zones' | 'players'>
@@ -89,6 +90,54 @@ test('DRAW action auto-registers player', (t) => {
   t.true(state.players.includes('newPlayer'))
 })
 
+test('DRAW without reshuffleWhenEmpty caps at remaining deck size', (t) => {
+  const cards = makeCards(2)
+  const results = renderWithProvider(
+    [{ type: 'DRAW', payload: { count: 5, playerId: 'p1' } }],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 0)
+  t.is(state.zones.hands['p1']!.length, 2)
+})
+
+test('DRAW with reshuffleWhenEmpty reshuffles discard pile to satisfy the draw', (t) => {
+  const cards = makeCards(5)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 3, playerId: 'p1' } },
+      { type: 'DISCARD', payload: { playerId: 'p1', cardId: 'card-4' } },
+      { type: 'DISCARD', payload: { playerId: 'p1', cardId: 'card-3' } },
+      {
+        type: 'DRAW',
+        payload: { count: 4, playerId: 'p1', reshuffleWhenEmpty: true },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  // Hand: 3 drawn, 2 discarded (1 left), then 4 more drawn via reshuffle = 5
+  t.is(state.zones.hands['p1']!.length, 5)
+  t.is(state.zones.discardPile.length, 0)
+  t.is(state.zones.deck.length, 0)
+})
+
+test('DRAW with reshuffleWhenEmpty is a no-op reshuffle when discard is empty', (t) => {
+  const cards = makeCards(2)
+  const results = renderWithProvider(
+    [
+      {
+        type: 'DRAW',
+        payload: { count: 5, playerId: 'p1', reshuffleWhenEmpty: true },
+      },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.is(state.zones.hands['p1']!.length, 2)
+  t.is(state.zones.deck.length, 0)
+})
+
 test('RESET action restores deck and clears hands', (t) => {
   const cards = makeCards(5)
   const results = renderWithProvider(
@@ -101,6 +150,19 @@ test('RESET action restores deck and clears hands', (t) => {
   const state = results.at(-1)!
   t.is(state.zones.deck.length, 52)
   t.deepEqual(state.zones.hands, {})
+})
+
+test('RESET preserves the player roster', (t) => {
+  const cards = makeCards(5)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 2, playerId: 'p1' } },
+      { type: 'RESET' },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['p1'])
 })
 
 test('RESET with custom cards', (t) => {
@@ -385,6 +447,71 @@ test('CLEAR_ZONE removes a custom zone', (t) => {
   t.is(state.zones.custom['tableau'], undefined)
 })
 
+test('PLAY_CARD runs attached effects, drawing cards into the player hand', (t) => {
+  const cards = makeCards(10)
+  // DrawCards() draws from the end of the deck, so a DRAW of 3 from a
+  // 10-card deck lands card-7, card-8, card-9 in the hand.
+  cards[9]!.effects = [new DrawCardEffect(2)]
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 3, playerId: 'p1' } },
+      { type: 'PLAY_CARD', payload: { playerId: 'p1', cardId: 'card-9' } },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  // 3 drawn, 1 played, 2 drawn by the effect => 4 in hand
+  t.is(state.zones.hands['p1']!.length, 4)
+  t.is(state.zones.playArea.length, 1)
+  t.is(state.zones.playArea[0]!.id, 'card-9')
+  // 10 - 3 (initial draw) - 2 (effect draw) = 5
+  t.is(state.zones.deck.length, 5)
+})
+
+test('PLAY_CARD does not mutate the pre-action deck array', (t) => {
+  const cards = makeCards(10)
+  // DrawCards() draws from the end of the deck, so a DRAW of 3 from a
+  // 10-card deck lands card-7, card-8, card-9 in the hand.
+  cards[9]!.effects = [new DrawCardEffect(2)]
+  const deckBeforePlayRef: { current: TCard[] | undefined } = {
+    current: undefined,
+  }
+
+  function Capture() {
+    const ctx = useContext(DeckContext)!
+    const initialized = useRef(false)
+    if (!initialized.current) {
+      initialized.current = true
+      ctx.dispatch({ type: 'DRAW', payload: { count: 3, playerId: 'p1' } })
+    }
+
+    useEffect(() => {
+      if (ctx.zones.deck.length === 7 && !deckBeforePlayRef.current) {
+        // Snapshot the reference to the post-DRAW deck array, then play the
+        // effect-bearing card. If DrawCardEffect still mutated the deck
+        // array in place (the old splice-based bug), this same reference
+        // would shrink from 7 to 5 once the effect runs.
+        deckBeforePlayRef.current = ctx.zones.deck
+        ctx.dispatch({
+          type: 'PLAY_CARD',
+          payload: { playerId: 'p1', cardId: 'card-9' },
+        })
+      }
+    })
+
+    return null
+  }
+
+  render(
+    <DeckProvider initialCards={cards}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  t.truthy(deckBeforePlayRef.current)
+  t.is(deckBeforePlayRef.current!.length, 7)
+})
+
 test('RESET clears custom zones', (t) => {
   const cards = makeCards(3)
   const tableau = makeCards(2)
@@ -397,4 +524,65 @@ test('RESET clears custom zones', (t) => {
   )
   const state = results.at(-1)!
   t.deepEqual(state.zones.custom, {})
+})
+
+test('HYDRATE replaces zones/players/backArtwork, resets pendingEvents, and keeps manager identity', (t) => {
+  const cards = makeCards(3)
+  let eventManagerBefore: unknown
+  let effectManagerBefore: unknown
+  let eventManagerAfter: unknown
+  let effectManagerAfter: unknown
+  let stateAfter: DeckContextType | undefined
+
+  function Capture() {
+    const ctx = useContext(DeckContext)!
+    const dispatched = useRef(false)
+    if (!dispatched.current) {
+      dispatched.current = true
+      eventManagerBefore = ctx.eventManager
+      effectManagerBefore = ctx.effectManager
+      ctx.dispatch({
+        type: 'HYDRATE',
+        payload: {
+          version: 1,
+          zones: {
+            deck: [],
+            hands: {},
+            discardPile: [],
+            playArea: makeCards(2),
+            custom: { tableau: makeCards(1) },
+          },
+          players: ['remote-1'],
+          backArtwork: {
+            ascii: 'remote-ascii',
+            simple: 'remote-simple',
+            minimal: '#',
+          },
+        },
+      })
+    }
+
+    eventManagerAfter = ctx.eventManager
+    effectManagerAfter = ctx.effectManager
+    stateAfter = ctx
+    return null
+  }
+
+  render(
+    <DeckProvider initialCards={cards}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  t.is(eventManagerAfter, eventManagerBefore)
+  t.is(effectManagerAfter, effectManagerBefore)
+  t.deepEqual(stateAfter!.pendingEvents, [])
+  t.is(stateAfter!.zones.deck.length, 0)
+  t.is(stateAfter!.zones.playArea.length, 2)
+  t.deepEqual(
+    stateAfter!.zones.custom['tableau']!.map((c) => c.id),
+    ['card-0']
+  )
+  t.deepEqual(stateAfter!.players, ['remote-1'])
+  t.is(stateAfter!.backArtwork.ascii, 'remote-ascii')
 })

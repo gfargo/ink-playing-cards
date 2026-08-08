@@ -1,10 +1,6 @@
 import React from 'react'
-import {
-  isCustomCard,
-  isStandardCard,
-  isTarotCard,
-  type TCard,
-} from '../../types/index.js'
+import { type TCard } from '../../types/index.js'
+import { isCustomCard, isStandardCard, isTarotCard } from '../../utils/cards.js'
 import { useResponsiveVariant } from '../../hooks/useResponsiveVariant.js'
 import { type CardVariant } from '../../utils/responsive.js'
 import Card from '../Card/index.js'
