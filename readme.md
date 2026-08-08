@@ -251,7 +251,7 @@ const {
   eventManager,   // EventManager — subscribe to game events
   effectManager,  // EffectManager — apply card effects
   shuffle,        // () => void
-  draw,           // (count, playerId) => void
+  draw,           // (count, playerId, options?: { reshuffleWhenEmpty?: boolean }) => void
   reset,          // (cards?) => void
   deal,           // (count, playerIds) => void
   cutDeck,        // (index) => void
@@ -276,6 +276,7 @@ Convenience hook for a specific player's hand:
 const { hand, drawCard, playCard, discard } = useHand('player1')
 
 drawCard(2)              // draw 2 cards
+drawCard(2, { reshuffleWhenEmpty: true })  // reshuffle discard pile into deck if it runs dry
 playCard('card-id')      // move card to play area
 discard('card-id')       // move card to discard pile
 ```
@@ -381,7 +382,9 @@ eventManager.removeEventListener('CARDS_DRAWN', listener)
 eventManager.removeAllListeners()
 ```
 
-Event types: `CARDS_DRAWN`, `CARDS_DEALT`, `CARD_PLAYED`, `CARD_DISCARDED`, `DECK_SHUFFLED`, `DECK_RESET`, `DECK_CUT`, plus custom strings.
+Event types: `CARDS_DRAWN`, `CARDS_DEALT`, `CARD_PLAYED`, `CARD_DISCARDED`, `DECK_SHUFFLED`, `DECK_RESET`, `DECK_CUT`, `DECK_EXHAUSTED`, plus custom strings.
+
+`DRAW` dispatches `DECK_EXHAUSTED` whenever a draw request exceeds the cards left in the deck. By default the draw is still capped to whatever remains (same as before). Pass `reshuffleWhenEmpty: true` (via `draw(count, playerId, { reshuffleWhenEmpty: true })` or `drawCard(count, { reshuffleWhenEmpty: true })`) to opt into shuffling the discard pile back into the deck before completing the draw — a `DECK_SHUFFLED` event follows `DECK_EXHAUSTED` when that happens.
 
 ### Effects
 

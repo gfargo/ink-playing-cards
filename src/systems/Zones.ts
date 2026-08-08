@@ -98,6 +98,124 @@ export function moveCard(
   return [newFrom, newTo]
 }
 
+/**
+ * Sort a hand of cards by a key extracted from each card. Returns a new array.
+ * The caller supplies the key extractor since rank/suit ordering is game-specific.
+ */
+export function sortHand(
+  cards: TCard[],
+  by: (card: TCard) => number | string
+): TCard[] {
+  return [...cards].sort((a, b) => {
+    const keyA = by(a)
+    const keyB = by(b)
+    if (keyA < keyB) return -1
+    if (keyA > keyB) return 1
+    return 0
+  })
+}
+
+/**
+ * Group cards into buckets by a key extracted from each card.
+ * Returns an insertion-ordered Map from key to the cards sharing that key.
+ */
+export function groupBy<K>(
+  cards: TCard[],
+  keyFn: (card: TCard) => K
+): Map<K, TCard[]> {
+  const groups = new Map<K, TCard[]>()
+  for (const card of cards) {
+    const key = keyFn(card)
+    const bucket = groups.get(key)
+    if (bucket) {
+      bucket.push(card)
+    } else {
+      groups.set(key, [card])
+    }
+  }
+
+  return groups
+}
+
+/**
+ * Look at the top `n` cards (end of array) without removing them.
+ * `n` is clamped to the available card count and defaults to 1.
+ */
+export function peek(cards: TCard[], n = 1): TCard[] {
+  const count = Math.max(0, Math.min(n, cards.length))
+  return cards.slice(cards.length - count)
+}
+
+/**
+ * Insert a card at a given index. Returns a new array.
+ * `index` is clamped to [0, cards.length].
+ */
+export function insertAt(cards: TCard[], card: TCard, index: number): TCard[] {
+  const clampedIndex = Math.max(0, Math.min(index, cards.length))
+  return [...cards.slice(0, clampedIndex), card, ...cards.slice(clampedIndex)]
+}
+
+/**
+ * Draw cards from the bottom of a zone (start of array).
+ * Returns [drawnCards, remainingCards]. `count` is clamped to the available cards.
+ */
+export function drawFromBottom(
+  cards: TCard[],
+  count: number
+): [TCard[], TCard[]] {
+  const drawCount = Math.max(0, Math.min(count, cards.length))
+  const drawn = cards.slice(0, drawCount)
+  const remaining = cards.slice(drawCount)
+  return [drawn, remaining]
+}
+
+export type DealPattern = 'round-robin' | 'per-player'
+
+export type DealOptions = {
+  players: number
+  count: number
+  pattern?: DealPattern
+}
+
+export type DealResult = {
+  hands: TCard[][]
+  remaining: TCard[]
+}
+
+/**
+ * Deal cards from the top of a zone to a number of players.
+ * `per-player` gives each player a consecutive block of `count` cards.
+ * `round-robin` (default) deals one card per player per round, for `count` rounds.
+ * Draws are clamped, so dealing more than the deck holds never throws.
+ */
+export function deal(
+  cards: TCard[],
+  { players, count, pattern = 'round-robin' }: DealOptions
+): DealResult {
+  const hands: TCard[][] = Array.from({ length: players }, () => [])
+  let remaining = cards
+
+  if (pattern === 'per-player') {
+    for (let p = 0; p < players; p++) {
+      const [drawn, rest] = drawCards(remaining, count)
+      hands[p] = drawn
+      remaining = rest
+    }
+
+    return { hands, remaining }
+  }
+
+  for (let round = 0; round < count; round++) {
+    for (let p = 0; p < players; p++) {
+      const [drawn, rest] = drawCards(remaining, 1)
+      hands[p] = [...hands[p]!, ...drawn]
+      remaining = rest
+    }
+  }
+
+  return { hands, remaining }
+}
+
 // ---- Legacy class-based API for backwards compatibility ----
 
 export type Zone = {

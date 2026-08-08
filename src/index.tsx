@@ -6,6 +6,12 @@ export {
   SYMBOL_SUIT_MAP,
   getSuitColor,
 } from './constants/card.js'
+export {
+  isStandardCard,
+  isTarotCard,
+  isCustomCard,
+  generateCardId,
+} from './utils/cards.js'
 export { AnyCard } from './components/AnyCard/index.js'
 export { Card } from './components/Card/index.js'
 export { CardGrid, type GridCard } from './components/CardGrid/index.js'
@@ -33,9 +39,18 @@ export {
 } from './components/UnicodeCard/index.js'
 export { GameContext, GameProvider } from './contexts/GameContext.js'
 export { useDeck } from './hooks/useDeck.js'
+export { useGame } from './hooks/useGame.js'
 export { useHand } from './hooks/useHand.js'
 export * as Effects from './systems/Effects.js'
 export * as Events from './systems/Events.js'
+export {
+  serialize,
+  hydrate,
+  stripCard,
+  type DeckStateSlice,
+  type GameStateSlice,
+  type SerializeInput,
+} from './systems/Serialization.js'
 export * as Zones from './systems/Zones.js'
 
 export {

@@ -3,9 +3,8 @@ import {
   type TCard,
   type TCardValue,
   type TSuit,
-  generateCardId,
-  isStandardCard,
 } from '../../types/index.js'
+import { generateCardId, isStandardCard } from '../../utils/cards.js'
 
 /**
  * Creates a standard deck of 52 playing cards, each with a unique ID.
