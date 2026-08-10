@@ -201,7 +201,15 @@ export function evaluatePokerHand(cards: TCard[]): PokerHandResult {
                     ? PokerHandRank.Pair
                     : PokerHandRank.HighCard
 
-  return { rank, name: POKER_HAND_NAMES[rank], kickers }
+  // The wheel (A-2-3-4-5) is the lowest straight: its Ace counts low, so it
+  // must compare below a 6-high straight despite `rankIndex('A')` being
+  // high. Reorder its kickers to lead with the 5 and trail with the Ace so
+  // `comparePokerHands`'s lockstep walk ranks it correctly.
+  const orderedKickers = isLowStraight
+    ? (['5', '4', '3', '2', 'A'] as TCardValue[])
+    : kickers
+
+  return { rank, name: POKER_HAND_NAMES[rank], kickers: orderedKickers }
 }
 
 /**

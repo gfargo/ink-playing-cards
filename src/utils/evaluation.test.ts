@@ -353,3 +353,41 @@ test('comparePokerHands: identical hands tie', (t) => {
   ]
   t.is(comparePokerHands(a, b), 0)
 })
+
+test('comparePokerHands: wheel (ace-low straight) loses to a 6-high straight', (t) => {
+  const wheel = [
+    card('hearts', 'A'),
+    card('spades', '2'),
+    card('clubs', '3'),
+    card('diamonds', '4'),
+    card('hearts', '5'),
+  ]
+  const sixHigh = [
+    card('clubs', '2'),
+    card('diamonds', '3'),
+    card('spades', '4'),
+    card('hearts', '5'),
+    card('clubs', '6'),
+  ]
+  t.true(comparePokerHands(wheel, sixHigh) < 0)
+  t.true(comparePokerHands(sixHigh, wheel) > 0)
+})
+
+test('comparePokerHands: wheel straight flush loses to a 6-high straight flush', (t) => {
+  const wheelFlush = [
+    card('hearts', 'A'),
+    card('hearts', '2'),
+    card('hearts', '3'),
+    card('hearts', '4'),
+    card('hearts', '5'),
+  ]
+  const sixHighFlush = [
+    card('clubs', '2'),
+    card('clubs', '3'),
+    card('clubs', '4'),
+    card('clubs', '5'),
+    card('clubs', '6'),
+  ]
+  t.true(comparePokerHands(wheelFlush, sixHighFlush) < 0)
+  t.true(comparePokerHands(sixHighFlush, wheelFlush) > 0)
+})
