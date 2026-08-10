@@ -99,22 +99,39 @@ test('createPairedDeck(false) is deterministic across two calls', (t) => {
   t.deepEqual(a, b)
 })
 
-test('createPairedDeck keeps each matched pair adjacent after shuffle', (t) => {
+test('createPairedDeck matched cards share the same suit (visually identical)', (t) => {
+  const deck = createPairedDeck(false)
+  const counts = new Map<string, number>()
+  for (const card of deck) {
+    if (isCardProps(card)) {
+      const key = `${card.value}-${card.suit}`
+      counts.set(key, (counts.get(key) ?? 0) + 1)
+    }
+  }
+
+  for (const [key, count] of counts) {
+    t.is(count, 2, `${key} should appear exactly twice (same suit and value)`)
+  }
+})
+
+test('createPairedDeck(true) does not always keep matched pairs in adjacent slots', (t) => {
   const deck = createPairedDeck(true)
-  // Cards are laid out as consecutive pairs: [0,1], [2,3], ...
+  let adjacentMatches = 0
   for (let i = 0; i < deck.length; i += 2) {
     const a = deck[i]
     const b = deck[i + 1]
-    t.true(
-      isCardProps(a) && isCardProps(b),
-      `slot ${i} or ${i + 1} is not a CardProps`
-    )
-    if (isCardProps(a) && isCardProps(b)) {
-      t.is(
-        a.value,
-        b.value,
-        `pair at positions ${i},${i + 1} has mismatched values`
-      )
+    if (
+      isCardProps(a) &&
+      isCardProps(b) &&
+      a.value === b.value &&
+      a.suit === b.suit
+    ) {
+      adjacentMatches++
     }
   }
+
+  t.true(
+    adjacentMatches < 26,
+    'every matched pair landed in adjacent slots after shuffling — cards are not being shuffled individually'
+  )
 })
