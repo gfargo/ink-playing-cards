@@ -92,3 +92,36 @@ test('useGame.setPhase dispatches SET_PHASE', (t) => {
   const state = snapshots.at(-1)!
   t.is(state.phase, 'playing')
 })
+
+test('useGame.addPlayer dispatches ADD_PLAYER', (t) => {
+  const snapshots = renderWithProvider(
+    (game) => {
+      game.addPlayer('charlie')
+    },
+    ['alice', 'bob']
+  )
+  const state = snapshots.at(-1)!
+  t.deepEqual(state.players, ['alice', 'bob', 'charlie'])
+})
+
+test('useGame.removePlayer dispatches REMOVE_PLAYER', (t) => {
+  const snapshots = renderWithProvider(
+    (game) => {
+      game.removePlayer('bob')
+    },
+    ['alice', 'bob']
+  )
+  const state = snapshots.at(-1)!
+  t.deepEqual(state.players, ['alice'])
+})
+
+test('useGame.reorderPlayers dispatches REORDER_PLAYERS', (t) => {
+  const snapshots = renderWithProvider(
+    (game) => {
+      game.reorderPlayers(['bob', 'alice'])
+    },
+    ['alice', 'bob']
+  )
+  const state = snapshots.at(-1)!
+  t.deepEqual(state.players, ['bob', 'alice'])
+})

@@ -82,9 +82,15 @@ export type SerializeInput = {
  * fresh managers around the restored data.
  *
  * `DeckContextType` and `GameContextType` each track their own `players`
- * list; the snapshot has one roster, sourced from `input.deck.players`
- * (apps that use both providers together are expected to keep the two in
- * sync, e.g. by dispatching `ADD_PLAYER`/`REMOVE_PLAYER` to both).
+ * list; the snapshot has one roster, sourced from `input.deck.players`.
+ * Ownership contract: when both providers are mounted together,
+ * `GameContext` is the authoritative roster (turn order, current player);
+ * `DeckContext.players` mirrors it — apps keep the two in sync by
+ * dispatching the same `ADD_PLAYER`/`REMOVE_PLAYER`/`REORDER_PLAYERS`
+ * action to both `dispatch`ers. `DeckContext`'s implicit growth of
+ * `players` on `DRAW`/`DEAL` (auto-registering a new player ID) is a
+ * fallback for standalone `DeckProvider` usage without `GameProvider`, not
+ * part of the sync contract.
  */
 export function serialize(input: SerializeInput): GameSnapshot {
   return {

@@ -257,6 +257,7 @@ const {
   cutDeck,        // (index) => void
   addPlayer,      // (playerId) => void
   removePlayer,   // (playerId) => void
+  reorderPlayers, // (playerIds) => void — no-op unless playerIds is a permutation of the current roster
   getPlayerHand,  // (playerId) => TCard[]
   addCustomCard,  // (card: CustomCardProps) => void
   removeCustomCard, // (cardId) => void
@@ -305,7 +306,9 @@ Manages turn order, current player, and game phases:
 </GameProvider>
 ```
 
-Dispatches `SET_CURRENT_PLAYER`, `NEXT_TURN`, and `SET_PHASE` actions.
+Dispatches `SET_CURRENT_PLAYER`, `NEXT_TURN`, `SET_PHASE`, `ADD_PLAYER`, `REMOVE_PLAYER`, and `REORDER_PLAYERS` actions. `useGame()` exposes these as `addPlayer`, `removePlayer`, and `reorderPlayers`. Removing the current player falls back `currentPlayerId` to the next remaining player (or `''` if none are left); `reorderPlayers`/`REORDER_PLAYERS` is a no-op unless the given list is a permutation of the existing roster.
+
+**Roster ownership:** `GameContext` and `DeckContext` each track their own `players` list. When both providers are used together, `GameContext` is the authoritative roster for turn order — apps keep `DeckContext.players` in sync by dispatching the same `ADD_PLAYER`/`REMOVE_PLAYER`/`REORDER_PLAYERS` action to both `dispatch`ers. `DeckContext`'s implicit roster growth on `DRAW`/`DEAL` (auto-registering a player ID on first draw) only applies when `DeckProvider` is used standalone, without `GameProvider`.
 
 ### ThemeProvider
 
