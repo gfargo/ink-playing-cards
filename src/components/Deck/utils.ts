@@ -56,6 +56,13 @@ export function createStandardDeck(options?: {
  * (so face-up they look identical). Cards are optionally shuffled as
  * individual cards (not as pair units), so matched pairs don't predictably
  * land in adjacent slots.
+ *
+ * A 52-card deck only has room for 2 pairs (4 cards) per value, so each
+ * value is necessarily limited to 2 of the 4 suits — a 4-suit spread per
+ * value would require doubling the deck to 104 cards. To still spread suit
+ * variety across the deck as a whole, the two suits used per value cycle
+ * through all 6 unordered suit combinations (not just 4 adjacent-suit
+ * rotations), so every suit pairing appears somewhere in the deck.
  * `rng` defaults to `Math.random`; pass a seeded RNG for deterministic
  * IDs and shuffle order.
  */
@@ -79,14 +86,20 @@ export function createPairedDeck(
     'A',
   ]
   const suits: TSuit[] = ['hearts', 'diamonds', 'clubs', 'spades']
+  const suitPairs: Array<[TSuit, TSuit]> = []
+  for (let i = 0; i < suits.length; i++) {
+    for (let j = i + 1; j < suits.length; j++) {
+      suitPairs.push([suits[i]!, suits[j]!])
+    }
+  }
 
-  // Each value gets two matched pairs, built from two half-decks (a
-  // rotating pair of suits) rather than mixing all four suits together, so
-  // every matched pair is visually identical (same suit and value).
+  // Each value gets two matched pairs, built from two half-decks (a suit
+  // pair drawn from all 6 possible suit combinations, cycled across
+  // values) rather than mixing all four suits together, so every matched
+  // pair is visually identical (same suit and value).
   const deck: Array<CardProps & { id: string }> = []
   for (const [index, value] of values.entries()) {
-    const suitA = suits[index % suits.length]!
-    const suitB = suits[(index + 1) % suits.length]!
+    const [suitA, suitB] = suitPairs[index % suitPairs.length]!
     for (const suit of [suitA, suitB]) {
       for (let copy = 0; copy < 2; copy++) {
         deck.push({

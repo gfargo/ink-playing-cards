@@ -122,6 +122,30 @@ test('createPairedDeck matched cards share the same suit (visually identical)', 
   }
 })
 
+test('createPairedDeck spreads suit pairings across all 6 suit combinations', (t) => {
+  const deck = createPairedDeck(false)
+  const suitsByValue = new Map<string, Set<string>>()
+  for (const card of deck) {
+    if (isCardProps(card)) {
+      const suits = suitsByValue.get(card.value) ?? new Set<string>()
+      suits.add(card.suit)
+      suitsByValue.set(card.value, suits)
+    }
+  }
+
+  const seenPairs = new Set<string>()
+  for (const suits of suitsByValue.values()) {
+    t.is(suits.size, 2, 'each value should use exactly 2 suits')
+    seenPairs.add([...suits].sort().join('-'))
+  }
+
+  t.is(
+    seenPairs.size,
+    6,
+    'all 6 unordered suit combinations should appear across the deck'
+  )
+})
+
 test('createPairedDeck(true) does not always keep matched pairs in adjacent slots', (t) => {
   const deck = createPairedDeck(true)
   let adjacentMatches = 0
