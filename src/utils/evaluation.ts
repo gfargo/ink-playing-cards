@@ -1,4 +1,4 @@
-import type { TCard, TCardValue } from '../types/index.js'
+import type { CardProps, TCard, TCardValue } from '../types/index.js'
 import { isStandardCard } from './cards.js'
 
 /**
@@ -141,22 +141,42 @@ const POKER_HAND_NAMES: Record<PokerHandRankValue, string> = {
 }
 
 /**
- * Evaluates a 5-card poker hand, returning its category rank/name plus a
- * kicker list (values ordered by frequency then rank) for tiebreaking.
- * Hands with fewer than 5 standard cards are treated as High Card.
+ * Compares two already-evaluated hands: higher category wins; ties resolve
+ * by walking each hand's kickers (frequency-then-rank ordered) in lockstep.
+ * Returns a positive number if `a` wins, negative if `b` wins, 0 for a tie.
  */
-export function evaluatePokerHand(cards: TCard[]): PokerHandResult {
-  const standard = cards
-    .filter((card) => isStandardCard(card))
-    .filter((card) => card.value !== 'JOKER')
-  if (standard.length < 5) {
-    return {
-      rank: PokerHandRank.HighCard,
-      name: POKER_HAND_NAMES[PokerHandRank.HighCard],
-      kickers: [],
-    }
+function compareHandResults(a: PokerHandResult, b: PokerHandResult): number {
+  if (a.rank !== b.rank) return a.rank - b.rank
+
+  const length = Math.max(a.kickers.length, b.kickers.length)
+  for (let i = 0; i < length; i++) {
+    const kickerA = a.kickers[i]
+    const kickerB = b.kickers[i]
+    const rankA = kickerA === undefined ? -1 : rankIndex(kickerA)
+    const rankB = kickerB === undefined ? -1 : rankIndex(kickerB)
+    if (rankA !== rankB) return rankA - rankB
   }
 
+  return 0
+}
+
+/** Every way to choose `size` items from `items`, order preserved. */
+function combinations<T>(items: T[], size: number): T[][] {
+  if (size === 0) return [[]]
+  if (items.length < size) return []
+
+  const [head, ...rest] = items as [T, ...T[]]
+  const withHead = combinations(rest, size - 1).map((combo) => [head, ...combo])
+  const withoutHead = combinations(rest, size)
+  return [...withHead, ...withoutHead]
+}
+
+/**
+ * Evaluates exactly 5 standard, non-JOKER cards, returning the hand's
+ * category rank/name plus a kicker list (values ordered by frequency then
+ * rank) for tiebreaking.
+ */
+function evaluateFive(standard: CardProps[]): PokerHandResult {
   const values = standard.map((card) => card.value)
   const suits = standard.map((card) => card.suit)
 
@@ -213,24 +233,42 @@ export function evaluatePokerHand(cards: TCard[]): PokerHandResult {
 }
 
 /**
+ * Evaluates a poker hand, returning its category rank/name plus a kicker
+ * list (values ordered by frequency then rank) for tiebreaking. Hands with
+ * fewer than 5 standard cards are treated as High Card. Hands with more than
+ * 5 standard cards (e.g. 7-card stud, Hold'em) are scored as the best
+ * possible 5-card sub-hand.
+ */
+export function evaluatePokerHand(cards: TCard[]): PokerHandResult {
+  const standard = cards
+    .filter((card) => isStandardCard(card))
+    .filter((card) => card.value !== 'JOKER')
+  if (standard.length < 5) {
+    return {
+      rank: PokerHandRank.HighCard,
+      name: POKER_HAND_NAMES[PokerHandRank.HighCard],
+      kickers: [],
+    }
+  }
+
+  if (standard.length === 5) return evaluateFive(standard)
+
+  let best: PokerHandResult | undefined
+  for (const combo of combinations(standard, 5)) {
+    const result = evaluateFive(combo)
+    if (best === undefined || compareHandResults(result, best) > 0) {
+      best = result
+    }
+  }
+
+  return best!
+}
+
+/**
  * Compares two poker hands: higher category wins; ties resolve by walking
  * each hand's kickers (frequency-then-rank ordered) in lockstep. Returns a
  * positive number if `a` wins, negative if `b` wins, 0 for a true tie.
  */
 export function comparePokerHands(a: TCard[], b: TCard[]): number {
-  const handA = evaluatePokerHand(a)
-  const handB = evaluatePokerHand(b)
-
-  if (handA.rank !== handB.rank) return handA.rank - handB.rank
-
-  const length = Math.max(handA.kickers.length, handB.kickers.length)
-  for (let i = 0; i < length; i++) {
-    const kickerA = handA.kickers[i]
-    const kickerB = handB.kickers[i]
-    const rankA = kickerA === undefined ? -1 : rankIndex(kickerA)
-    const rankB = kickerB === undefined ? -1 : rankIndex(kickerB)
-    if (rankA !== rankB) return rankA - rankB
-  }
-
-  return 0
+  return compareHandResults(evaluatePokerHand(a), evaluatePokerHand(b))
 }

@@ -447,6 +447,8 @@ isValidMeld(cards)                      // isSet(cards) || isRun(cards)
 
 const result = evaluatePokerHand(fiveCards)
 // { rank: PokerHandRank.Flush, name: 'Flush', kickers: [...] }
+// Hands with more than 5 standard cards (7-card stud, Hold'em) are scored
+// as the best possible 5-card sub-hand rather than evaluated over all N.
 
 comparePokerHands(handA, handB)         // >0 if handA wins, <0 if handB wins, 0 on a tie
 ```

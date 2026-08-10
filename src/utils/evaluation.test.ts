@@ -391,3 +391,67 @@ test('comparePokerHands: wheel straight flush loses to a 6-high straight flush',
   t.true(comparePokerHands(wheelFlush, sixHighFlush) < 0)
   t.true(comparePokerHands(sixHighFlush, wheelFlush) > 0)
 })
+
+// EvaluatePokerHand: more than 5 cards (best-of-N)
+
+test('evaluatePokerHand: 7 cards picks the flush embedded among off-suit noise', (t) => {
+  const seven = [
+    card('hearts', '2'),
+    card('hearts', '5'),
+    card('hearts', '9'),
+    card('hearts', 'J'),
+    card('hearts', 'K'),
+    card('clubs', '4'),
+    card('diamonds', '8'),
+  ]
+  t.is(evaluatePokerHand(seven).rank, PokerHandRank.Flush)
+})
+
+test('evaluatePokerHand: 7 cards picks a straight buried among noise', (t) => {
+  const seven = [
+    card('clubs', '2'),
+    card('diamonds', '3'),
+    card('spades', '4'),
+    card('hearts', '5'),
+    card('clubs', '6'),
+    card('hearts', 'K'),
+    card('diamonds', 'K'),
+  ]
+  t.is(evaluatePokerHand(seven).rank, PokerHandRank.Straight)
+})
+
+test('evaluatePokerHand: 7 cards returns the best 5-card category, not a lesser one', (t) => {
+  const sevenWithTrips = [
+    card('hearts', '9'),
+    card('spades', '9'),
+    card('clubs', '9'),
+    card('diamonds', '2'),
+    card('hearts', '4'),
+    card('clubs', '7'),
+    card('diamonds', 'K'),
+  ]
+  t.is(evaluatePokerHand(sevenWithTrips).rank, PokerHandRank.ThreeOfAKind)
+})
+
+test('comparePokerHands: 7-card wheel straight still loses to a 7-card 6-high straight', (t) => {
+  const wheel = [
+    card('hearts', 'A'),
+    card('spades', '2'),
+    card('clubs', '3'),
+    card('diamonds', '4'),
+    card('hearts', '5'),
+    card('clubs', '9'),
+    card('diamonds', 'J'),
+  ]
+  const sixHigh = [
+    card('clubs', '2'),
+    card('diamonds', '3'),
+    card('spades', '4'),
+    card('hearts', '5'),
+    card('clubs', '6'),
+    card('hearts', '9'),
+    card('diamonds', 'J'),
+  ]
+  t.true(comparePokerHands(wheel, sixHigh) < 0)
+  t.true(comparePokerHands(sixHigh, wheel) > 0)
+})
