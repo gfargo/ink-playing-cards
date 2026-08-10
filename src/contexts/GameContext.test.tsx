@@ -150,6 +150,90 @@ test('HYDRATE replaces currentPlayerId/players/turn/phase from a snapshot', (t) 
   t.is(state.phase, 'playing')
 })
 
+test('ADD_PLAYER appends a new player', (t) => {
+  const results = renderWithProvider(
+    [{ type: 'ADD_PLAYER', payload: 'charlie' }],
+    ['alice', 'bob']
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['alice', 'bob', 'charlie'])
+})
+
+test('ADD_PLAYER is idempotent', (t) => {
+  const results = renderWithProvider(
+    [
+      { type: 'ADD_PLAYER', payload: 'alice' },
+      { type: 'ADD_PLAYER', payload: 'alice' },
+    ],
+    ['alice', 'bob']
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['alice', 'bob'])
+})
+
+test('ADD_PLAYER sets currentPlayerId when the roster was empty', (t) => {
+  const results = renderWithProvider(
+    [{ type: 'ADD_PLAYER', payload: 'alice' }],
+    []
+  )
+  const state = results.at(-1)!
+  t.is(state.currentPlayerId, 'alice')
+  t.deepEqual(state.players, ['alice'])
+})
+
+test('REMOVE_PLAYER drops a player', (t) => {
+  const results = renderWithProvider(
+    [{ type: 'REMOVE_PLAYER', payload: 'bob' }],
+    ['alice', 'bob', 'charlie']
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['alice', 'charlie'])
+  t.is(state.currentPlayerId, 'alice')
+})
+
+test('REMOVE_PLAYER of the current player resets currentPlayerId to the next valid player', (t) => {
+  const results = renderWithProvider(
+    [{ type: 'REMOVE_PLAYER', payload: 'alice' }],
+    ['alice', 'bob']
+  )
+  const state = results.at(-1)!
+  t.is(state.currentPlayerId, 'bob')
+})
+
+test('REMOVE_PLAYER of the last player resets currentPlayerId to empty string', (t) => {
+  const results = renderWithProvider(
+    [{ type: 'REMOVE_PLAYER', payload: 'alice' }],
+    ['alice']
+  )
+  const state = results.at(-1)!
+  t.is(state.currentPlayerId, '')
+  t.deepEqual(state.players, [])
+})
+
+test('REORDER_PLAYERS changes turn order and NEXT_TURN follows it', (t) => {
+  const results = renderWithProvider(
+    [
+      { type: 'REORDER_PLAYERS', payload: ['charlie', 'alice', 'bob'] },
+      { type: 'NEXT_TURN' },
+    ],
+    ['alice', 'bob', 'charlie']
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['charlie', 'alice', 'bob'])
+  // `currentPlayerId` started as 'alice' (index 1 in the new order), so
+  // NEXT_TURN should advance to 'bob'.
+  t.is(state.currentPlayerId, 'bob')
+})
+
+test('REORDER_PLAYERS with a non-permutation payload is a no-op', (t) => {
+  const results = renderWithProvider(
+    [{ type: 'REORDER_PLAYERS', payload: ['alice', 'dave'] }],
+    ['alice', 'bob']
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['alice', 'bob'])
+})
+
 test('HYDRATE defaults turn/phase/currentPlayerId when the snapshot omits game fields', (t) => {
   const results = renderWithProvider(
     [

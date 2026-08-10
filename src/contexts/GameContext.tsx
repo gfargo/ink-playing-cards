@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useReducer,
 } from 'react'
+import { isPlayerPermutation } from '../systems/Players.js'
 import { hydrate } from '../systems/Serialization.js'
 import { type GameAction, type GameContextType } from '../types/index.js'
 
@@ -48,6 +49,30 @@ const gameReducer = (
         ...state,
         phase: action.payload,
       }
+    }
+
+    case 'ADD_PLAYER': {
+      if (state.players.includes(action.payload)) return state
+      return {
+        ...state,
+        players: [...state.players, action.payload],
+        currentPlayerId: state.currentPlayerId || action.payload,
+      }
+    }
+
+    case 'REMOVE_PLAYER': {
+      if (!state.players.includes(action.payload)) return state
+      const players = state.players.filter((p) => p !== action.payload)
+      const currentPlayerId =
+        state.currentPlayerId === action.payload
+          ? (players[0] ?? '')
+          : state.currentPlayerId
+      return { ...state, players, currentPlayerId }
+    }
+
+    case 'REORDER_PLAYERS': {
+      if (!isPlayerPermutation(state.players, action.payload)) return state
+      return { ...state, players: action.payload }
     }
 
     case 'HYDRATE': {

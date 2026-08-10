@@ -150,6 +150,24 @@ test('hydrate does not alias the snapshot zone arrays (defensive copy)', (t) => 
   t.is(snapshot.zones.deck.length, 2)
 })
 
+test('serialize prefers game.players over a divergent deck.players', (t) => {
+  const deckState = makeDeckState({ players: ['p1', 'p2'] })
+  const gameState = {
+    currentPlayerId: 'p1',
+    players: ['p1'],
+    turn: 0,
+    phase: 'setup',
+  }
+  const snapshot = serialize({ deck: deckState, game: gameState })
+  t.deepEqual(snapshot.players, ['p1'])
+})
+
+test('serialize falls back to deck.players when no game slice is passed', (t) => {
+  const deckState = makeDeckState({ players: ['p1', 'p2'] })
+  const snapshot = serialize({ deck: deckState })
+  t.deepEqual(snapshot.players, ['p1', 'p2'])
+})
+
 test('a tarot card survives a serialize/hydrate round-trip', (t) => {
   const tarotCard: TarotMajorProps = {
     id: 'fool',

@@ -9,6 +9,7 @@ import { createStandardDeck } from '../components/Deck/utils.js'
 import { EffectManager } from '../systems/Effects.js'
 import { EventManager } from '../systems/Events.js'
 import { withHistory } from '../systems/History.js'
+import { isPlayerPermutation } from '../systems/Players.js'
 import { hydrate } from '../systems/Serialization.js'
 import {
   addCard,
@@ -386,6 +387,11 @@ const createDeckReducer =
           players: state.players.filter((p: string) => p !== action.payload),
           zones: { ...state.zones, hands: remainingHands },
         }
+      }
+
+      case 'REORDER_PLAYERS': {
+        if (!isPlayerPermutation(state.players, action.payload)) return state
+        return { ...state, players: action.payload }
       }
 
       case 'FLUSH_EVENTS': {

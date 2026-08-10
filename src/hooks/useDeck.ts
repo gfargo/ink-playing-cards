@@ -74,6 +74,10 @@ export const useDeck = () => {
     dispatch({ type: 'REMOVE_PLAYER', payload: playerId })
   }
 
+  const reorderPlayers = (playerIds: string[]) => {
+    dispatch({ type: 'REORDER_PLAYERS', payload: playerIds })
+  }
+
   const getPlayerHand = (playerId: string): TCard[] =>
     zones.hands[playerId] ?? []
 
@@ -136,6 +140,7 @@ export const useDeck = () => {
     deal,
     addPlayer,
     removePlayer,
+    reorderPlayers,
     getPlayerHand,
     moveCard,
     setZone,

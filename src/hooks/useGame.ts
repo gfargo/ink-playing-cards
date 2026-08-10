@@ -21,6 +21,18 @@ export const useGame = () => {
     dispatch({ type: 'SET_PHASE', payload: nextPhase })
   }
 
+  const addPlayer = (playerId: string) => {
+    dispatch({ type: 'ADD_PLAYER', payload: playerId })
+  }
+
+  const removePlayer = (playerId: string) => {
+    dispatch({ type: 'REMOVE_PLAYER', payload: playerId })
+  }
+
+  const reorderPlayers = (playerIds: string[]) => {
+    dispatch({ type: 'REORDER_PLAYERS', payload: playerIds })
+  }
+
   return {
     currentPlayerId,
     players,
@@ -30,5 +42,8 @@ export const useGame = () => {
     setCurrentPlayer,
     nextTurn,
     setPhase,
+    addPlayer,
+    removePlayer,
+    reorderPlayers,
   }
 }
