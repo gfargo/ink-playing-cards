@@ -1,7 +1,19 @@
 import test from 'ava'
 import { render } from 'ink-testing-library'
-import React from 'react'
+import React, { useContext, useRef } from 'react'
+import { DeckContext, DeckProvider } from '../../contexts/DeckContext.js'
 import { MiniCard } from './index.js'
+
+function FaceDownAceWithCustomBackArtwork() {
+  const context = useContext(DeckContext)!
+  const dispatched = useRef(false)
+  if (!dispatched.current) {
+    dispatched.current = true
+    context.dispatch({ type: 'SET_BACK_ARTWORK', payload: { minimal: '#' } })
+  }
+
+  return <MiniCard id="ace-spades" suit="spades" value="A" faceUp={false} />
+}
 
 test('render queen of clubs face up', (t) => {
   const { lastFrame } = render(
@@ -167,5 +179,47 @@ test('render ace of spades face down', (t) => {
   // Check MiniCard does not give away suit
   if (aceSpacesLastFrame) {
     t.false(aceSpacesLastFrame.includes('♠'))
+  }
+})
+
+test('render face-down mini card reads backArtwork.minimal from DeckContext', (t) => {
+  const { lastFrame } = render(
+    <DeckProvider>
+      <FaceDownAceWithCustomBackArtwork />
+    </DeckProvider>
+  )
+
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    t.true(frame.includes('#'))
+    t.false(frame.includes('?'))
+    t.false(frame.includes('♠'))
+  }
+})
+
+test('render JOKER mini card abbreviates the value instead of truncating', (t) => {
+  const { lastFrame } = render(
+    <MiniCard id="joker" suit="spades" value="JOKER" />
+  )
+
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    t.false(frame.includes('JOK'))
+    t.true(frame.includes('JK'))
+  }
+})
+
+test('render JOKER micro card abbreviates the value instead of overflowing', (t) => {
+  const { lastFrame } = render(
+    <MiniCard id="joker" suit="spades" value="JOKER" variant="micro" />
+  )
+
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    t.false(frame.includes('JOKER'))
+    t.true(frame.includes('JK'))
   }
 })
