@@ -157,7 +157,16 @@ function wrapText(text: string, maxWidth: number): string[] {
           current = ''
         }
 
-        const chunk = truncate(remaining, maxWidth)
+        // Truncate() can return '' when maxWidth is narrower than the next
+        // code point's own width (e.g. a 2-column glyph in a 1-column
+        // budget) — force-consume that code point so remaining always
+        // shrinks and the loop can't spin forever.
+        let chunk = truncate(remaining, maxWidth)
+        if (chunk.length === 0) {
+          chunk = [...remaining][0] ?? ''
+        }
+
+        if (chunk.length === 0) break
         lines.push(chunk)
         remaining = remaining.slice(chunk.length)
       }

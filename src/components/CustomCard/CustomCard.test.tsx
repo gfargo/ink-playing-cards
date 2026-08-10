@@ -359,6 +359,20 @@ test('emoji title keeps rows aligned', (t) => {
   t.snapshot(frame)
 })
 
+test('wrapText does not hang when a wide glyph cannot fit a 1-column budget', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-narrow-wide-glyph"
+      width={3}
+      height={7}
+      description="龍が飛ぶ"
+    />
+  )
+  const frame = lastFrame() ?? ''
+  t.true(typeof frame === 'string')
+  t.snapshot(frame)
+})
+
 test('imitation: mini hand card', (t) => {
   const { lastFrame } = render(
     <CustomCard
