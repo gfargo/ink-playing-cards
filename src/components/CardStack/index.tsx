@@ -35,8 +35,8 @@ export function CardStack({
     const scale = variant === 'mini' || variant === 'micro' ? 0.5 : 1
 
     return {
-      marginLeft: baseOverlap * scale,
-      marginTop: Math.abs(baseOverlap) * 0.5 * scale,
+      marginLeft: Math.round(baseOverlap * scale),
+      marginTop: Math.round(baseOverlap * 0.5 * scale),
     }
   }
 
