@@ -1,5 +1,5 @@
 import test from 'ava'
-import type { CardProps, TCard } from '../types/index.js'
+import type { CardProps, TarotMajorProps, TCard } from '../types/index.js'
 import {
   shuffleCards,
   drawCards,
@@ -33,6 +33,10 @@ function cardValue(card: TCard): CardProps['value'] {
 
 function makeDeck(count: number): TCard[] {
   return Array.from({ length: count }, (_, i) => makeCard(`card-${i}`))
+}
+
+function makeTarotCard(id: string): TarotMajorProps {
+  return { id, arcana: 'major', majorIndex: 0 }
 }
 
 test('shuffleCards returns a new array of the same length', (t) => {
@@ -399,4 +403,44 @@ test('DiscardPile has correct name', (t) => {
 test('PlayArea has correct name', (t) => {
   const area = new PlayArea()
   t.is(area.name, 'Play Area')
+})
+
+// Tarot cards are TCard — regression coverage for #34 (TarotCardProps was
+// missing from the TCard union, so tarot cards couldn't be placed in zones).
+
+test('addCard accepts a tarot card', (t) => {
+  const zone = makeDeck(2)
+  const tarot = makeTarotCard('fool')
+  const result = addCard(zone, tarot)
+  t.is(result.length, 3)
+  t.deepEqual(result[2], tarot)
+})
+
+test('moveCard preserves tarot-specific fields across zones', (t) => {
+  const from: TCard[] = [makeTarotCard('fool'), makeCard('ten-hearts')]
+  const to: TCard[] = []
+  const [, newTo] = moveCard(from, to, 'fool')
+  const moved = findCard(newTo, 'fool') as TarotMajorProps
+  t.is(moved.arcana, 'major')
+  t.is(moved.majorIndex, 0)
+})
+
+test('findCard finds a tarot card by id among standard cards', (t) => {
+  const zone: TCard[] = [makeCard('ace-hearts'), makeTarotCard('fool')]
+  const found = findCard(zone, 'fool')
+  t.truthy(found)
+  t.is((found as TarotMajorProps).arcana, 'major')
+})
+
+test('deal distributes a mixed deck of standard and tarot cards', (t) => {
+  const cards: TCard[] = [
+    makeCard('ace-hearts'),
+    makeTarotCard('fool'),
+    makeCard('king-spades'),
+    makeTarotCard('magician'),
+  ]
+  const { hands, remaining } = deal(cards, { players: 2, count: 2 })
+  t.is(hands.flat().length, 4)
+  t.is(remaining.length, 0)
+  t.true(hands.flat().some((c) => c.id === 'fool'))
 })

@@ -2,6 +2,7 @@ import test from 'ava'
 import {
   type BackArtwork,
   type CardEffect,
+  type TarotMajorProps,
   type TCard,
 } from '../types/index.js'
 import { isStandardCard } from '../utils/cards.js'
@@ -147,4 +148,18 @@ test('hydrate does not alias the snapshot zone arrays (defensive copy)', (t) => 
   const { deck } = hydrate(snapshot)
   deck.zones.deck.push(makeCard('mutated'))
   t.is(snapshot.zones.deck.length, 2)
+})
+
+test('a tarot card survives a serialize/hydrate round-trip', (t) => {
+  const tarotCard: TarotMajorProps = {
+    id: 'fool',
+    arcana: 'major',
+    majorIndex: 0,
+  }
+  const deckState = makeDeckState({ deck: [tarotCard, ...makeCards(1)] })
+  const { deck } = hydrate(serialize({ deck: deckState }))
+  const hydratedTarot = deck.zones.deck[0] as TarotMajorProps
+  t.is(hydratedTarot.id, 'fool')
+  t.is(hydratedTarot.arcana, 'major')
+  t.is(hydratedTarot.majorIndex, 0)
 })

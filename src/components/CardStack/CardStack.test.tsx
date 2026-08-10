@@ -510,3 +510,32 @@ test('render stack with mixed standard and custom cards', (t) => {
   )
   t.snapshot(lastFrame())
 })
+
+test('render stack with a tarot card', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[{ id: 'fool', arcana: 'major' as const, majorIndex: 0 as const }]}
+      name="Tarot Stack"
+    />
+  )
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    t.true(frame.includes('The Fool'))
+  }
+})
+
+test('render stack with mixed standard and tarot cards', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[
+        { id: 'std-1', suit: 'hearts', value: 'A' },
+        { id: 'fool', arcana: 'major' as const, majorIndex: 0 as const },
+      ]}
+      name="Mixed Tarot Stack"
+    />
+  )
+  t.snapshot(lastFrame())
+})
