@@ -8,6 +8,7 @@ import type {
   TCard,
 } from '../types/index.js'
 import { DrawCardEffect } from '../systems/Effects.js'
+import { createTarotDeck } from '../components/TarotCard/utils.js'
 import { DeckContext, DeckProvider } from './DeckContext.js'
 
 type CapturedState = Pick<DeckContextType, 'zones' | 'players'>
@@ -67,6 +68,16 @@ test('DeckProvider initializes with custom cards', (t) => {
   const results = renderWithProvider([], cards)
   const state = results.at(-1)!
   t.is(state.zones.deck.length, 5)
+})
+
+test('DeckProvider accepts createTarotDeck() as initialCards with no cast', (t) => {
+  // Regression for #34: TarotCardProps must be part of the TCard union so
+  // createTarotDeck()'s TarotCardProps[] return type is assignable to
+  // DeckProvider's initialCards?: TCard[] without a cast.
+  const tarotDeck = createTarotDeck()
+  const results = renderWithProvider([], tarotDeck)
+  const state = results.at(-1)!
+  t.is(state.zones.deck.length, 78)
 })
 
 test('SHUFFLE action preserves deck size', (t) => {
