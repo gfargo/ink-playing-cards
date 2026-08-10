@@ -283,6 +283,36 @@ test('REMOVE_PLAYER removes player and their hand', (t) => {
   t.is(state.zones.hands['alice'], undefined)
 })
 
+test('REORDER_PLAYERS reorders players without disturbing hands', (t) => {
+  const cards = makeCards(10)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 1, playerId: 'alice' } },
+      { type: 'DRAW', payload: { count: 1, playerId: 'bob' } },
+      { type: 'REORDER_PLAYERS', payload: ['bob', 'alice'] },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['bob', 'alice'])
+  t.is(state.zones.hands['alice']!.length, 1)
+  t.is(state.zones.hands['bob']!.length, 1)
+})
+
+test('REORDER_PLAYERS with a non-permutation payload is a no-op', (t) => {
+  const cards = makeCards(10)
+  const results = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 1, playerId: 'alice' } },
+      { type: 'DRAW', payload: { count: 1, playerId: 'bob' } },
+      { type: 'REORDER_PLAYERS', payload: ['alice', 'dave'] },
+    ],
+    cards
+  )
+  const state = results.at(-1)!
+  t.deepEqual(state.players, ['alice', 'bob'])
+})
+
 test('ADD_CUSTOM_CARD adds card to deck', (t) => {
   const cards = makeCards(3)
   const custom: CustomCardProps = { id: 'custom-1', title: 'Wild' }

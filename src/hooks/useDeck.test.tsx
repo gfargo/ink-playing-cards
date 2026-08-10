@@ -68,6 +68,37 @@ test('useDeck exposes moveCard/setZone/clearZone/getZone/customZones', (t) => {
   t.is(final.customZones['tableau']!.length, 1)
 })
 
+test('useDeck.reorderPlayers dispatches REORDER_PLAYERS', (t) => {
+  const snapshots: Array<ReturnType<typeof useDeck>> = []
+
+  function Capture() {
+    const deck = useDeck()
+    const step = useRef(0)
+    if (step.current === 0) {
+      step.current = 1
+      deck.addPlayer('alice')
+    } else if (step.current === 1 && deck.players.includes('alice')) {
+      step.current = 2
+      deck.addPlayer('bob')
+    } else if (step.current === 2 && deck.players.includes('bob')) {
+      step.current = 3
+      deck.reorderPlayers(['bob', 'alice'])
+    }
+
+    snapshots.push(deck)
+    return null
+  }
+
+  render(
+    <DeckProvider initialCards={makeCards(3)}>
+      <Capture />
+    </DeckProvider>
+  )
+
+  const final = snapshots.at(-1)!
+  t.deepEqual(final.players, ['bob', 'alice'])
+})
+
 test('useDeck undo/redo reverse and replay a draw when history is enabled', (t) => {
   const snapshots: Array<ReturnType<typeof useDeck>> = []
 

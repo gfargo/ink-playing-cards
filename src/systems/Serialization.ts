@@ -82,15 +82,19 @@ export type SerializeInput = {
  * fresh managers around the restored data.
  *
  * `DeckContextType` and `GameContextType` each track their own `players`
- * list; the snapshot has one roster, sourced from `input.deck.players`
- * (apps that use both providers together are expected to keep the two in
- * sync, e.g. by dispatching `ADD_PLAYER`/`REMOVE_PLAYER` to both).
+ * list; the snapshot has one roster. When a `game` slice is passed,
+ * `GameContext` is authoritative and its roster is what gets snapshotted —
+ * this is enforced here, not just documented. `input.deck.players` is used
+ * only as a fallback for apps that mount `DeckProvider` standalone, without
+ * `GameProvider`. The recommended way to keep both contexts' rosters from
+ * drifting in the first place is `usePlayers()`, which dispatches roster
+ * mutations to every mounted provider at once.
  */
 export function serialize(input: SerializeInput): GameSnapshot {
   return {
     version: SNAPSHOT_VERSION,
     zones: stripZones(input.deck.zones),
-    players: [...input.deck.players],
+    players: [...(input.game?.players ?? input.deck.players)],
     backArtwork: { ...input.deck.backArtwork },
     currentPlayerId: input.game?.currentPlayerId,
     turn: input.game?.turn,

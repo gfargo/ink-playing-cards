@@ -139,6 +139,7 @@ export type DeckAction =
   | { type: 'DISCARD'; payload: { playerId: string; cardId: string } }
   | { type: 'ADD_PLAYER'; payload: string }
   | { type: 'REMOVE_PLAYER'; payload: string }
+  | { type: 'REORDER_PLAYERS'; payload: string[] }
   | { type: 'FLUSH_EVENTS'; payload: { count: number } }
   | {
       type: 'MOVE_CARD'
@@ -160,4 +161,7 @@ export type GameAction =
   | { type: 'SET_CURRENT_PLAYER'; payload: string }
   | { type: 'NEXT_TURN' }
   | { type: 'SET_PHASE'; payload: string }
+  | { type: 'ADD_PLAYER'; payload: string }
+  | { type: 'REMOVE_PLAYER'; payload: string }
+  | { type: 'REORDER_PLAYERS'; payload: string[] }
   | { type: 'HYDRATE'; payload: GameSnapshot }

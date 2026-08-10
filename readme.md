@@ -257,6 +257,7 @@ const {
   cutDeck,        // (index) => void
   addPlayer,      // (playerId) => void
   removePlayer,   // (playerId) => void
+  reorderPlayers, // (playerIds) => void — no-op unless playerIds is a permutation of the current roster
   getPlayerHand,  // (playerId) => TCard[]
   addCustomCard,  // (card: CustomCardProps) => void
   removeCustomCard, // (cardId) => void
@@ -305,7 +306,15 @@ Manages turn order, current player, and game phases:
 </GameProvider>
 ```
 
-Dispatches `SET_CURRENT_PLAYER`, `NEXT_TURN`, and `SET_PHASE` actions.
+Dispatches `SET_CURRENT_PLAYER`, `NEXT_TURN`, `SET_PHASE`, `ADD_PLAYER`, `REMOVE_PLAYER`, and `REORDER_PLAYERS` actions. `useGame()` exposes these as `addPlayer`, `removePlayer`, and `reorderPlayers`. Removing the current player falls back `currentPlayerId` to the next remaining player (or `''` if none are left); `reorderPlayers`/`REORDER_PLAYERS` is a no-op unless the given list is a permutation of the existing roster.
+
+**Roster ownership:** `GameContext` and `DeckContext` each track their own `players` list. When both providers are used together, `GameContext` is the authoritative roster — `serialize()` snapshots `GameContext.players` whenever a `game` slice is passed to it, falling back to `DeckContext.players` only when `game` is omitted. Use `usePlayers()` instead of `useGame()`/`useDeck()`'s individual `addPlayer`/`removePlayer`/`reorderPlayers` to mutate the roster: it dispatches to every mounted provider at once, so the two rosters can't drift apart by only updating one of them. Note that `DeckContext`'s implicit roster growth on `DRAW`/`DEAL` (auto-registering a player ID on first draw) is unconditional — it fires the same way whether or not `GameProvider` is mounted. Calling `useDeck().draw()`/`.deal()` directly for a brand-new player ID grows `DeckContext.players` without notifying `GameContext`, so the two rosters can still drift; register players via `usePlayers().addPlayer()` (or `useGame().addPlayer()`) before drawing/dealing to them instead of relying on this auto-registration.
+
+```tsx
+import { usePlayers } from 'ink-playing-cards'
+
+const { players, addPlayer, removePlayer, reorderPlayers } = usePlayers()
+```
 
 ### ThemeProvider
 
