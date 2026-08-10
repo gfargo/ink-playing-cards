@@ -1,3 +1,5 @@
+import stringWidth from 'string-width'
+
 /**
  * Creates a string of spaces with the specified length
  * @param count - Number of spaces to create
@@ -17,7 +19,7 @@ export const center = (
   width: number,
   paddingCharacter?: string
 ): string => {
-  const padding = Math.max(0, width - text.length) / 2
+  const padding = Math.max(0, width - displayWidth(text)) / 2
   return (
     spaces(Math.floor(padding), paddingCharacter) +
     text +
@@ -32,7 +34,7 @@ export const center = (
  * @returns The left-aligned text with padding spaces
  */
 export const left = (text: string, width: number): string => {
-  return text + spaces(Math.max(0, width - text.length))
+  return text + spaces(Math.max(0, width - displayWidth(text)))
 }
 
 /**
@@ -42,7 +44,38 @@ export const left = (text: string, width: number): string => {
  * @returns The right-aligned text with padding spaces
  */
 export const right = (text: string, width: number): string => {
-  return spaces(Math.max(0, width - text.length)) + text
+  return spaces(Math.max(0, width - displayWidth(text))) + text
+}
+
+/**
+ * Returns the display width of a string in terminal columns via `string-width`,
+ * which accounts for wide CJK/emoji glyphs (2 columns), combining marks and
+ * ANSI escape sequences (0 columns), and ordinary code points (1 column).
+ */
+export const displayWidth = (s: string): number => stringWidth(s)
+
+/**
+ * Truncates a string to fit within `width` display columns without splitting
+ * a wide (2-column) code point in half. Falls back to dropping the last code
+ * point that would overflow the budget.
+ * @param text - The text to truncate
+ * @param width - The maximum display width, in terminal columns
+ * @returns The truncated text, whose display width is `<= width`
+ */
+export const truncate = (text: string, width: number): string => {
+  if (width <= 0) return ''
+  if (displayWidth(text) <= width) return text
+
+  let result = ''
+  let used = 0
+  for (const character of text) {
+    const characterWidth = displayWidth(character)
+    if (used + characterWidth > width) break
+    result += character
+    used += characterWidth
+  }
+
+  return result
 }
 
 /**
@@ -59,28 +92,16 @@ export const centerLabelBlock = (
   innerWidth: number,
   innerHeight: number
 ): string => {
-  const clipped = label.slice(0, innerWidth)
-  const leftPadding = Math.floor((innerWidth - clipped.length) / 2)
-  const rightPadding = innerWidth - clipped.length - leftPadding
+  const clipped = truncate(label, innerWidth)
+  const clippedWidth = displayWidth(clipped)
+  const leftPadding = Math.floor((innerWidth - clippedWidth) / 2)
+  const rightPadding = innerWidth - clippedWidth - leftPadding
   const labelLine = spaces(leftPadding) + clipped + spaces(rightPadding)
   const verticalCenter = Math.floor(innerHeight / 2)
   return Array.from({ length: innerHeight }, (_, index) =>
     index === verticalCenter ? labelLine : spaces(innerWidth)
   ).join('\n')
 }
-
-/**
- * Returns the display width of a string in terminal columns, measured by
- * counting Unicode code points (not UTF-16 code units). This fixes
- * surrogate-pair symbols like 🜂 (U+1F702) which report `.length === 2`
- * but occupy a single terminal column.
- *
- * NOTE: Genuinely double-wide CJK/emoji glyphs are still mis-measured (they
- * occupy 2 columns but count as 1 here). All current tarot icons are width-1
- * code points, so this is sufficient; pulling in a full wcwidth dependency is
- * deferred until a double-wide symbol is actually used.
- */
-export const displayWidth = (s: string): number => [...s].length
 
 /**
  * Applies a map of named replacements to a string.
