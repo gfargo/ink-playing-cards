@@ -3,6 +3,7 @@ import test from 'ava'
 import { render } from 'ink-testing-library'
 import { Text } from 'ink'
 import React from 'react'
+import stringWidth from 'string-width'
 import { CustomCard } from './index.js'
 
 test('render custom card with ASCII art', (t) => {
@@ -321,6 +322,54 @@ test('description splits on embedded newlines before wrapping', (t) => {
   t.true(frame.includes('Line one'))
   t.true(frame.includes('Line two'))
   t.true(frame.includes('Line three'))
+  t.snapshot(frame)
+})
+
+test('CJK title and description keep every row the same display width', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-cjk"
+      size="medium"
+      title="龍の巻物"
+      description="速い黒い狐が怠け者の犬を飛び越える。"
+      borderColor="white"
+      textColor="white"
+    />
+  )
+  const frame = lastFrame() ?? ''
+  const rowWidths = frame.split('\n').map((line) => stringWidth(line))
+  t.true(rowWidths.length > 0)
+  t.true(rowWidths.every((width) => width === rowWidths[0]))
+  t.snapshot(frame)
+})
+
+test('emoji title keeps rows aligned', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-emoji"
+      size="small"
+      title="🀄 Tile"
+      borderColor="white"
+      textColor="white"
+    />
+  )
+  const frame = lastFrame() ?? ''
+  const rowWidths = frame.split('\n').map((line) => stringWidth(line))
+  t.true(rowWidths.every((width) => width === rowWidths[0]))
+  t.snapshot(frame)
+})
+
+test('wrapText does not hang when a wide glyph cannot fit a 1-column budget', (t) => {
+  const { lastFrame } = render(
+    <CustomCard
+      id="test-narrow-wide-glyph"
+      width={3}
+      height={7}
+      description="龍が飛ぶ"
+    />
+  )
+  const frame = lastFrame() ?? ''
+  t.true(typeof frame === 'string')
   t.snapshot(frame)
 })
 

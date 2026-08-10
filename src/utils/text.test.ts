@@ -1,5 +1,13 @@
 import test from 'ava'
-import { applyReplacements, center, left, right, spaces } from './text.js'
+import {
+  applyReplacements,
+  center,
+  displayWidth,
+  left,
+  right,
+  spaces,
+  truncate,
+} from './text.js'
 
 // Spaces()
 test('spaces returns a string of the given length', (t) => {
@@ -94,4 +102,63 @@ test('applyReplacements is a no-op when replacements is empty', (t) => {
 
 test('applyReplacements returns text unchanged when no tokens present', (t) => {
   t.is(applyReplacements('no tokens here', { key: 'value' }), 'no tokens here')
+})
+
+// DisplayWidth()
+test('displayWidth counts ASCII as 1 column per character', (t) => {
+  t.is(displayWidth('a'), 1)
+  t.is(displayWidth('hello'), 5)
+})
+
+test('displayWidth counts wide CJK characters as 2 columns each', (t) => {
+  t.is(displayWidth('한'), 2)
+  t.is(displayWidth('가나다'), 6)
+})
+
+test('displayWidth counts wide emoji as 2 columns', (t) => {
+  t.is(displayWidth('🀄'), 2)
+})
+
+test('displayWidth counts a surrogate-pair symbol as 1 column', (t) => {
+  t.is(displayWidth('🜂'), 1)
+})
+
+// Truncate()
+test('truncate returns text unchanged when it already fits', (t) => {
+  t.is(truncate('AB', 10), 'AB')
+})
+
+test('truncate does not split a wide character in half', (t) => {
+  // "한글" is 4 columns; budget of 3 can only fit the first wide char (2 cols)
+  t.is(truncate('한글', 3), '한')
+  t.is(displayWidth(truncate('한글', 3)), 2)
+})
+
+test('truncate to zero or negative width returns empty string', (t) => {
+  t.is(truncate('AB', 0), '')
+  t.is(truncate('AB', -5), '')
+})
+
+// Width-aware padding with CJK/emoji text
+test('center pads a CJK string based on display width, not code units', (t) => {
+  const result = center('한', 10)
+  t.is(displayWidth(result), 10)
+  t.is(result, '    한    ')
+})
+
+test('left pads a CJK string based on display width, not code units', (t) => {
+  const result = left('한', 10)
+  t.is(displayWidth(result), 10)
+  t.is(result, '한' + ' '.repeat(8))
+})
+
+test('right pads a CJK string based on display width, not code units', (t) => {
+  const result = right('한', 10)
+  t.is(displayWidth(result), 10)
+  t.is(result, ' '.repeat(8) + '한')
+})
+
+test('center pads an emoji string based on display width', (t) => {
+  const result = center('🀄', 10)
+  t.is(displayWidth(result), 10)
 })
