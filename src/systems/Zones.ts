@@ -232,10 +232,15 @@ export type Zone = {
 }
 
 export class StandardZone implements Zone {
+  private readonly rng: () => number
+
   constructor(
     public name: string,
-    public cards: TCard[] = []
-  ) {}
+    public cards: TCard[] = [],
+    rng: () => number = Math.random
+  ) {
+    this.rng = rng
+  }
 
   addCard(card: TCard): void {
     this.cards = addCard(this.cards, card)
@@ -246,13 +251,13 @@ export class StandardZone implements Zone {
   }
 
   shuffle(): void {
-    this.cards = shuffleCards(this.cards)
+    this.cards = shuffleCards(this.cards, this.rng)
   }
 }
 
 export class Deck extends StandardZone {
-  constructor(cards: TCard[] = []) {
-    super('Deck', cards)
+  constructor(cards: TCard[] = [], rng: () => number = Math.random) {
+    super('Deck', cards, rng)
   }
 
   drawCard(): TCard | undefined {
@@ -272,19 +277,19 @@ export class Deck extends StandardZone {
 }
 
 export class Hand extends StandardZone {
-  constructor(cards: TCard[] = []) {
-    super('Hand', cards)
+  constructor(cards: TCard[] = [], rng: () => number = Math.random) {
+    super('Hand', cards, rng)
   }
 }
 
 export class DiscardPile extends StandardZone {
-  constructor(cards: TCard[] = []) {
-    super('Discard Pile', cards)
+  constructor(cards: TCard[] = [], rng: () => number = Math.random) {
+    super('Discard Pile', cards, rng)
   }
 }
 
 export class PlayArea extends StandardZone {
-  constructor(cards: TCard[] = []) {
-    super('Play Area', cards)
+  constructor(cards: TCard[] = [], rng: () => number = Math.random) {
+    super('Play Area', cards, rng)
   }
 }

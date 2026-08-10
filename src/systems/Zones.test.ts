@@ -392,6 +392,17 @@ test('StandardZone shuffle changes order', (t) => {
   t.is(before.length, after.length)
 })
 
+test('StandardZone shuffle with an injected seeded rng is deterministic', (t) => {
+  const zoneA = new StandardZone('test', makeDeck(20), mulberry32(7))
+  const zoneB = new StandardZone('test', makeDeck(20), mulberry32(7))
+  zoneA.shuffle()
+  zoneB.shuffle()
+  t.deepEqual(
+    zoneA.cards.map((c) => c.id),
+    zoneB.cards.map((c) => c.id)
+  )
+})
+
 test('Deck drawCard returns last card', (t) => {
   const deck = new Deck(makeDeck(3))
   const card = deck.drawCard()
