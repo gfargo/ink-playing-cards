@@ -445,6 +445,81 @@ test('render minimal variant face down horizontal stack without border bleed', (
   }
 })
 
+test('vertical overlap merges equal-width card borders without a gap', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[
+        { id: 'ace-spades', suit: 'spades', value: 'A' },
+        { id: 'two-hearts', suit: 'hearts', value: '2' },
+        { id: 'three-diamonds', suit: 'diamonds', value: '3' },
+      ]}
+      name="test"
+      variant="simple"
+    />
+  )
+
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    const stripped = stripAnsi(frame)
+    // Each non-final card's bottom border must be fully overwritten by the
+    // next card's top border. If overlap were 0 (or the wrong sign, as in
+    // the original bug) every card's bottom border would remain visible,
+    // producing one '╰' per card instead of just the last one.
+    t.is(stripped.split('╰').length - 1, 1)
+    t.is(stripped.split('╭').length - 1, 3)
+  }
+})
+
+test('vertical overlap still overlaps at mini scale instead of collapsing to zero', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[
+        { id: 'ace-spades', suit: 'spades', value: 'A' },
+        { id: 'two-hearts', suit: 'hearts', value: '2' },
+      ]}
+      name="test"
+      variant="mini"
+    />
+  )
+
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    const stripped = stripAnsi(frame)
+    // At mini scale the default overlap (-2) scales down to a fractional
+    // margin (-0.5) before rounding. Rounding toward zero previously
+    // produced marginTop = -0 (no overlap at all); the fix rounds the
+    // magnitude away from zero so a full border row still overlaps.
+    t.is(stripped.split('╰').length - 1, 1)
+    t.is(stripped.split('╭').length - 1, 2)
+  }
+})
+
+test('vertical overlap still overlaps at micro scale instead of collapsing to zero', (t) => {
+  const { lastFrame } = render(
+    <CardStack
+      isFaceUp
+      cards={[
+        { id: 'ace-spades', suit: 'spades', value: 'A' },
+        { id: 'two-hearts', suit: 'hearts', value: '2' },
+      ]}
+      name="test"
+      variant="micro"
+    />
+  )
+
+  const frame = lastFrame()
+  t.snapshot(frame)
+  if (frame) {
+    const stripped = stripAnsi(frame)
+    t.is(stripped.split('╰').length - 1, 1)
+    t.is(stripped.split('╭').length - 1, 2)
+  }
+})
+
 test('render ascii variant', (t) => {
   const { lastFrame } = render(
     <CardStack
@@ -491,6 +566,14 @@ test('render stack with custom cards', (t) => {
   t.snapshot(lastFrame())
 })
 
+// Known limitation: the standard cards here (width 9) are narrower than the
+// 'small' custom card (width 10), and vertical overlap only repaints cells
+// within each card's own width (see the comment on `getOverlap` in
+// index.tsx). The regenerated snapshot below intentionally captures a
+// sliver of the Wild card's bottom-right border corner bleeding past the
+// following King card's top border. Stacks that use a single variant/size
+// (the common case) don't hit this, see the border-merge assertions in the
+// 'vertical overlap merges equal-width card borders without a gap' test.
 test('render stack with mixed standard and custom cards', (t) => {
   const { lastFrame } = render(
     <CardStack

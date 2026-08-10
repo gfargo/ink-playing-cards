@@ -3,6 +3,18 @@ import React from 'react'
 import { type TCard } from '../../types/index.js'
 import { AnyCard } from '../AnyCard/index.js'
 
+/**
+ * Rounds to the nearest integer while rounding half-integer magnitudes away
+ * from zero (unlike `Math.round`, which rounds -0.5 to -0). Scaled overlap
+ * values (e.g. mini/micro vertical overlap) can land exactly on a negative
+ * half-integer; rounding toward zero there would silently cancel the
+ * overlap the caller asked for instead of shrinking it to the smallest
+ * representable step.
+ */
+function roundOverlap(value: number): number {
+  return Math.sign(value) * Math.round(Math.abs(value))
+}
+
 type CardStackProperties = {
   readonly cards: TCard[]
   readonly name: string
@@ -30,13 +42,21 @@ export function CardStack({
   const displayLimit = Math.max(0, Math.floor(maxDisplay))
   const displayCards = displayLimit === 0 ? [] : cards.slice(-displayLimit)
 
+  // Overlap is implemented as a negative margin that pulls a card up/left
+  // over its predecessor. Each card only repaints cells within its own
+  // width/height, so overlap renders cleanly for cards of equal width (the
+  // common case: all cards in a stack normally share one `variant`/size).
+  // Mixing card widths within a single stack (e.g. standard cards alongside
+  // a wider custom card) can leave a sliver of the wider card's border
+  // visible past the narrower card's edge — see the "mixed standard and
+  // custom cards" snapshot below.
   const getOverlap = () => {
     const baseOverlap = spacing.overlap ?? -2
     const scale = variant === 'mini' || variant === 'micro' ? 0.5 : 1
 
     return {
-      marginLeft: baseOverlap * scale,
-      marginTop: Math.abs(baseOverlap) * 0.5 * scale,
+      marginLeft: roundOverlap(baseOverlap * scale),
+      marginTop: roundOverlap(baseOverlap * 0.5 * scale),
     }
   }
 
