@@ -9,6 +9,7 @@ import type {
 } from '../types/index.js'
 import { DrawCardEffect } from '../systems/Effects.js'
 import { createTarotDeck } from '../components/TarotCard/utils.js'
+import { mulberry32 } from '../utils/rng.js'
 import { DeckContext, DeckProvider } from './DeckContext.js'
 
 type CapturedState = Pick<DeckContextType, 'zones' | 'players'>
@@ -16,7 +17,7 @@ type CapturedState = Pick<DeckContextType, 'zones' | 'players'>
 function renderWithProvider(
   actions: DeckAction[],
   initialCards?: TCard[],
-  options?: { enableHistory?: boolean }
+  options?: { enableHistory?: boolean; rng?: () => number }
 ) {
   const results: CapturedState[] = []
 
@@ -41,6 +42,7 @@ function renderWithProvider(
     <DeckProvider
       initialCards={initialCards}
       enableHistory={options?.enableHistory}
+      rng={options?.rng}
     >
       <Capture />
     </DeckProvider>
@@ -85,6 +87,21 @@ test('SHUFFLE action preserves deck size', (t) => {
   const results = renderWithProvider([{ type: 'SHUFFLE' }], cards)
   const state = results.at(-1)!
   t.is(state.zones.deck.length, 20)
+})
+
+test('SHUFFLE action with a seeded rng is deterministic', (t) => {
+  const cardsA = makeCards(20)
+  const cardsB = makeCards(20)
+  const resultsA = renderWithProvider([{ type: 'SHUFFLE' }], cardsA, {
+    rng: mulberry32(5),
+  })
+  const resultsB = renderWithProvider([{ type: 'SHUFFLE' }], cardsB, {
+    rng: mulberry32(5),
+  })
+  t.deepEqual(
+    resultsA.at(-1)!.zones.deck.map((c) => c.id),
+    resultsB.at(-1)!.zones.deck.map((c) => c.id)
+  )
 })
 
 test('DRAW action moves cards from deck to player hand', (t) => {
@@ -168,6 +185,31 @@ test('RESET action restores deck and clears hands', (t) => {
   const state = results.at(-1)!
   t.is(state.zones.deck.length, 52)
   t.deepEqual(state.zones.hands, {})
+})
+
+test('RESET action with a seeded rng is deterministic', (t) => {
+  const cardsA = makeCards(5)
+  const cardsB = makeCards(5)
+  const resultsA = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 2, playerId: 'p1' } },
+      { type: 'RESET' },
+    ],
+    cardsA,
+    { rng: mulberry32(7) }
+  )
+  const resultsB = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 2, playerId: 'p1' } },
+      { type: 'RESET' },
+    ],
+    cardsB,
+    { rng: mulberry32(7) }
+  )
+  t.deepEqual(
+    resultsA.at(-1)!.zones.deck.map((c) => c.id),
+    resultsB.at(-1)!.zones.deck.map((c) => c.id)
+  )
 })
 
 test('RESET preserves the player roster', (t) => {

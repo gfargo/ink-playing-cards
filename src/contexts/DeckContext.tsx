@@ -176,241 +176,240 @@ const createInitialState = (): DeckContextType => ({
 
 export const DeckContext = createContext<DeckContextType | undefined>(undefined)
 
-const deckReducer = (
-  state: DeckContextType,
-  action: DeckAction
-): DeckContextType => {
-  switch (action.type) {
-    case 'SHUFFLE': {
-      const newDeck = shuffleCards(state.zones.deck)
-      return {
-        ...state,
-        zones: { ...state.zones, deck: newDeck },
-        pendingEvents: [...state.pendingEvents, { type: 'DECK_SHUFFLED' }],
-      }
-    }
-
-    case 'DRAW': {
-      const { playerId, count, reshuffleWhenEmpty } = action.payload
-      let sourceDeck = state.zones.deck
-      let sourceDiscard = state.zones.discardPile
-      const drawEvents: GameEventData[] = []
-
-      if (count > sourceDeck.length) {
-        drawEvents.push({ type: 'DECK_EXHAUSTED' })
-        if (reshuffleWhenEmpty && sourceDiscard.length > 0) {
-          sourceDeck = [...sourceDeck, ...shuffleCards(sourceDiscard)]
-          sourceDiscard = []
-          drawEvents.push({ type: 'DECK_SHUFFLED' })
+const createDeckReducer =
+  (rng: () => number = Math.random) =>
+  (state: DeckContextType, action: DeckAction): DeckContextType => {
+    switch (action.type) {
+      case 'SHUFFLE': {
+        const newDeck = shuffleCards(state.zones.deck, rng)
+        return {
+          ...state,
+          zones: { ...state.zones, deck: newDeck },
+          pendingEvents: [...state.pendingEvents, { type: 'DECK_SHUFFLED' }],
         }
       }
 
-      const [drawn, remaining] = drawCards(sourceDeck, count)
-      const currentHand = state.zones.hands[playerId] ?? []
-      const newHands = {
-        ...state.zones.hands,
-        [playerId]: [...currentHand, ...drawn],
-      }
-      const newPlayers = state.players.includes(playerId)
-        ? state.players
-        : [...state.players, playerId]
-      return {
-        ...state,
-        zones: {
-          ...state.zones,
-          deck: remaining,
-          discardPile: sourceDiscard,
-          hands: newHands,
-        },
-        players: newPlayers,
-        pendingEvents: [
-          ...state.pendingEvents,
-          ...drawEvents,
-          { type: 'CARDS_DRAWN', playerId, cards: drawn },
-        ],
-      }
-    }
+      case 'DRAW': {
+        const { playerId, count, reshuffleWhenEmpty } = action.payload
+        let sourceDeck = state.zones.deck
+        let sourceDiscard = state.zones.discardPile
+        const drawEvents: GameEventData[] = []
 
-    case 'RESET': {
-      const newCards = action.payload?.cards ?? createStandardDeck()
-      return {
-        ...state,
-        zones: {
-          deck: newCards,
-          hands: {},
-          discardPile: [],
-          playArea: [],
-          custom: {},
-        },
-        pendingEvents: [...state.pendingEvents, { type: 'DECK_RESET' }],
-      }
-    }
-
-    case 'SET_BACK_ARTWORK': {
-      return {
-        ...state,
-        backArtwork: { ...state.backArtwork, ...action.payload },
-      }
-    }
-
-    case 'ADD_CUSTOM_CARD': {
-      return {
-        ...state,
-        zones: {
-          ...state.zones,
-          deck: addCard(state.zones.deck, action.payload),
-        },
-      }
-    }
-
-    case 'REMOVE_CUSTOM_CARD': {
-      return {
-        ...state,
-        zones: {
-          ...state.zones,
-          deck: removeCard(state.zones.deck, action.payload.cardId),
-        },
-      }
-    }
-
-    case 'CUT_DECK': {
-      const newDeck = cutDeckCards(state.zones.deck, action.payload)
-      return {
-        ...state,
-        zones: { ...state.zones, deck: newDeck },
-        pendingEvents: [...state.pendingEvents, { type: 'DECK_CUT' }],
-      }
-    }
-
-    case 'DEAL': {
-      const { count: dealCount, playerIds } = action.payload
-      let currentDeck = state.zones.deck
-      const newHands = { ...state.zones.hands }
-      let newPlayers = [...state.players]
-      const dealtEvents: GameEventData[] = []
-      for (const playerId of playerIds) {
-        const [drawn, remaining] = drawCards(currentDeck, dealCount)
-        currentDeck = remaining
-        newHands[playerId] = [...(newHands[playerId] ?? []), ...drawn]
-        if (!newPlayers.includes(playerId)) {
-          newPlayers = [...newPlayers, playerId]
+        if (count > sourceDeck.length) {
+          drawEvents.push({ type: 'DECK_EXHAUSTED' })
+          if (reshuffleWhenEmpty && sourceDiscard.length > 0) {
+            sourceDeck = [...sourceDeck, ...shuffleCards(sourceDiscard, rng)]
+            sourceDiscard = []
+            drawEvents.push({ type: 'DECK_SHUFFLED' })
+          }
         }
 
-        dealtEvents.push({
-          type: 'CARDS_DEALT',
-          playerId,
-          cards: drawn,
-          count: dealCount,
-        })
+        const [drawn, remaining] = drawCards(sourceDeck, count)
+        const currentHand = state.zones.hands[playerId] ?? []
+        const newHands = {
+          ...state.zones.hands,
+          [playerId]: [...currentHand, ...drawn],
+        }
+        const newPlayers = state.players.includes(playerId)
+          ? state.players
+          : [...state.players, playerId]
+        return {
+          ...state,
+          zones: {
+            ...state.zones,
+            deck: remaining,
+            discardPile: sourceDiscard,
+            hands: newHands,
+          },
+          players: newPlayers,
+          pendingEvents: [
+            ...state.pendingEvents,
+            ...drawEvents,
+            { type: 'CARDS_DRAWN', playerId, cards: drawn },
+          ],
+        }
       }
 
-      return {
-        ...state,
-        zones: { ...state.zones, deck: currentDeck, hands: newHands },
-        players: newPlayers,
-        pendingEvents: [...state.pendingEvents, ...dealtEvents],
+      case 'RESET': {
+        const newCards = action.payload?.cards ?? createStandardDeck({ rng })
+        return {
+          ...state,
+          zones: {
+            deck: newCards,
+            hands: {},
+            discardPile: [],
+            playArea: [],
+            custom: {},
+          },
+          pendingEvents: [...state.pendingEvents, { type: 'DECK_RESET' }],
+        }
       }
-    }
 
-    case 'PLAY_CARD': {
-      const { playerId: pcPid, cardId: pcCid } = action.payload
-      const pcHand = state.zones.hands[pcPid] ?? []
-      const pcCard = pcHand.find((c: TCard) => c.id === pcCid)
-      if (!pcCard) return state
-      const playedZones: Zones = {
-        ...state.zones,
-        hands: { ...state.zones.hands, [pcPid]: removeCard(pcHand, pcCid) },
-        playArea: addCard(state.zones.playArea, pcCard),
+      case 'SET_BACK_ARTWORK': {
+        return {
+          ...state,
+          backArtwork: { ...state.backArtwork, ...action.payload },
+        }
       }
-      const eventData: GameEventData = {
-        type: 'CARD_PLAYED',
-        playerId: pcPid,
-        card: pcCard,
-      }
-      const working = buildEffectGameState(playedZones, state.players, pcPid)
-      state.effectManager.applyCardEffects(pcCard, working, eventData)
-      return {
-        ...state,
-        zones: working.zones,
-        pendingEvents: [...state.pendingEvents, eventData],
-      }
-    }
 
-    case 'DISCARD': {
-      const { playerId: dPid, cardId: dCid } = action.payload
-      const dHand = state.zones.hands[dPid] ?? []
-      const dCard = dHand.find((c: TCard) => c.id === dCid)
-      if (!dCard) return state
-      return {
-        ...state,
-        zones: {
+      case 'ADD_CUSTOM_CARD': {
+        return {
+          ...state,
+          zones: {
+            ...state.zones,
+            deck: addCard(state.zones.deck, action.payload),
+          },
+        }
+      }
+
+      case 'REMOVE_CUSTOM_CARD': {
+        return {
+          ...state,
+          zones: {
+            ...state.zones,
+            deck: removeCard(state.zones.deck, action.payload.cardId),
+          },
+        }
+      }
+
+      case 'CUT_DECK': {
+        const newDeck = cutDeckCards(state.zones.deck, action.payload)
+        return {
+          ...state,
+          zones: { ...state.zones, deck: newDeck },
+          pendingEvents: [...state.pendingEvents, { type: 'DECK_CUT' }],
+        }
+      }
+
+      case 'DEAL': {
+        const { count: dealCount, playerIds } = action.payload
+        let currentDeck = state.zones.deck
+        const newHands = { ...state.zones.hands }
+        let newPlayers = [...state.players]
+        const dealtEvents: GameEventData[] = []
+        for (const playerId of playerIds) {
+          const [drawn, remaining] = drawCards(currentDeck, dealCount)
+          currentDeck = remaining
+          newHands[playerId] = [...(newHands[playerId] ?? []), ...drawn]
+          if (!newPlayers.includes(playerId)) {
+            newPlayers = [...newPlayers, playerId]
+          }
+
+          dealtEvents.push({
+            type: 'CARDS_DEALT',
+            playerId,
+            cards: drawn,
+            count: dealCount,
+          })
+        }
+
+        return {
+          ...state,
+          zones: { ...state.zones, deck: currentDeck, hands: newHands },
+          players: newPlayers,
+          pendingEvents: [...state.pendingEvents, ...dealtEvents],
+        }
+      }
+
+      case 'PLAY_CARD': {
+        const { playerId: pcPid, cardId: pcCid } = action.payload
+        const pcHand = state.zones.hands[pcPid] ?? []
+        const pcCard = pcHand.find((c: TCard) => c.id === pcCid)
+        if (!pcCard) return state
+        const playedZones: Zones = {
           ...state.zones,
-          hands: { ...state.zones.hands, [dPid]: removeCard(dHand, dCid) },
-          discardPile: addCard(state.zones.discardPile, dCard),
-        },
-        pendingEvents: [
-          ...state.pendingEvents,
-          { type: 'CARD_DISCARDED', playerId: dPid, card: dCard },
-        ],
+          hands: { ...state.zones.hands, [pcPid]: removeCard(pcHand, pcCid) },
+          playArea: addCard(state.zones.playArea, pcCard),
+        }
+        const eventData: GameEventData = {
+          type: 'CARD_PLAYED',
+          playerId: pcPid,
+          card: pcCard,
+        }
+        const working = buildEffectGameState(playedZones, state.players, pcPid)
+        state.effectManager.applyCardEffects(pcCard, working, eventData)
+        return {
+          ...state,
+          zones: working.zones,
+          pendingEvents: [...state.pendingEvents, eventData],
+        }
       }
-    }
 
-    case 'MOVE_CARD': {
-      return handleMoveCard(state, action.payload)
-    }
-
-    case 'SET_ZONE': {
-      return handleSetZone(state, action.payload)
-    }
-
-    case 'CLEAR_ZONE': {
-      return handleClearZone(state, action.payload)
-    }
-
-    case 'ADD_PLAYER': {
-      if (state.players.includes(action.payload)) return state
-      return {
-        ...state,
-        players: [...state.players, action.payload],
-        zones: {
-          ...state.zones,
-          hands: { ...state.zones.hands, [action.payload]: [] },
-        },
+      case 'DISCARD': {
+        const { playerId: dPid, cardId: dCid } = action.payload
+        const dHand = state.zones.hands[dPid] ?? []
+        const dCard = dHand.find((c: TCard) => c.id === dCid)
+        if (!dCard) return state
+        return {
+          ...state,
+          zones: {
+            ...state.zones,
+            hands: { ...state.zones.hands, [dPid]: removeCard(dHand, dCid) },
+            discardPile: addCard(state.zones.discardPile, dCard),
+          },
+          pendingEvents: [
+            ...state.pendingEvents,
+            { type: 'CARD_DISCARDED', playerId: dPid, card: dCard },
+          ],
+        }
       }
-    }
 
-    case 'REMOVE_PLAYER': {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { [action.payload]: _removed, ...remainingHands } =
-        state.zones.hands
-      return {
-        ...state,
-        players: state.players.filter((p: string) => p !== action.payload),
-        zones: { ...state.zones, hands: remainingHands },
+      case 'MOVE_CARD': {
+        return handleMoveCard(state, action.payload)
       }
-    }
 
-    case 'REORDER_PLAYERS': {
-      if (!isPlayerPermutation(state.players, action.payload)) return state
-      return { ...state, players: action.payload }
-    }
-
-    case 'FLUSH_EVENTS': {
-      return {
-        ...state,
-        pendingEvents: state.pendingEvents.slice(action.payload.count),
+      case 'SET_ZONE': {
+        return handleSetZone(state, action.payload)
       }
-    }
 
-    case 'HYDRATE': {
-      return handleHydrate(state, action.payload)
-    }
+      case 'CLEAR_ZONE': {
+        return handleClearZone(state, action.payload)
+      }
 
-    default: {
-      return state
+      case 'ADD_PLAYER': {
+        if (state.players.includes(action.payload)) return state
+        return {
+          ...state,
+          players: [...state.players, action.payload],
+          zones: {
+            ...state.zones,
+            hands: { ...state.zones.hands, [action.payload]: [] },
+          },
+        }
+      }
+
+      case 'REMOVE_PLAYER': {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const { [action.payload]: _removed, ...remainingHands } =
+          state.zones.hands
+        return {
+          ...state,
+          players: state.players.filter((p: string) => p !== action.payload),
+          zones: { ...state.zones, hands: remainingHands },
+        }
+      }
+
+      case 'REORDER_PLAYERS': {
+        if (!isPlayerPermutation(state.players, action.payload)) return state
+        return { ...state, players: action.payload }
+      }
+
+      case 'FLUSH_EVENTS': {
+        return {
+          ...state,
+          pendingEvents: state.pendingEvents.slice(action.payload.count),
+        }
+      }
+
+      case 'HYDRATE': {
+        return handleHydrate(state, action.payload)
+      }
+
+      default: {
+        return state
+      }
     }
   }
-}
 
 type DeckProviderProperties = {
   readonly children: ReactNode
@@ -425,6 +424,12 @@ type DeckProviderProperties = {
    * `0` retains none (nothing is undoable). `undefined` means unlimited.
    */
   readonly maxHistory?: number
+  /**
+   * Source of randomness for shuffling and card ID generation. Defaults to
+   * `Math.random`; pass a seeded RNG (e.g. `mulberry32`) for deterministic,
+   * replayable games.
+   */
+  readonly rng?: () => number
 }
 
 export function DeckProvider({
@@ -433,9 +438,12 @@ export function DeckProvider({
   customReducer,
   enableHistory,
   maxHistory,
+  rng,
 }: DeckProviderProperties) {
   const [state, dispatch] = useReducer(
-    withHistory(customReducer ?? deckReducer, { limit: maxHistory }),
+    withHistory(customReducer ?? createDeckReducer(rng), {
+      limit: maxHistory,
+    }),
     initialCards,
     (cards) => {
       const base = createInitialState()
@@ -443,7 +451,7 @@ export function DeckProvider({
         ...base,
         zones: {
           ...base.zones,
-          deck: cards ?? createStandardDeck(),
+          deck: cards ?? createStandardDeck({ rng }),
         },
         history: enableHistory ? { past: [], future: [] } : undefined,
       }

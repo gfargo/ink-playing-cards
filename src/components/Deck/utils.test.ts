@@ -1,5 +1,6 @@
 import test from 'ava'
 import { type CardProps } from '../../types/index.js'
+import { mulberry32 } from '../../utils/rng.js'
 import { createStandardDeck, createPairedDeck } from './utils.js'
 
 function isCardProps(c: unknown): c is CardProps {
@@ -65,6 +66,12 @@ test('createStandardDeck({ jokers: n }) has no duplicate ids', (t) => {
   const deck = createStandardDeck({ jokers: 3 })
   const ids = deck.map((c) => c.id)
   t.is(new Set(ids).size, ids.length)
+})
+
+test('createStandardDeck({ rng }) with the same seed produces identical decks', (t) => {
+  const a = createStandardDeck({ rng: mulberry32(99) })
+  const b = createStandardDeck({ rng: mulberry32(99) })
+  t.deepEqual(a, b)
 })
 
 // ---- createPairedDeck ----
@@ -134,4 +141,10 @@ test('createPairedDeck(true) does not always keep matched pairs in adjacent slot
     adjacentMatches < 26,
     'every matched pair landed in adjacent slots after shuffling — cards are not being shuffled individually'
   )
+})
+
+test('createPairedDeck(true, rng) with the same seed produces identical decks', (t) => {
+  const a = createPairedDeck(true, mulberry32(11))
+  const b = createPairedDeck(true, mulberry32(11))
+  t.deepEqual(a, b)
 })

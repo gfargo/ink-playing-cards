@@ -80,6 +80,7 @@ export {
   VARIANT_BREAKPOINTS,
   type CardVariant,
 } from './utils/responsive.js'
+export { mulberry32 } from './utils/rng.js'
 
 export {
   DeckContext,
