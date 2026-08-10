@@ -45,20 +45,6 @@ export function formatLine(
 }
 
 /**
- * Centers content within a frame/border
- */
-export function centerInFrame(
-  content: string,
-  width: number,
-  frame: Frame
-): string {
-  return formatLine(content, width, {
-    align: 'center',
-    frame,
-  })
-}
-
-/**
  * Pads a replacement value to match a specific width
  */
 export function padReplacement(
