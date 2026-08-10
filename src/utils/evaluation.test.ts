@@ -88,6 +88,17 @@ test('blackjackTotal: 10+7+5 busts at 22', (t) => {
   )
 })
 
+test('blackjackTotal: 10+A+A is 12, both aces demoted to avoid busting', (t) => {
+  t.is(
+    blackjackTotal([
+      card('hearts', '10'),
+      card('spades', 'A'),
+      card('clubs', 'A'),
+    ]),
+    12
+  )
+})
+
 test('blackjackTotal: empty hand is 0', (t) => {
   t.is(blackjackTotal([]), 0)
 })

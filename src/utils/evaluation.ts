@@ -60,8 +60,10 @@ export function blackjackTotal(cards: TCard[]): number {
     }
   }
 
-  for (let i = 0; i < aces; i++) {
-    score += score + 11 <= 21 ? 11 : 1
+  score += aces
+
+  if (aces > 0 && score + 10 <= 21) {
+    score += 10
   }
 
   return score
