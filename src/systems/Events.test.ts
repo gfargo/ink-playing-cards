@@ -160,3 +160,34 @@ test('once option removes the listener after it fires', (t) => {
   em.dispatchEvent(makeEvent('CARDS_DRAWN'))
   t.is(listener.calls.length, 1)
 })
+
+test('once on one event type does not affect the same listener registered persistently on another', (t) => {
+  const em = new EventManager()
+  const listener = makeListener()
+  em.addEventListener('CARD_PLAYED', listener, { once: true })
+  em.addEventListener('CARD_DISCARDED', listener)
+
+  em.dispatchEvent(makeEvent('CARD_PLAYED'))
+  t.is(listener.calls.length, 1)
+  // Once-ness for CARD_PLAYED must not leak into the CARD_DISCARDED registration
+  em.dispatchEvent(makeEvent('CARD_DISCARDED'))
+  em.dispatchEvent(makeEvent('CARD_DISCARDED'))
+  t.is(listener.calls.length, 3)
+
+  // And CARD_PLAYED should stay removed
+  em.dispatchEvent(makeEvent('CARD_PLAYED'))
+  t.is(listener.calls.length, 3)
+})
+
+test('double-registering the same listener with once:true fires it twice, once per registration', (t) => {
+  const em = new EventManager()
+  const listener = makeListener()
+  em.addEventListener('CARDS_DRAWN', listener, { once: true })
+  em.addEventListener('CARDS_DRAWN', listener, { once: true })
+
+  em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  t.is(listener.calls.length, 2)
+
+  em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  t.is(listener.calls.length, 2)
+})

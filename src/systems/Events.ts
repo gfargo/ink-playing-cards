@@ -7,9 +7,13 @@ import {
 
 export type GameEvent = GameEventData
 
+type ListenerEntry = {
+  listener: EventListenerInterface
+  once: boolean
+}
+
 export class EventManager implements EventManagerInterface {
-  private readonly listeners = new Map<string, EventListenerInterface[]>()
-  private readonly onceListeners = new WeakSet<EventListenerInterface>()
+  private readonly listeners = new Map<string, ListenerEntry[]>()
 
   addEventListener(
     eventType: string,
@@ -20,11 +24,9 @@ export class EventManager implements EventManagerInterface {
       this.listeners.set(eventType, [])
     }
 
-    this.listeners.get(eventType)!.push(listener)
-
-    if (options?.once) {
-      this.onceListeners.add(listener)
-    }
+    this.listeners
+      .get(eventType)!
+      .push({ listener, once: Boolean(options?.once) })
   }
 
   removeEventListener(
@@ -33,7 +35,9 @@ export class EventManager implements EventManagerInterface {
   ): void {
     if (this.listeners.has(eventType)) {
       const typeListeners = this.listeners.get(eventType)!
-      const index = typeListeners.indexOf(listener)
+      const index = typeListeners.findIndex(
+        (entry) => entry.listener === listener
+      )
       if (index !== -1) {
         typeListeners.splice(index, 1)
       }
@@ -49,14 +53,23 @@ export class EventManager implements EventManagerInterface {
     // Iterate a snapshot so listeners added/removed mid-dispatch (including
     // by other listeners) don't affect this dispatch pass.
     const snapshot = [...typeListeners]
-    for (const listener of snapshot) {
-      if (this.onceListeners.has(listener)) {
-        this.removeEventListener(event.type, listener)
-        this.onceListeners.delete(listener)
+    for (const entry of snapshot) {
+      if (entry.once) {
+        // Remove this exact entry (not just any entry for this listener) so
+        // duplicate registrations of the same listener are tracked
+        // independently, and other event types for this listener are
+        // unaffected.
+        const current = this.listeners.get(event.type)
+        if (current) {
+          const index = current.indexOf(entry)
+          if (index !== -1) {
+            current.splice(index, 1)
+          }
+        }
       }
 
       try {
-        listener.handleEvent(event)
+        entry.listener.handleEvent(event)
       } catch (error) {
         console.error(`EventManager: listener for "${event.type}" threw`, error)
       }
