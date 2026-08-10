@@ -1,4 +1,4 @@
-import { center, left, right, spaces } from './text.js'
+import { center, displayWidth, left, right, spaces } from './text.js'
 
 export type Alignment = 'left' | 'center' | 'right'
 export type Padding = { left?: number; right?: number }
@@ -20,7 +20,9 @@ export function formatLine(
   const { left: leftPad = 0, right: rightPad = 0 } = padding
 
   // Calculate available width for content
-  const frameWidth = (frame?.left.length ?? 0) + (frame?.right.length ?? 0)
+  const frameWidth =
+    (frame ? displayWidth(frame.left) : 0) +
+    (frame ? displayWidth(frame.right) : 0)
   const paddingWidth = leftPad + rightPad
   const contentWidth = width - frameWidth - paddingWidth
 
@@ -42,20 +44,6 @@ export function formatLine(
   }
 
   return result
-}
-
-/**
- * Centers content within a frame/border
- */
-export function centerInFrame(
-  content: string,
-  width: number,
-  frame: Frame
-): string {
-  return formatLine(content, width, {
-    align: 'center',
-    frame,
-  })
 }
 
 /**

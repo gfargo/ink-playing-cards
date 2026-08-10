@@ -1,0 +1,102 @@
+import test from 'ava'
+import {
+  createBodySection,
+  createFramedSection,
+  formatLine,
+  padReplacement,
+} from './layout.js'
+
+// FormatLine()
+test('formatLine defaults to left-align and pads to width', (t) => {
+  const result = formatLine('x', 10)
+  t.is(result.length, 10)
+  t.is(result, 'x' + ' '.repeat(9))
+})
+
+test('formatLine centers content when align is center', (t) => {
+  const result = formatLine('ab', 10, { align: 'center' })
+  t.is(result.length, 10)
+  t.is(result, '    ab    ')
+})
+
+test('formatLine right-aligns content when align is right', (t) => {
+  const result = formatLine('ab', 10, { align: 'right' })
+  t.is(result.length, 10)
+  t.is(result, ' '.repeat(8) + 'ab')
+})
+
+test('formatLine with a frame wraps content and fills the requested width', (t) => {
+  const result = formatLine('ab', 10, {
+    align: 'center',
+    frame: { left: '|', right: '|' },
+  })
+  t.true(result.startsWith('|'))
+  t.true(result.endsWith('|'))
+  t.is(result.length, 10)
+  t.is(result, '|   ab   |')
+})
+
+test('formatLine applies padding inside the aligned region', (t) => {
+  // Width=10, paddingWidth=3 (left:2, right:1) -> contentWidth=7
+  const result = formatLine('x', 10, { padding: { left: 2, right: 1 } })
+  t.is(result.length, 7)
+  t.is(result, '  x    ')
+})
+
+// PadReplacement()
+test('padReplacement centers a value within the target width by default', (t) => {
+  t.is(padReplacement('A', 5), '  A  ')
+})
+
+test('padReplacement supports left and right alignment', (t) => {
+  t.is(padReplacement('A', 5, 'left'), 'A    ')
+  t.is(padReplacement('A', 5, 'right'), '    A')
+})
+
+// CreateBodySection()
+test('createBodySection pads each line to width minus double the padding', (t) => {
+  const result = createBodySection(['A'], 10, 2)
+  t.is(result[0]?.length, 6)
+  t.is(result[0], '  A   ')
+})
+
+test('createBodySection produces one output line per input line', (t) => {
+  const result = createBodySection(['A', 'BB', 'CCC'], 10, 2)
+  t.is(result.length, 3)
+  for (const line of result) {
+    t.is(line.length, 6)
+  }
+})
+
+// CreateFramedSection()
+test('createFramedSection returns top frame, body lines, and bottom frame', (t) => {
+  const result = createFramedSection(['hi'], 10, {
+    top: '+--+',
+    middle: '|{content}|',
+    bottom: '+--+',
+  })
+  t.is(result.length, 3)
+})
+
+test('createFramedSection produces lines whose width equals the requested width (no border shrink)', (t) => {
+  const width = 10
+  const result = createFramedSection(['hi', 'there'], width, {
+    top: '+--+',
+    middle: '|{content}|',
+    bottom: '+--+',
+  })
+  for (const line of result) {
+    t.is(line.length, width)
+  }
+})
+
+test('createFramedSection wraps each content line with the middle frame characters', (t) => {
+  const result = createFramedSection(['hi'], 10, {
+    top: '+--+',
+    middle: '|{content}|',
+    bottom: '+--+',
+  })
+  const contentLine = result[1]
+  t.true(contentLine?.startsWith('|'))
+  t.true(contentLine?.endsWith('|'))
+})

@@ -16,8 +16,5 @@ jobs:
           node-version: 20
           cache: yarn
       - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: npx ava --update-snapshots
-        env:
-          AVA_FORCE_CI: not-ci
+      - run: yarn test
       - run: yarn lint

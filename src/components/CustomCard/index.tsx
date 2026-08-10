@@ -8,7 +8,7 @@ import {
   type CustomCardSize,
   type CustomCardSymbol,
 } from '../../types/index.js'
-import { displayWidth } from '../../utils/text.js'
+import { displayWidth, spaces, truncate } from '../../utils/text.js'
 
 /**
  * Size presets: [width, height]
@@ -151,19 +151,32 @@ function wrapText(text: string, maxWidth: number): string[] {
     let current = ''
     for (const word of words) {
       let remaining = word
-      while (remaining.length > maxWidth) {
+      while (displayWidth(remaining) > maxWidth) {
         if (current.length > 0) {
           lines.push(current)
           current = ''
         }
 
-        lines.push(remaining.slice(0, maxWidth))
-        remaining = remaining.slice(maxWidth)
+        // Truncate() can return '' when maxWidth is narrower than the next
+        // code point's own width (e.g. a 2-column glyph in a 1-column
+        // budget) — force-consume that code point so remaining always
+        // shrinks and the loop can't spin forever.
+        let chunk = truncate(remaining, maxWidth)
+        if (chunk.length === 0) {
+          chunk = [...remaining][0] ?? ''
+        }
+
+        if (chunk.length === 0) break
+        lines.push(chunk)
+        remaining = remaining.slice(chunk.length)
       }
 
       if (current.length === 0) {
         current = remaining
-      } else if (current.length + 1 + remaining.length <= maxWidth) {
+      } else if (
+        displayWidth(current) + 1 + displayWidth(remaining) <=
+        maxWidth
+      ) {
         current += ' ' + remaining
       } else {
         lines.push(current)
@@ -178,11 +191,13 @@ function wrapText(text: string, maxWidth: number): string[] {
 }
 
 /**
- * Pads or truncates a string to exactly `len` characters.
+ * Pads or truncates a string to exactly `len` display columns.
  */
 function fit(str: string, len: number): string {
   if (len <= 0) return ''
-  return str.length >= len ? str.slice(0, len) : str.padEnd(len)
+  const width = displayWidth(str)
+  if (width >= len) return truncate(str, len)
+  return str + spaces(len - width)
 }
 
 /**
@@ -361,7 +376,7 @@ function StructuredLayout({
 
     // Width reserved on the right: cost + separator (if any) + topRight symbol (if any)
     const rightReserved =
-      (cost ? cost.length + 1 : 0) + (topRight ? topRightW : 0)
+      (cost ? displayWidth(cost) + 1 : 0) + (topRight ? topRightW : 0)
     // Width reserved on the left: topLeft symbol (if any)
     const leftReserved = topLeft ? topLeftW : 0
     const titleWidth = Math.max(0, innerWidth - leftReserved - rightReserved)

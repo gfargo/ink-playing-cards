@@ -35,7 +35,8 @@
   ],
   "dependencies": {
     "ink": "^6.0.0",
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "string-width": "^8.1.1"
   },
   "devDependencies": {
     "@ava/typescript": "^5.0.0",
