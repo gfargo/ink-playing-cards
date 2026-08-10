@@ -100,3 +100,63 @@ test('removeAllListeners clears all listeners', (t) => {
   t.is(l1.calls.length, 0)
   t.is(l2.calls.length, 0)
 })
+
+test('a listener that removes itself during dispatch does not skip subsequent listeners', (t) => {
+  const em = new EventManager()
+  const l2 = makeListener()
+  const l3 = makeListener()
+  const l1: EventListenerInterface = {
+    handleEvent() {
+      em.removeEventListener('CARDS_DRAWN', l1)
+    },
+  }
+  em.addEventListener('CARDS_DRAWN', l1)
+  em.addEventListener('CARDS_DRAWN', l2)
+  em.addEventListener('CARDS_DRAWN', l3)
+  em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  t.is(l2.calls.length, 1)
+  t.is(l3.calls.length, 1)
+})
+
+test('a listener that removes another listener during dispatch does not skip it for this dispatch', (t) => {
+  const em = new EventManager()
+  const l2 = makeListener()
+  const l1: EventListenerInterface = {
+    handleEvent() {
+      em.removeEventListener('CARDS_DRAWN', l2)
+    },
+  }
+  em.addEventListener('CARDS_DRAWN', l1)
+  em.addEventListener('CARDS_DRAWN', l2)
+  em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  t.is(l2.calls.length, 1)
+
+  em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  t.is(l2.calls.length, 1)
+})
+
+test('a throwing listener does not prevent other listeners from running', (t) => {
+  const em = new EventManager()
+  const l2 = makeListener()
+  const thrower: EventListenerInterface = {
+    handleEvent() {
+      throw new Error('boom')
+    },
+  }
+  em.addEventListener('CARDS_DRAWN', thrower)
+  em.addEventListener('CARDS_DRAWN', l2)
+
+  t.notThrows(() => {
+    em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  })
+  t.is(l2.calls.length, 1)
+})
+
+test('once option removes the listener after it fires', (t) => {
+  const em = new EventManager()
+  const listener = makeListener()
+  em.addEventListener('CARDS_DRAWN', listener, { once: true })
+  em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  em.dispatchEvent(makeEvent('CARDS_DRAWN'))
+  t.is(listener.calls.length, 1)
+})
