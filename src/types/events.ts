@@ -38,10 +38,22 @@ export type GameEventData = {
 }
 
 /**
+ * Options for registering an event listener.
+ */
+export type EventListenerOptions = {
+  /** If true, the listener is automatically removed after it fires once. */
+  once?: boolean
+}
+
+/**
  * Interface for the event manager (avoids circular imports with systems).
  */
 export type EventManagerInterface = {
-  addEventListener(eventType: string, listener: EventListenerInterface): void
+  addEventListener(
+    eventType: string,
+    listener: EventListenerInterface,
+    options?: EventListenerOptions
+  ): void
   removeEventListener(eventType: string, listener: EventListenerInterface): void
   dispatchEvent(event: GameEventData): void
   removeAllListeners(): void
