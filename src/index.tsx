@@ -12,6 +12,20 @@ export {
   isCustomCard,
   generateCardId,
 } from './utils/cards.js'
+export {
+  RANK_ORDER,
+  rankIndex,
+  cardPointValue,
+  blackjackTotal,
+  isSet,
+  isRun,
+  isValidMeld,
+  PokerHandRank,
+  evaluatePokerHand,
+  comparePokerHands,
+  type PokerHandRankValue,
+  type PokerHandResult,
+} from './utils/evaluation.js'
 export { AnyCard } from './components/AnyCard/index.js'
 export { Card } from './components/Card/index.js'
 export { CardGrid, type GridCard } from './components/CardGrid/index.js'
