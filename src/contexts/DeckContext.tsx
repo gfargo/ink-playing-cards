@@ -230,7 +230,7 @@ const createDeckReducer =
       }
 
       case 'RESET': {
-        const newCards = action.payload?.cards ?? createStandardDeck()
+        const newCards = action.payload?.cards ?? createStandardDeck({ rng })
         return {
           ...state,
           zones: {

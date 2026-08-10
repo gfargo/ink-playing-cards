@@ -187,6 +187,31 @@ test('RESET action restores deck and clears hands', (t) => {
   t.deepEqual(state.zones.hands, {})
 })
 
+test('RESET action with a seeded rng is deterministic', (t) => {
+  const cardsA = makeCards(5)
+  const cardsB = makeCards(5)
+  const resultsA = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 2, playerId: 'p1' } },
+      { type: 'RESET' },
+    ],
+    cardsA,
+    { rng: mulberry32(7) }
+  )
+  const resultsB = renderWithProvider(
+    [
+      { type: 'DRAW', payload: { count: 2, playerId: 'p1' } },
+      { type: 'RESET' },
+    ],
+    cardsB,
+    { rng: mulberry32(7) }
+  )
+  t.deepEqual(
+    resultsA.at(-1)!.zones.deck.map((c) => c.id),
+    resultsB.at(-1)!.zones.deck.map((c) => c.id)
+  )
+})
+
 test('RESET preserves the player roster', (t) => {
   const cards = makeCards(5)
   const results = renderWithProvider(
