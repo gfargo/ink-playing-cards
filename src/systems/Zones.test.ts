@@ -1,5 +1,6 @@
 import test from 'ava'
 import type { CardProps, TarotMajorProps, TCard } from '../types/index.js'
+import { mulberry32 } from '../utils/rng.js'
 import {
   shuffleCards,
   drawCards,
@@ -59,6 +60,26 @@ test('shuffleCards preserves all cards', (t) => {
   const ids = shuffled.map((c) => c.id).sort()
   const originalIds = cards.map((c) => c.id).sort()
   t.deepEqual(ids, originalIds)
+})
+
+test('shuffleCards with the same seeded rng produces the same order', (t) => {
+  const cards = makeDeck(20)
+  const shuffledA = shuffleCards(cards, mulberry32(42))
+  const shuffledB = shuffleCards(cards, mulberry32(42))
+  t.deepEqual(
+    shuffledA.map((c) => c.id),
+    shuffledB.map((c) => c.id)
+  )
+})
+
+test('shuffleCards with different seeds produces a different order', (t) => {
+  const cards = makeDeck(20)
+  const shuffledA = shuffleCards(cards, mulberry32(1))
+  const shuffledB = shuffleCards(cards, mulberry32(2))
+  t.notDeepEqual(
+    shuffledA.map((c) => c.id),
+    shuffledB.map((c) => c.id)
+  )
 })
 
 test('drawCards draws from the end of the array', (t) => {

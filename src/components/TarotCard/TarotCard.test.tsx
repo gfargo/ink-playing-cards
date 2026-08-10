@@ -1,6 +1,7 @@
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
+import { mulberry32 } from '../../utils/rng.js'
 import { createTarotDeck } from './utils.js'
 import { TarotCard } from './index.js'
 
@@ -261,4 +262,10 @@ test('createTarotDeck Major Arcana indices are 0–21', (t) => {
     indices,
     Array.from({ length: 22 }, (_, i) => i)
   )
+})
+
+test('createTarotDeck(rng) with the same seed produces identical IDs', (t) => {
+  const a = createTarotDeck(mulberry32(3)).map((c) => c.id)
+  const b = createTarotDeck(mulberry32(3)).map((c) => c.id)
+  t.deepEqual(a, b)
 })

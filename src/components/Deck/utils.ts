@@ -9,8 +9,13 @@ import { generateCardId } from '../../utils/cards.js'
 /**
  * Creates a standard deck of 52 playing cards, each with a unique ID.
  * Optionally appends jokers (excluded by default to preserve the standard 52-card count).
+ * `rng` defaults to `Math.random`; pass a seeded RNG for deterministic IDs.
  */
-export function createStandardDeck(options?: { jokers?: number }): TCard[] {
+export function createStandardDeck(options?: {
+  jokers?: number
+  rng?: () => number
+}): TCard[] {
+  const rng = options?.rng ?? Math.random
   const suits: TSuit[] = ['hearts', 'diamonds', 'clubs', 'spades']
   const values: TCardValue[] = [
     '2',
@@ -31,14 +36,14 @@ export function createStandardDeck(options?: { jokers?: number }): TCard[] {
 
   for (const suit of suits) {
     for (const value of values) {
-      deck.push({ id: generateCardId(suit, value), suit, value })
+      deck.push({ id: generateCardId(suit, value, rng), suit, value })
     }
   }
 
   const jokerSuits: TSuit[] = ['hearts', 'spades']
   for (let i = 0; i < (options?.jokers ?? 0); i++) {
     const suit = jokerSuits[i % jokerSuits.length]!
-    deck.push({ id: generateCardId(suit, 'JOKER'), suit, value: 'JOKER' })
+    deck.push({ id: generateCardId(suit, 'JOKER', rng), suit, value: 'JOKER' })
   }
 
   return deck
@@ -51,8 +56,13 @@ export function createStandardDeck(options?: { jokers?: number }): TCard[] {
  * (so face-up they look identical). Cards are optionally shuffled as
  * individual cards (not as pair units), so matched pairs don't predictably
  * land in adjacent slots.
+ * `rng` defaults to `Math.random`; pass a seeded RNG for deterministic
+ * IDs and shuffle order.
  */
-export function createPairedDeck(shufflePairs = true): TCard[] {
+export function createPairedDeck(
+  shufflePairs = true,
+  rng: () => number = Math.random
+): TCard[] {
   const values: TCardValue[] = [
     '2',
     '3',
@@ -80,7 +90,7 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
     for (const suit of [suitA, suitB]) {
       for (let copy = 0; copy < 2; copy++) {
         deck.push({
-          id: generateCardId(suit, value),
+          id: generateCardId(suit, value, rng),
           value,
           suit,
           faceUp: false,
@@ -94,7 +104,7 @@ export function createPairedDeck(shufflePairs = true): TCard[] {
   // pairs are scattered across the deck rather than always adjacent.
   if (shufflePairs) {
     for (let i = deck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
+      const j = Math.floor(rng() * (i + 1))
       ;[deck[i], deck[j]] = [deck[j]!, deck[i]!]
     }
   }

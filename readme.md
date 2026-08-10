@@ -293,7 +293,7 @@ Wraps your game and provides deck state via React context + useReducer:
 </DeckProvider>
 ```
 
-Accepts optional `initialCards` (defaults to standard 52-card deck) and `customReducer` for extending the reducer.
+Accepts optional `initialCards` (defaults to standard 52-card deck), `customReducer` for extending the reducer, and `rng` — an optional `() => number` (defaults to `Math.random`) used for shuffling and card ID generation. Pass a seeded RNG (e.g. `mulberry32` from `ink-playing-cards`) for deterministic, replayable games.
 
 ### GameProvider
 
@@ -411,12 +411,16 @@ Effect types: `ConditionalEffect`, `TriggeredEffect`, `ContinuousEffect`, `Delay
 ## Utilities
 
 ```tsx
-import { createStandardDeck, createPairedDeck, createTarotDeck, generateCardId } from 'ink-playing-cards'
+import { createStandardDeck, createPairedDeck, createTarotDeck, generateCardId, mulberry32 } from 'ink-playing-cards'
 
 const deck = createStandardDeck()       // 52 cards with unique IDs
 const pairs = createPairedDeck()        // paired deck for Memory-style games
 const tarot = createTarotDeck()         // 78-card tarot deck (22 Major + 56 Minor Arcana)
 const id = generateCardId('hearts', 'A') // "hearts-A-abc123"
+
+// Every shuffle/ID helper and deck constructor accepts an optional `rng: () => number`
+// (defaults to Math.random) for deterministic, replayable output:
+const seeded = createStandardDeck({ rng: mulberry32(42) })
 ```
 
 ## Type Guards

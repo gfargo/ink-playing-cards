@@ -7,11 +7,16 @@ import { type TCard } from '../types/index.js'
 
 /**
  * Shuffle an array of cards using Fisher-Yates. Returns a new array.
+ * `rng` defaults to `Math.random`; pass a seeded RNG (e.g. `mulberry32`)
+ * for deterministic, replayable shuffles.
  */
-export function shuffleCards(cards: TCard[]): TCard[] {
+export function shuffleCards(
+  cards: TCard[],
+  rng: () => number = Math.random
+): TCard[] {
   const shuffled = [...cards]
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const index = Math.floor(Math.random() * (i + 1))
+    const index = Math.floor(rng() * (i + 1))
     ;[shuffled[i], shuffled[index]] = [shuffled[index]!, shuffled[i]!]
   }
 

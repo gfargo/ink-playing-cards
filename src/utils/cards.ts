@@ -35,7 +35,13 @@ export function isCustomCard(card: TCard): card is CustomCardProps {
 
 /**
  * Generates a unique card ID from suit and value.
+ * `rng` defaults to `Math.random`; pass a seeded RNG (e.g. `mulberry32`)
+ * for deterministic, reproducible IDs.
  */
-export function generateCardId(suit: TSuit, value: TCardValue): string {
-  return `${suit}-${value}-${Math.random().toString(36).slice(2, 8)}`
+export function generateCardId(
+  suit: TSuit,
+  value: TCardValue,
+  rng: () => number = Math.random
+): string {
+  return `${suit}-${value}-${rng().toString(36).slice(2, 8)}`
 }

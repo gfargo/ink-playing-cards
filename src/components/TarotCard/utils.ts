@@ -24,10 +24,14 @@ const ALL_MINOR_VALUES: TarotMinorValue[] = [
  * - Minor: `minor-<suit>-<value>-<rand>` (e.g. `minor-cups-Queen-x9y8z7`)
  *
  * @returns Array of 78 TarotCardProps (without `id` randomness baked in — each call produces unique IDs)
+ *
+ * `rng` defaults to `Math.random`; pass a seeded RNG for deterministic IDs.
  */
-export function createTarotDeck(): TarotCardProps[] {
+export function createTarotDeck(
+  rng: () => number = Math.random
+): TarotCardProps[] {
   const cards: TarotCardProps[] = []
-  const rand = () => Math.random().toString(36).slice(2, 8)
+  const rand = () => rng().toString(36).slice(2, 8)
 
   // 22 Major Arcana
   for (let i = 0; i < MAJOR_ARCANA.length; i++) {
