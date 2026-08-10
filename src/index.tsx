@@ -42,6 +42,7 @@ export { GameContext, GameProvider } from './contexts/GameContext.js'
 export { useDeck } from './hooks/useDeck.js'
 export { useGame } from './hooks/useGame.js'
 export { useHand } from './hooks/useHand.js'
+export { usePlayers } from './hooks/usePlayers.js'
 export { useResponsiveVariant } from './hooks/useResponsiveVariant.js'
 export {
   useCardCursor,
