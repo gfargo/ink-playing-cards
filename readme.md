@@ -419,6 +419,38 @@ const tarot = createTarotDeck()         // 78-card tarot deck (22 Major + 56 Min
 const id = generateCardId('hearts', 'A') // "hearts-A-abc123"
 ```
 
+### Hand evaluation
+
+Pure helpers for poker ranking, rummy-style melds, and blackjack totals — no React/Ink dependency.
+
+```tsx
+import {
+  rankIndex,
+  cardPointValue,
+  blackjackTotal,
+  isSet,
+  isRun,
+  isValidMeld,
+  evaluatePokerHand,
+  comparePokerHands,
+  PokerHandRank,
+} from 'ink-playing-cards'
+
+rankIndex('A')                          // 12 (ace-high; '2' is 0)
+cardPointValue({ id: '1', suit: 'hearts', value: 'K' }) // 10 (A=1, J/Q/K=10, else face value)
+
+blackjackTotal(hand)                    // total with soft-ace (A=11→1) handling
+
+isSet(threeSevens)                      // true — 3+ cards sharing a rank
+isRun(fiveSixSevenOfHearts)             // true — 3+ consecutive same-suit cards
+isValidMeld(cards)                      // isSet(cards) || isRun(cards)
+
+const result = evaluatePokerHand(fiveCards)
+// { rank: PokerHandRank.Flush, name: 'Flush', kickers: [...] }
+
+comparePokerHands(handA, handB)         // >0 if handA wins, <0 if handB wins, 0 on a tie
+```
+
 ## Type Guards
 
 ```tsx
