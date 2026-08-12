@@ -2,10 +2,12 @@ import { center, displayWidth, left, right, spaces } from './text.js'
 
 export type Alignment = 'left' | 'center' | 'right'
 export type Padding = { left?: number; right?: number }
-export type Frame = { left: string; right: string }
+export type SideFrame = { left: string; right: string }
 
 /**
- * Formats a line of ASCII art with precise control over spacing
+ * Formats a line of ASCII art with precise control over spacing.
+ * Always returns a string exactly `width` display columns wide:
+ * `frameWidth + paddingWidth + contentWidth === width`.
  */
 export function formatLine(
   content: string,
@@ -13,7 +15,7 @@ export function formatLine(
   options: {
     align?: Alignment
     padding?: Padding
-    frame?: Frame
+    frame?: SideFrame
   } = {}
 ): string {
   const { align = 'left', padding = {}, frame } = options
@@ -26,17 +28,18 @@ export function formatLine(
   const paddingWidth = leftPad + rightPad
   const contentWidth = width - frameWidth - paddingWidth
 
-  // Add padding
-  let result = spaces(leftPad) + content + spaces(rightPad)
-
-  // Align within available space
+  // Align content within the space left after frame and padding are reserved
+  let result: string
   if (align === 'center') {
-    result = center(result, contentWidth)
+    result = center(content, contentWidth)
   } else if (align === 'right') {
-    result = right(result, contentWidth)
+    result = right(content, contentWidth)
   } else {
-    result = left(result, contentWidth)
+    result = left(content, contentWidth)
   }
+
+  // Add padding around the aligned content
+  result = spaces(leftPad) + result + spaces(rightPad)
 
   // Add frame if provided
   if (frame) {
@@ -57,17 +60,20 @@ export function padReplacement(
   return formatLine(value, targetWidth, { align })
 }
 
+export type BoxFrame = {
+  top: string
+  middle: string
+  bottom: string
+}
+
 /**
- * Creates a framed section with centered content
+ * Creates a framed section with centered content. Every returned line is
+ * exactly `width` display columns wide.
  */
 export function createFramedSection(
   content: string[],
   width: number,
-  frame: {
-    top: string
-    middle: string
-    bottom: string
-  }
+  frame: BoxFrame
 ): string[] {
   const result: string[] = []
 
@@ -81,11 +87,12 @@ export function createFramedSection(
     left ||= ' '
     right ||= ' '
 
-    const newLine = formatLine(line, width, {
-      align: 'center',
-      frame: { left, right },
-    })
-    result.push(center(newLine, width))
+    result.push(
+      formatLine(line, width, {
+        align: 'center',
+        frame: { left, right },
+      })
+    )
   }
 
   // Add bottom frame
@@ -95,7 +102,9 @@ export function createFramedSection(
 }
 
 /**
- * Creates a body section with proper spacing
+ * Creates a body section with proper spacing. `padding` is the number of
+ * blank columns left on each side; every returned line is exactly `width`
+ * display columns wide.
  */
 export function createBodySection(
   content: string[],
@@ -103,6 +112,9 @@ export function createBodySection(
   padding: number
 ): string[] {
   return content.map((line) =>
-    padReplacement(line, width - padding * 2, 'center')
+    formatLine(line, width, {
+      align: 'center',
+      padding: { left: padding, right: padding },
+    })
   )
 }
