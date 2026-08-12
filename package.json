@@ -10,6 +10,7 @@
   "engines": {
     "node": ">=20"
   },
+  "packageManager": "yarn@1.22.22",
   "agents": {
     "skills": [
       { "name": "ink-playing-cards", "path": "./skills/ink-playing-cards" }

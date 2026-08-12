@@ -15,6 +15,7 @@ jobs:
         with:
           node-version: 20
           cache: yarn
+      - run: corepack enable
       - run: yarn install --frozen-lockfile
       - run: yarn test
       - run: yarn lint
