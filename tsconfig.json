@@ -11,6 +11,7 @@
     "esModuleInterop": true,
     "jsx": "react",
     "declaration": true,
+    "sourceMap": true,
     "pretty": true,
     "newLine": "lf",
     "stripInternal": true,

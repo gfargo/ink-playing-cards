@@ -1,5 +1,7 @@
 dist
 prompts
+coverage
+.nyc_output
 
 # Logs
 logs
