@@ -1,5 +1,6 @@
+import process from 'node:process'
 import { Box, Text, type BoxProps } from 'ink'
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { CARD_DIMENSIONS, getSuitColor } from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { useCardTheme } from '../../contexts/ThemeContext.js'
@@ -38,6 +39,19 @@ export function Card({
   const context = useContext(DeckContext)
   const backArtwork = context?.backArtwork ?? defaultBackArtwork
   const cardTheme = useCardTheme()
+
+  useEffect(() => {
+    if (
+      process.env['NODE_ENV'] !== 'production' &&
+      theme !== 'original' &&
+      variant !== 'ascii'
+    ) {
+      console.warn(
+        `Card: theme="${theme}" has no effect for variant="${variant}"; ` +
+          `themed art is only rendered for variant="ascii".`
+      )
+    }
+  }, [theme, variant])
 
   const config = {
     ...CARD_DIMENSIONS[variant],
