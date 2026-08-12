@@ -18,7 +18,7 @@ const SUIT_BASE = {
 /**
  * Value offsets from the suit base for each card value
  */
-const VALUE_OFFSET: Record<TCardValue, number> = {
+const VALUE_OFFSET: Record<Exclude<TCardValue, 'JOKER'>, number> = {
   A: 0x1,
   '2': 0x2,
   '3': 0x3,
@@ -32,7 +32,6 @@ const VALUE_OFFSET: Record<TCardValue, number> = {
   J: 0xb,
   Q: 0xd,
   K: 0xe,
-  JOKER: 0xf,
 } as const
 
 /**

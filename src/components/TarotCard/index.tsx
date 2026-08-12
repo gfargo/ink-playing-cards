@@ -11,7 +11,6 @@ import {
   MAJOR_ARCANA,
   MAJOR_ARCANA_ART,
   MINOR_COURT,
-  MINOR_PIPS,
   TAROT_SUIT_ICONS,
 } from './constants.js'
 
@@ -77,20 +76,9 @@ function buildMajorProps(props: TarotMajorProps): TarotLayoutProps {
 function buildMinorProps(props: TarotMinorProps): TarotLayoutProps {
   const icon = TAROT_SUIT_ICONS[props.suit] ?? '?'
   const isCourt = (MINOR_COURT as readonly string[]).includes(props.value)
-  const isPip = (MINOR_PIPS as readonly string[]).includes(props.value)
   const suitLabel = props.suit.charAt(0).toUpperCase() + props.suit.slice(1)
 
-  let title: string
-  if (isCourt) {
-    title = `${props.value} of ${suitLabel}`
-  } else if (isPip) {
-    title =
-      props.value === 'Ace'
-        ? `Ace of ${suitLabel}`
-        : `${props.value} of ${suitLabel}`
-  } else {
-    title = `${props.value} of ${suitLabel}`
-  }
+  const title = `${props.value} of ${suitLabel}`
 
   // Generate pip art for numbered cards
   let art = props.asciiArt ?? ''

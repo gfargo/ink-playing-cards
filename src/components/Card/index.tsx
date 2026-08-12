@@ -1,5 +1,6 @@
+import process from 'node:process'
 import { Box, Text, type BoxProps } from 'ink'
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import {
   CARD_DIMENSIONS,
   EFFECT_INDICATOR_COLOR,
@@ -44,6 +45,19 @@ export function Card({
   const backArtwork = context?.backArtwork ?? defaultBackArtwork
   const cardTheme = useCardTheme()
   const hasEffects = faceUp && Array.isArray(effects) && effects.length > 0
+
+  useEffect(() => {
+    if (
+      process.env['NODE_ENV'] !== 'production' &&
+      theme !== 'original' &&
+      variant !== 'ascii'
+    ) {
+      console.warn(
+        `Card: theme="${theme}" has no effect for variant="${variant}"; ` +
+          `themed art is only rendered for variant="ascii".`
+      )
+    }
+  }, [theme, variant])
 
   const config = {
     ...CARD_DIMENSIONS[variant],
