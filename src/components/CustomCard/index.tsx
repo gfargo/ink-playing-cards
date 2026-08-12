@@ -567,7 +567,7 @@ export function CustomCard({
   return (
     <Box {...cardStyle}>
       <StructuredLayout
-        cardLabel={title ?? id}
+        cardLabel={title ?? id ?? 'card'}
         size={size}
         title={title}
         cost={cost}

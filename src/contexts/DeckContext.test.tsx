@@ -357,7 +357,10 @@ test('REORDER_PLAYERS with a non-permutation payload is a no-op', (t) => {
 
 test('ADD_CUSTOM_CARD adds card to deck', (t) => {
   const cards = makeCards(3)
-  const custom: CustomCardProps = { id: 'custom-1', title: 'Wild' }
+  const custom: CustomCardProps & { id: string } = {
+    id: 'custom-1',
+    title: 'Wild',
+  }
   const results = renderWithProvider(
     [{ type: 'ADD_CUSTOM_CARD', payload: custom }],
     cards

@@ -521,3 +521,10 @@ test('does not warn when all regions fit', (t) => {
     process.env['NODE_ENV'] = originalNodeEnv
   }
 })
+
+test('renders a decorative custom card without an id prop', (t) => {
+  const { lastFrame } = render(
+    <CustomCard size="small" title="Wild Card" description="No id needed." />
+  )
+  t.truthy(lastFrame())
+})

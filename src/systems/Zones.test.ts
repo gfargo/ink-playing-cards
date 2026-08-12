@@ -36,7 +36,7 @@ function makeDeck(count: number): TCard[] {
   return Array.from({ length: count }, (_, i) => makeCard(`card-${i}`))
 }
 
-function makeTarotCard(id: string): TarotMajorProps {
+function makeTarotCard(id: string): TarotMajorProps & { id: string } {
   return { id, arcana: 'major', majorIndex: 0 }
 }
 

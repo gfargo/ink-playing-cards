@@ -3,7 +3,7 @@ import { type CardProps } from '../../types/index.js'
 import { mulberry32 } from '../../utils/rng.js'
 import { createStandardDeck, createPairedDeck } from './utils.js'
 
-function isCardProps(c: unknown): c is CardProps {
+function isCardProps(c: unknown): c is CardProps & { id: string } {
   return typeof c === 'object' && c !== null && 'suit' in c && 'value' in c
 }
 
@@ -35,7 +35,7 @@ test('createStandardDeck contains all 4 suits × 13 values', (t) => {
     for (const value of values) {
       t.true(
         deck
-          .filter((c): c is CardProps => isCardProps(c))
+          .filter((c): c is CardProps & { id: string } => isCardProps(c))
           .some((c) => c.suit === suit && c.value === value),
         `missing ${suit}-${value}`
       )
@@ -57,7 +57,8 @@ test('createStandardDeck({ jokers: 2 }) returns 54 cards, 2 of which are jokers'
   const deck = createStandardDeck({ jokers: 2 })
   t.is(deck.length, 54)
   const jokers = deck.filter(
-    (c): c is CardProps => isCardProps(c) && c.value === 'JOKER'
+    (c): c is CardProps & { id: string } =>
+      isCardProps(c) && c.value === 'JOKER'
   )
   t.is(jokers.length, 2)
 })

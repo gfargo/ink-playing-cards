@@ -169,7 +169,7 @@ test('serialize falls back to deck.players when no game slice is passed', (t) =>
 })
 
 test('a tarot card survives a serialize/hydrate round-trip', (t) => {
-  const tarotCard: TarotMajorProps = {
+  const tarotCard: TCard = {
     id: 'fool',
     arcana: 'major',
     majorIndex: 0,

@@ -50,7 +50,7 @@ export const useDeck = () => {
     dispatch({ type: 'SET_BACK_ARTWORK', payload: artwork })
   }
 
-  const addCustomCard = (card: CustomCardProps) => {
+  const addCustomCard = (card: CustomCardProps & { id: string }) => {
     dispatch({ type: 'ADD_CUSTOM_CARD', payload: card })
   }
 
