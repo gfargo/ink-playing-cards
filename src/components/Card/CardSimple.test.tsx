@@ -1,3 +1,4 @@
+import process from 'node:process'
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
@@ -125,4 +126,106 @@ test('render joker of hearts face up (minimal variant, regression guard)', (t) =
     t.true(frame.includes('JK'))
     t.true(frame.includes('♥'))
   }
+})
+
+test('warns in development when theme is set with simple variant', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(
+    <Card
+      id="king-spades"
+      suit="spades"
+      value="K"
+      variant="simple"
+      theme="robot"
+    />
+  )
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.true(calls.length > 0)
+  t.true(
+    String(calls[0]?.[0]).includes(
+      'theme="robot" has no effect for variant="simple"'
+    )
+  )
+})
+
+test('warns in development when theme is set with minimal variant', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(
+    <Card
+      id="king-spades"
+      suit="spades"
+      value="K"
+      variant="minimal"
+      theme="robot"
+    />
+  )
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.true(calls.length > 0)
+  t.true(
+    String(calls[0]?.[0]).includes(
+      'theme="robot" has no effect for variant="minimal"'
+    )
+  )
+})
+
+test('does not warn for ascii variant with a theme', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(
+    <Card
+      id="king-spades"
+      suit="spades"
+      value="K"
+      variant="ascii"
+      theme="robot"
+    />
+  )
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.true(calls.length === 0)
+})
+
+test('does not warn for simple variant with default theme', (t) => {
+  const calls: unknown[][] = []
+  const originalWarn = console.warn
+  const originalNodeEnv = process.env['NODE_ENV']
+  console.warn = (...args: unknown[]) => {
+    calls.push(args)
+  }
+
+  process.env['NODE_ENV'] = 'development'
+  render(<Card id="king-spades" suit="spades" value="K" variant="simple" />)
+
+  console.warn = originalWarn
+  process.env['NODE_ENV'] = originalNodeEnv
+
+  t.true(calls.length === 0)
 })
