@@ -1,5 +1,10 @@
 # Ink Playing Cards
 
+[![npm version](https://img.shields.io/npm/v/ink-playing-cards.svg)](https://www.npmjs.com/package/ink-playing-cards)
+[![npm downloads](https://img.shields.io/npm/dm/ink-playing-cards.svg)](https://www.npmjs.com/package/ink-playing-cards)
+[![CI](https://github.com/gfargo/ink-playing-cards/actions/workflows/ci.yml/badge.svg)](https://github.com/gfargo/ink-playing-cards/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/ink-playing-cards.svg)](./LICENSE)
+
 A flexible framework for building terminal-based card games with [React](https://react.dev/) and [Ink](https://github.com/vadimdemedes/ink). Components, hooks, and game systems for managing card state and rendering in the terminal.
 
 ## Requirements
