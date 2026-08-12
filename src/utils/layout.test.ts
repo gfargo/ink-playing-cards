@@ -43,6 +43,22 @@ test('formatLine applies padding as real margin and still fills the requested wi
   t.is(result, '  x' + ' '.repeat(7))
 })
 
+test('formatLine does not truncate content wider than contentWidth', (t) => {
+  // ContentWidth=5, but content is 10 chars -> overflow is left intact, not clipped
+  const result = formatLine('HELLOWORLD', 5)
+  t.is(result, 'HELLOWORLD')
+  t.true(result.length > 5)
+})
+
+test('formatLine keeps the frame around overflowing content instead of dropping it', (t) => {
+  // ContentWidth = 5 - 2 (frame) = 3, but content ("WIDE") is 4 chars
+  const result = formatLine('WIDE', 5, {
+    align: 'center',
+    frame: { left: '[', right: ']' },
+  })
+  t.is(result, '[WIDE]')
+})
+
 // PadReplacement()
 test('padReplacement centers a value within the target width by default', (t) => {
   t.is(padReplacement('A', 5), '  A  ')
@@ -72,6 +88,14 @@ test('createBodySection with zero padding fills the entire width with content', 
   const result = createBodySection(['AB'], 10, 0)
   t.is(result[0]?.length, 10)
   t.is(result[0], '    AB    ')
+})
+
+test('createBodySection keeps the padding margin around content that overflows the available width', (t) => {
+  // Width=5, padding=2 each side -> contentWidth=1, but content ("TOOLONG") is 7 chars
+  const result = createBodySection(['TOOLONG'], 5, 2)
+  t.is(result[0], '  TOOLONG  ')
+  t.true(result[0]?.startsWith('  '))
+  t.true(result[0]?.endsWith('  '))
 })
 
 // CreateFramedSection()
@@ -105,4 +129,14 @@ test('createFramedSection wraps each content line with the middle frame characte
   const contentLine = result[1]
   t.true(contentLine?.startsWith('|'))
   t.true(contentLine?.endsWith('|'))
+})
+
+test('createFramedSection keeps the middle frame around content that overflows the width', (t) => {
+  // Framed content width = 10 - 2 (frame chars) = 8, but "OVERFLOWING" is 11 chars
+  const result = createFramedSection(['OVERFLOWING'], 10, {
+    top: '+--+',
+    middle: '|{content}|',
+    bottom: '+--+',
+  })
+  t.is(result[1], '|OVERFLOWING|')
 })
