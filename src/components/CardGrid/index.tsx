@@ -121,11 +121,17 @@ export function CardGrid({
   const getPlaceholderSize = () => {
     switch (resolvedVariant) {
       case 'mini': {
-        return { width: 5, height: 4 }
+        return {
+          width: CARD_DIMENSIONS.mini.width,
+          height: CARD_DIMENSIONS.mini.height,
+        }
       }
 
       case 'micro': {
-        return { width: 4, height: 4 }
+        return {
+          width: CARD_DIMENSIONS.micro.width,
+          height: CARD_DIMENSIONS.micro.height,
+        }
       }
 
       case 'minimal': {

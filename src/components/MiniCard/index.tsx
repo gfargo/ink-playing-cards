@@ -1,6 +1,6 @@
 import { Box, Text } from 'ink'
 import React, { useContext } from 'react'
-import { getSuitColor } from '../../constants/card.js'
+import { CARD_DIMENSIONS, getSuitColor } from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { useCardTheme } from '../../contexts/ThemeContext.js'
 import { type CardProps } from '../../types/index.js'
@@ -35,13 +35,13 @@ export function MiniCard({
   // to 'JK' the same way Card's minimal variant abbreviates it.
   const displayValue = center(value === 'JOKER' ? 'JK' : value, innerWidth)
 
-  // Micro cards are 2x4, mini cards are 5x4
+  // Micro cards are 4x4, mini cards are 5x4
   return (
     <Box
       flexDirection="column"
       overflow="hidden"
-      width={variant === 'mini' ? 5 : 4}
-      height={4}
+      width={CARD_DIMENSIONS[variant].width}
+      height={CARD_DIMENSIONS[variant].height}
       // `rounded={false}` always renders a square 'single' border, even
       // under a theme with a custom `borderStyle` — see BaseCardProps['rounded'] docs.
       borderStyle={
