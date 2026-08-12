@@ -107,6 +107,7 @@ export function Storybook() {
             onSelect={(item) => {
               if (item.value === 'exit') {
                 exit()
+                return
               }
 
               setCurrentComponent(item.value as ComponentView)
