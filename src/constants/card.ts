@@ -22,6 +22,16 @@ export const CARD_DIMENSIONS = {
     height: 5,
     padding: 0,
   },
+  mini: {
+    width: 5,
+    height: 4,
+    padding: 0,
+  },
+  micro: {
+    width: 4,
+    height: 4,
+    padding: 0,
+  },
 } as const
 
 /**
