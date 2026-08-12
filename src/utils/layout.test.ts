@@ -36,11 +36,11 @@ test('formatLine with a frame wraps content and fills the requested width', (t) 
   t.is(result, '|   ab   |')
 })
 
-test('formatLine applies padding inside the aligned region', (t) => {
+test('formatLine applies padding as real margin and still fills the requested width', (t) => {
   // Width=10, paddingWidth=3 (left:2, right:1) -> contentWidth=7
   const result = formatLine('x', 10, { padding: { left: 2, right: 1 } })
-  t.is(result.length, 7)
-  t.is(result, '  x    ')
+  t.is(result.length, 10)
+  t.is(result, '  x' + ' '.repeat(7))
 })
 
 // PadReplacement()
@@ -54,18 +54,24 @@ test('padReplacement supports left and right alignment', (t) => {
 })
 
 // CreateBodySection()
-test('createBodySection pads each line to width minus double the padding', (t) => {
+test('createBodySection pads each line to exactly width with padding as margin', (t) => {
   const result = createBodySection(['A'], 10, 2)
-  t.is(result[0]?.length, 6)
-  t.is(result[0], '  A   ')
+  t.is(result[0]?.length, 10)
+  t.is(result[0], ' '.repeat(4) + 'A' + ' '.repeat(5))
 })
 
-test('createBodySection produces one output line per input line', (t) => {
+test('createBodySection produces one output line per input line, each exactly width', (t) => {
   const result = createBodySection(['A', 'BB', 'CCC'], 10, 2)
   t.is(result.length, 3)
   for (const line of result) {
-    t.is(line.length, 6)
+    t.is(line.length, 10)
   }
+})
+
+test('createBodySection with zero padding fills the entire width with content', (t) => {
+  const result = createBodySection(['AB'], 10, 0)
+  t.is(result[0]?.length, 10)
+  t.is(result[0], '    AB    ')
 })
 
 // CreateFramedSection()
