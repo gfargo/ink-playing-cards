@@ -287,3 +287,8 @@ test('does not warn for simple variant with default theme', (t) => {
 
   t.true(calls.length === 0)
 })
+
+test('renders a decorative card without an id prop', (t) => {
+  const { lastFrame } = render(<Card suit="hearts" value="A" />)
+  t.truthy(lastFrame())
+})

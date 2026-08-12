@@ -83,7 +83,7 @@ export function createPairedDeck(
   // Each value gets two matched pairs, built from two half-decks (a
   // rotating pair of suits) rather than mixing all four suits together, so
   // every matched pair is visually identical (same suit and value).
-  const deck: CardProps[] = []
+  const deck: Array<CardProps & { id: string }> = []
   for (const [index, value] of values.entries()) {
     const suitA = suits[index % suits.length]!
     const suitB = suits[(index + 1) % suits.length]!

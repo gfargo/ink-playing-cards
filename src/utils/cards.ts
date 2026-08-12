@@ -10,7 +10,9 @@ import type {
 /**
  * Type guard to check if a card is a standard playing card.
  */
-export function isStandardCard(card: TCard): card is CardProps {
+export function isStandardCard(
+  card: TCard
+): card is CardProps & { id: string } {
   return (
     'suit' in card &&
     'value' in card &&
@@ -22,14 +24,18 @@ export function isStandardCard(card: TCard): card is CardProps {
 /**
  * Type guard to check if a card is a tarot card (Major or Minor Arcana).
  */
-export function isTarotCard(card: TCard): card is TarotCardProps {
+export function isTarotCard(
+  card: TCard
+): card is TarotCardProps & { id: string } {
   return 'arcana' in card
 }
 
 /**
  * Type guard to check if a card is a custom card.
  */
-export function isCustomCard(card: TCard): card is CustomCardProps {
+export function isCustomCard(
+  card: TCard
+): card is CustomCardProps & { id: string } {
   return !isStandardCard(card) && !isTarotCard(card)
 }
 

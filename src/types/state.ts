@@ -131,7 +131,7 @@ export type DeckAction =
     }
   | { type: 'RESET'; payload?: { cards?: TCard[] } }
   | { type: 'SET_BACK_ARTWORK'; payload: Partial<BackArtwork> }
-  | { type: 'ADD_CUSTOM_CARD'; payload: CustomCardProps }
+  | { type: 'ADD_CUSTOM_CARD'; payload: CustomCardProps & { id: string } }
   | { type: 'REMOVE_CUSTOM_CARD'; payload: { cardId: string } }
   | { type: 'CUT_DECK'; payload: number }
   | { type: 'DEAL'; payload: { count: number; playerIds: string[] } }

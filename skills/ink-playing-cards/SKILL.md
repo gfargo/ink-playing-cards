@@ -58,10 +58,12 @@ render(<DeckProvider><Game /></DeckProvider>)
 ## Types
 
 ```ts
-type TCard = CardProps | CustomCardProps  // every card has a unique `id`
+type TCard = (CardProps | CustomCardProps) & { id: string }  // every card has a unique `id`
 
 type BaseCardProps = {
-  id: string; effects?: CardEffect[]; faceUp?: boolean; selected?: boolean; rounded?: boolean
+  // `id` is optional here — only required on `TCard` (zone bookkeeping,
+  // React keys). A single decorative `<Card>`/`<CustomCard>` doesn't need one.
+  id?: string; effects?: CardEffect[]; faceUp?: boolean; selected?: boolean; rounded?: boolean
 }
 
 type CardProps = BaseCardProps & {

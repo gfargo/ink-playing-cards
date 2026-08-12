@@ -29,8 +29,8 @@ const ALL_MINOR_VALUES: TarotMinorValue[] = [
  */
 export function createTarotDeck(
   rng: () => number = Math.random
-): TarotCardProps[] {
-  const cards: TarotCardProps[] = []
+): Array<TarotCardProps & { id: string }> {
+  const cards: Array<TarotCardProps & { id: string }> = []
   const rand = () => rng().toString(36).slice(2, 8)
 
   // 22 Major Arcana

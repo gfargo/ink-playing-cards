@@ -27,7 +27,13 @@ export type TSuit = 'hearts' | 'diamonds' | 'clubs' | 'spades'
  * Every card has a unique `id` for reliable identification in zones.
  */
 export type BaseCardProps = {
-  id: string
+  /**
+   * Identifies this card for zone bookkeeping and list rendering (e.g.
+   * `CardStack`/`CardGrid` React keys). Optional here since the leaf
+   * render components (`Card`, `MiniCard`) don't need it — required on
+   * `TCard`, since zones and hands do.
+   */
+  id?: string
   /**
    * Effects attached to this card. Consumed by `EffectManager.applyCardEffects`
    * on `PLAY_CARD` (game-state side). On the render side, a non-empty array on
@@ -245,9 +251,12 @@ export type TarotMinorProps = BaseCardProps & {
 export type TarotCardProps = TarotMajorProps | TarotMinorProps
 
 /**
- * Union type for all cards. Every card has a guaranteed `id`.
+ * Union type for all cards. `id` is required here (unlike on the individual
+ * component props types) since zone bookkeeping and list rendering rely on it.
  */
-export type TCard = CardProps | CustomCardProps | TarotCardProps
+export type TCard = (CardProps | CustomCardProps | TarotCardProps) & {
+  id: string
+}
 
 /**
  * Available ASCII art themes for card faces
