@@ -1,6 +1,10 @@
 import { Box, Text } from 'ink'
 import React, { useContext } from 'react'
-import { CARD_DIMENSIONS, getSuitColor } from '../../constants/card.js'
+import {
+  CARD_DIMENSIONS,
+  EFFECT_INDICATOR_COLOR,
+  getSuitColor,
+} from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { useCardTheme } from '../../contexts/ThemeContext.js'
 import { type CardProps } from '../../types/index.js'
@@ -23,11 +27,13 @@ export function MiniCard({
   selected = false,
   rounded = true,
   variant = 'mini',
+  effects,
 }: MiniCardProps) {
   const cardTheme = useCardTheme()
   const suitSymbol = cardTheme.suitGlyphs[suit]
   const context = useContext(DeckContext)
   const backArtwork = context?.backArtwork ?? defaultBackArtwork
+  const hasEffects = faceUp && Array.isArray(effects) && effects.length > 0
 
   const color = getSuitColor(suit, cardTheme)
   const innerWidth = INNER_WIDTH[variant]
@@ -56,7 +62,9 @@ export function MiniCard({
           ? undefined
           : selected
             ? cardTheme.selectedColor
-            : 'white'
+            : hasEffects
+              ? EFFECT_INDICATOR_COLOR
+              : 'white'
       }
     >
       {faceUp ? (

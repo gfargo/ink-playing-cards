@@ -4,6 +4,7 @@ import { render } from 'ink-testing-library'
 import { Text } from 'ink'
 import React from 'react'
 import stringWidth from 'string-width'
+import { DrawCardEffect } from '../../systems/Effects.js'
 import { CustomCard } from './index.js'
 
 test('render custom card with ASCII art', (t) => {
@@ -85,6 +86,61 @@ test('render selected custom card', (t) => {
     />
   )
   t.snapshot(lastFrame())
+})
+
+test('face-up card with effects renders an indicator', (t) => {
+  const withEffects = render(
+    <CustomCard
+      id="fx-present"
+      size="small"
+      title="Spark"
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <CustomCard id="fx-present" size="small" title="Spark" />
+  ).lastFrame()
+  t.not(withEffects, withoutEffects)
+})
+
+test('empty effects array renders identically to no effects', (t) => {
+  const emptyEffects = render(
+    <CustomCard id="fx-empty" size="small" title="Spark" effects={[]} />
+  ).lastFrame()
+  const noEffects = render(
+    <CustomCard id="fx-empty" size="small" title="Spark" />
+  ).lastFrame()
+  t.is(emptyEffects, noEffects)
+})
+
+test('face-down card with effects renders identically to face-down without effects', (t) => {
+  const withEffects = render(
+    <CustomCard
+      id="fx-facedown"
+      size="small"
+      faceUp={false}
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <CustomCard id="fx-facedown" size="small" faceUp={false} />
+  ).lastFrame()
+  t.is(withEffects, withoutEffects)
+})
+
+test('selected card with effects keeps the selected border color', (t) => {
+  const selectedWithEffects = render(
+    <CustomCard
+      selected
+      id="fx-selected"
+      size="small"
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const selectedOnly = render(
+    <CustomCard selected id="fx-selected" size="small" />
+  ).lastFrame()
+  t.is(selectedWithEffects, selectedOnly)
 })
 
 test('render freeform content mode', (t) => {

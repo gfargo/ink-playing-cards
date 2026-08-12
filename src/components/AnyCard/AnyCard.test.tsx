@@ -1,6 +1,7 @@
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
+import { DrawCardEffect } from '../../systems/Effects.js'
 import { AnyCard } from './index.js'
 
 // AnyCard — standard card branches
@@ -67,6 +68,52 @@ test('standard card micro variant renders MiniCard', (t) => {
     t.true(frame.includes('♦'))
     t.true(frame.includes('3'))
   }
+})
+
+test('standard card with effects renders an indicator (Card path)', (t) => {
+  const withEffects = render(
+    <AnyCard
+      faceUp
+      card={{
+        id: 'ace-spades-fx',
+        suit: 'spades',
+        value: 'A',
+        effects: [new DrawCardEffect(1)],
+      }}
+      variant="simple"
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <AnyCard
+      faceUp
+      card={{ id: 'ace-spades-fx', suit: 'spades', value: 'A' }}
+      variant="simple"
+    />
+  ).lastFrame()
+  t.not(withEffects, withoutEffects)
+})
+
+test('standard card with effects renders an indicator (MiniCard path)', (t) => {
+  const withEffects = render(
+    <AnyCard
+      faceUp
+      card={{
+        id: 'two-clubs-fx',
+        suit: 'clubs',
+        value: '2',
+        effects: [new DrawCardEffect(1)],
+      }}
+      variant="mini"
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <AnyCard
+      faceUp
+      card={{ id: 'two-clubs-fx', suit: 'clubs', value: '2' }}
+      variant="mini"
+    />
+  ).lastFrame()
+  t.not(withEffects, withoutEffects)
 })
 
 test('standard card face down renders back', (t) => {

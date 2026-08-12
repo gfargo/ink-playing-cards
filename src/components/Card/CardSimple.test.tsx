@@ -1,6 +1,7 @@
 import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
+import { DrawCardEffect } from '../../systems/Effects.js'
 import Card from './index.js'
 
 test('render two of hearts face up', (t) => {
@@ -90,6 +91,63 @@ test('render ace of spades face down', (t) => {
   if (aceSpacesLastFrame) {
     t.false(aceSpacesLastFrame.includes('♠'))
   }
+})
+
+test('face-up card with effects renders an indicator', (t) => {
+  const withEffects = render(
+    <Card
+      id="king-hearts-fx"
+      suit="hearts"
+      value="K"
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <Card id="king-hearts-fx" suit="hearts" value="K" />
+  ).lastFrame()
+  t.not(withEffects, withoutEffects)
+})
+
+test('empty effects array renders identically to no effects', (t) => {
+  const emptyEffects = render(
+    <Card id="king-hearts-fx-empty" suit="hearts" value="K" effects={[]} />
+  ).lastFrame()
+  const noEffects = render(
+    <Card id="king-hearts-fx-empty" suit="hearts" value="K" />
+  ).lastFrame()
+  t.is(emptyEffects, noEffects)
+})
+
+test('face-down card with effects renders identically to face-down without effects', (t) => {
+  const withEffects = render(
+    <Card
+      id="king-hearts-fx-facedown"
+      suit="hearts"
+      value="K"
+      faceUp={false}
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <Card id="king-hearts-fx-facedown" suit="hearts" value="K" faceUp={false} />
+  ).lastFrame()
+  t.is(withEffects, withoutEffects)
+})
+
+test('selected card with effects keeps the selected border color', (t) => {
+  const selectedWithEffects = render(
+    <Card
+      selected
+      id="king-hearts-fx-selected"
+      suit="hearts"
+      value="K"
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const selectedOnly = render(
+    <Card selected id="king-hearts-fx-selected" suit="hearts" value="K" />
+  ).lastFrame()
+  t.is(selectedWithEffects, selectedOnly)
 })
 
 test('render joker of hearts face up (simple variant)', (t) => {

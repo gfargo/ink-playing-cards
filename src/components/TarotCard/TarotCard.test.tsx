@@ -2,6 +2,7 @@ import test from 'ava'
 import { render } from 'ink-testing-library'
 import React from 'react'
 import { mulberry32 } from '../../utils/rng.js'
+import { DrawCardEffect } from '../../systems/Effects.js'
 import { createTarotDeck } from './utils.js'
 import { TarotCard } from './index.js'
 
@@ -40,6 +41,21 @@ test('render Major Arcana reversed', (t) => {
     <TarotCard reversed id="fool-rev" arcana="major" majorIndex={0} />
   )
   t.snapshot(lastFrame())
+})
+
+test('effects prop forwards to CustomCard and renders an indicator', (t) => {
+  const withEffects = render(
+    <TarotCard
+      id="fool-fx"
+      arcana="major"
+      majorIndex={0}
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <TarotCard id="fool-fx" arcana="major" majorIndex={0} />
+  ).lastFrame()
+  t.not(withEffects, withoutEffects)
 })
 
 // ── Minor Arcana rendering ──────────────────────────────────────────

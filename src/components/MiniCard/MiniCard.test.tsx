@@ -2,6 +2,7 @@ import test from 'ava'
 import { render } from 'ink-testing-library'
 import React, { useContext, useRef } from 'react'
 import { DeckContext, DeckProvider } from '../../contexts/DeckContext.js'
+import { DrawCardEffect } from '../../systems/Effects.js'
 import { MiniCard } from './index.js'
 
 function FaceDownAceWithCustomBackArtwork() {
@@ -91,6 +92,42 @@ test('render a 6 of clubs face up', (t) => {
   if (sixClubsLastFrame) {
     t.true(sixClubsLastFrame.includes('♣'))
   }
+})
+
+test('face-up card with effects renders an indicator', (t) => {
+  const withEffects = render(
+    <MiniCard
+      id="six-clubs-fx"
+      suit="clubs"
+      value="6"
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <MiniCard id="six-clubs-fx" suit="clubs" value="6" />
+  ).lastFrame()
+  t.not(withEffects, withoutEffects)
+})
+
+test('face-down card with effects renders identically to face-down without effects', (t) => {
+  const withEffects = render(
+    <MiniCard
+      id="six-clubs-fx-facedown"
+      suit="clubs"
+      value="6"
+      faceUp={false}
+      effects={[new DrawCardEffect(1)]}
+    />
+  ).lastFrame()
+  const withoutEffects = render(
+    <MiniCard
+      id="six-clubs-fx-facedown"
+      suit="clubs"
+      value="6"
+      faceUp={false}
+    />
+  ).lastFrame()
+  t.is(withEffects, withoutEffects)
 })
 
 test('render a 7 of spades face up', (t) => {

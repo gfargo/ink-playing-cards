@@ -35,6 +35,12 @@ export const CARD_DIMENSIONS = {
 } as const
 
 /**
+ * Border tint used to indicate a face-up card carries `effects`. Ranks below
+ * the `selected` highlight and is skipped entirely in monochrome themes.
+ */
+export const EFFECT_INDICATOR_COLOR = 'magenta'
+
+/**
  * Maps suit names to their corresponding Unicode symbols
  */
 export const SUIT_SYMBOL_MAP: Record<TSuit, TSuitIcon> = {

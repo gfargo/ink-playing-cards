@@ -1,6 +1,10 @@
 import { Box, Text, type BoxProps } from 'ink'
 import React, { useContext } from 'react'
-import { CARD_DIMENSIONS, getSuitColor } from '../../constants/card.js'
+import {
+  CARD_DIMENSIONS,
+  EFFECT_INDICATOR_COLOR,
+  getSuitColor,
+} from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import { useCardTheme } from '../../contexts/ThemeContext.js'
 import { type AsciiTheme, type CardProps } from '../../types/index.js'
@@ -31,6 +35,7 @@ export function Card({
   rounded = true,
   variant = 'simple',
   theme = 'original',
+  effects,
 }: CardProps & {
   readonly variant?: 'ascii' | 'simple' | 'minimal'
   readonly theme?: AsciiTheme
@@ -38,6 +43,7 @@ export function Card({
   const context = useContext(DeckContext)
   const backArtwork = context?.backArtwork ?? defaultBackArtwork
   const cardTheme = useCardTheme()
+  const hasEffects = faceUp && Array.isArray(effects) && effects.length > 0
 
   const config = {
     ...CARD_DIMENSIONS[variant],
@@ -65,7 +71,9 @@ export function Card({
       ? undefined
       : selected
         ? cardTheme.selectedColor
-        : 'white',
+        : hasEffects
+          ? EFFECT_INDICATOR_COLOR
+          : 'white',
     height: config.height,
     width: config.width,
     overflow: 'hidden',
