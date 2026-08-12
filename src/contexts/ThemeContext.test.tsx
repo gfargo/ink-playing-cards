@@ -4,6 +4,7 @@ import test from 'ava'
 import { Card } from '../components/Card/index.js'
 import { MiniCard } from '../components/MiniCard/index.js'
 import { UnicodeCard } from '../components/UnicodeCard/index.js'
+import { DrawCardEffect } from '../systems/Effects.js'
 import {
   ThemeContext,
   ThemeProvider,
@@ -60,6 +61,17 @@ test('ThemeProvider monochrome strips suit color from Card', (t) => {
   const { lastFrame } = render(
     <ThemeProvider monochrome>
       <Card id="c1" suit="hearts" value="A" />
+    </ThemeProvider>
+  )
+  const frame = lastFrame()
+  t.truthy(frame)
+  t.notRegex(frame ?? '', ANSI_COLOR_RE)
+})
+
+test('ThemeProvider monochrome suppresses the effects indicator on Card', (t) => {
+  const { lastFrame } = render(
+    <ThemeProvider monochrome>
+      <Card id="c1" suit="hearts" value="A" effects={[new DrawCardEffect(1)]} />
     </ThemeProvider>
   )
   const frame = lastFrame()

@@ -28,6 +28,13 @@ export type TSuit = 'hearts' | 'diamonds' | 'clubs' | 'spades'
  */
 export type BaseCardProps = {
   id: string
+  /**
+   * Effects attached to this card. Consumed by `EffectManager.applyCardEffects`
+   * on `PLAY_CARD` (game-state side). On the render side, a non-empty array on
+   * a face-up card also drives a border-color indicator (`EFFECT_INDICATOR_COLOR`)
+   * in `Card`, `MiniCard`, and `CustomCard` — ranked below the `selected`
+   * highlight and skipped in monochrome themes.
+   */
   effects?: CardEffect[]
   faceUp?: boolean
   selected?: boolean

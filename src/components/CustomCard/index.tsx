@@ -1,6 +1,7 @@
 import process from 'node:process'
 import { Box, type BoxProps, Text } from 'ink'
 import React, { useContext } from 'react'
+import { EFFECT_INDICATOR_COLOR } from '../../constants/card.js'
 import { DeckContext, defaultBackArtwork } from '../../contexts/DeckContext.js'
 import {
   type CustomCardBack,
@@ -515,6 +516,7 @@ export function CustomCard({
   faceUp = true,
   selected = false,
   rounded = true,
+  effects,
 }: CustomCardProps) {
   const context = useContext(DeckContext)
   const backArtwork = context?.backArtwork ?? defaultBackArtwork
@@ -541,9 +543,15 @@ export function CustomCard({
     )
   }
 
+  const hasEffects = Array.isArray(effects) && effects.length > 0
+
   const cardStyle: BoxProps = {
     borderStyle: selected ? 'double' : rounded ? 'round' : 'single',
-    borderColor: selected ? 'yellow' : borderColor,
+    borderColor: selected
+      ? 'yellow'
+      : hasEffects
+        ? EFFECT_INDICATOR_COLOR
+        : borderColor,
     width: cardWidth,
     height: cardHeight,
     flexDirection: 'column',

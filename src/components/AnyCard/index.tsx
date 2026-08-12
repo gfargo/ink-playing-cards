@@ -45,6 +45,7 @@ export function AnyCard({
           value={card.value}
           faceUp={faceUp}
           variant={resolved}
+          effects={card.effects}
         />
       )
     }
@@ -56,6 +57,7 @@ export function AnyCard({
         value={card.value}
         faceUp={faceUp}
         variant={resolved}
+        effects={card.effects}
       />
     )
   }
