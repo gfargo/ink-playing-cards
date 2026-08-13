@@ -151,6 +151,52 @@ test('render grid with bottom alignment', (t) => {
   t.snapshot(gridFrame)
 })
 
+test('alignment.vertical is a no-op without an explicit height', (t) => {
+  const renderWithVertical = (vertical: 'top' | 'middle' | 'bottom') =>
+    render(
+      <CardGrid
+        rows={2}
+        cols={2}
+        cards={sampleCards}
+        alignment={{ horizontal: 'center', vertical }}
+      />
+    ).lastFrame()
+
+  const top = renderWithVertical('top')
+  const middle = renderWithVertical('middle')
+  const bottom = renderWithVertical('bottom')
+  t.is(top, middle)
+  t.is(middle, bottom)
+})
+
+test('alignment.vertical repositions the grid when height is set', (t) => {
+  const renderWithVertical = (vertical: 'top' | 'middle' | 'bottom') =>
+    render(
+      <CardGrid
+        rows={2}
+        cols={2}
+        cards={sampleCards}
+        height={30}
+        alignment={{ horizontal: 'center', vertical }}
+      />
+    ).lastFrame()
+
+  const top = renderWithVertical('top')
+  const middle = renderWithVertical('middle')
+  const bottom = renderWithVertical('bottom')
+  t.not(top, middle)
+  t.not(middle, bottom)
+  t.not(top, bottom)
+
+  // Top-aligned content should push the grid down the least; bottom-aligned
+  // content should push it down the most, with middle in between.
+  const leadingBlankLines = (frame: string | undefined) =>
+    (frame ?? '').split('\n').findIndex((line) => line.trim() !== '')
+
+  t.true(leadingBlankLines(bottom) > leadingBlankLines(middle))
+  t.true(leadingBlankLines(middle) > leadingBlankLines(top))
+})
+
 test('render minimal variant grid', (t) => {
   const { lastFrame } = render(
     <CardGrid rows={2} cols={2} cards={sampleCards} variant="minimal" />

@@ -226,6 +226,18 @@ Arranges cards in a grid layout:
 />
 ```
 
+`alignment.vertical` (`'top' | 'middle' | 'bottom'`) only has a visible effect when an explicit `height` prop is also set — without a height, the grid's column container has no extra space to distribute:
+
+```tsx
+<CardGrid
+  rows={2}
+  cols={3}
+  cards={gameBoard}
+  height={20}
+  alignment={{ horizontal: 'center', vertical: 'bottom' }}
+/>
+```
+
 ### Deck
 
 Displays the deck with an optional top card preview. Must be used inside a `DeckProvider`:

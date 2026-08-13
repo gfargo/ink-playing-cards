@@ -30,8 +30,13 @@ type CardGridProps = {
   readonly fillEmpty?: boolean // Whether to show placeholder for empty cells
   readonly alignment?: {
     horizontal?: 'left' | 'center' | 'right'
+    // Only takes effect when `height` is set — a column-direction Box with no
+    // height has no extra main-axis space for justifyContent to distribute.
     vertical?: 'top' | 'middle' | 'bottom'
   }
+  // Explicit height for the grid container. Required for `alignment.vertical`
+  // to have any visible effect.
+  readonly height?: number
 }
 
 export function CardGrid({
@@ -43,6 +48,7 @@ export function CardGrid({
   isFaceUp = true,
   fillEmpty = false,
   alignment = { horizontal: 'center', vertical: 'middle' },
+  height,
 }: CardGridProps) {
   const responsiveVariant = useResponsiveVariant()
   const resolvedVariant = variant === 'responsive' ? responsiveVariant : variant
@@ -162,6 +168,7 @@ export function CardGrid({
       flexDirection="column"
       marginX={spacing.margin}
       marginY={spacing.margin}
+      height={height}
       {...getAlignmentStyle()}
     >
       {grid.map((row, rowIndex) => (
