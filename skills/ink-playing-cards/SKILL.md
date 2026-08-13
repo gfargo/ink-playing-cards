@@ -247,6 +247,13 @@ import { CardGrid, type GridCard } from 'ink-playing-cards'
   isFaceUp fillEmpty spacing={{ row: 1, col: 1, margin: 1 }} />
 ```
 
+`alignment.vertical` (`'top' | 'middle' | 'bottom'`) is a no-op unless an explicit `height` prop is also passed — without it, the column container has no extra main-axis space to distribute:
+
+```tsx
+<CardGrid rows={2} cols={3} cards={gridCards} height={20}
+  alignment={{ horizontal: 'center', vertical: 'bottom' }} />
+```
+
 ### Deck — visual deck display
 
 Must be inside `DeckProvider`. Shows top card + placeholder.
