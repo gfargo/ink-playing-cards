@@ -207,12 +207,9 @@ export type MajorArcanaIndex =
   | 21
 
 /**
- * Props for a Major Arcana tarot card.
+ * Fields shared by Major and Minor Arcana tarot card props.
  */
-export type TarotMajorProps = BaseCardProps & {
-  arcana: 'major'
-  /** Index 0–21 corresponding to The Fool through The World */
-  majorIndex: MajorArcanaIndex
+type TarotCommon = BaseCardProps & {
   /** Whether the card is reversed (upside-down reading) */
   reversed?: boolean
   /** Override the default ASCII art */
@@ -228,24 +225,21 @@ export type TarotMajorProps = BaseCardProps & {
 }
 
 /**
+ * Props for a Major Arcana tarot card.
+ */
+export type TarotMajorProps = TarotCommon & {
+  arcana: 'major'
+  /** Index 0–21 corresponding to The Fool through The World */
+  majorIndex: MajorArcanaIndex
+}
+
+/**
  * Props for a Minor Arcana tarot card.
  */
-export type TarotMinorProps = BaseCardProps & {
+export type TarotMinorProps = TarotCommon & {
   arcana: 'minor'
   suit: TarotSuit
   value: TarotMinorValue
-  /** Whether the card is reversed (upside-down reading) */
-  reversed?: boolean
-  /** Override the default ASCII art */
-  asciiArt?: string
-  /** Border color */
-  borderColor?: string
-  /** Text color */
-  textColor?: string
-  /** Art region color */
-  artColor?: string
-  /** Custom card back */
-  back?: CustomCardBack
 }
 
 export type TarotCardProps = TarotMajorProps | TarotMinorProps
