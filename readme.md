@@ -19,6 +19,23 @@ A flexible framework for building terminal-based card games with [React](https:/
 npm install ink-playing-cards
 ```
 
+### Install as an agent skill
+
+This repo ships an [Agent Skill](https://agentskills.io) so coding agents (Claude Code, Cursor, Codex, and others) know how to build card games with this library:
+
+```bash
+npx skills add gfargo/ink-playing-cards
+```
+
+Claude Code users can also install it from the plugin marketplace:
+
+```
+/plugin marketplace add gfargo/skills
+/plugin install games@gfargo-skills
+```
+
+The skill lives at [`skills/ink-playing-cards`](./skills/ink-playing-cards/SKILL.md).
+
 ## Quick Start
 
 ```tsx
